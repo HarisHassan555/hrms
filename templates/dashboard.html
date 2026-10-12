@@ -1,0 +1,2039 @@
+﻿{% extends "index.html" %}
+{% load static i18n %}
+
+{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+
+
+    <div class="md-dashboard">
+        <!-- Header -->
+        <div class="md-header">
+            <div>
+                <h1>
+                    {% blocktrans with user_name=request.user.get_full_name|default:request.user.username %}Good afternoon, {{ user_name }}{% endblocktrans %}
+                </h1>
+                <div class="md-header__description">
+                    {% trans "Here's what's happening across your organization today." %}
+                </div>
+                <div class="md-header__date" id="md-date"></div>
+                {% if dashboard_company_label %}
+                    <div
+                        class="md-company-chip"
+                        id="md-company-chip"
+                        title="{% if dashboard_company_is_all %}{% trans 'KPIs span all companies you can access' %}{% else %}{% trans 'Active company scope' %}{% endif %}"
+                    >
+                        <span
+                        >{% if dashboard_company_is_all %}{% trans "Scope" %}{% else %}{% trans "Company" %}{% endif %}:</span>
+                        <strong>{{ dashboard_company_label }}</strong>
+                    </div>
+                {% endif %}
+                <div class="md-refresh">
+                    <span class="md-refresh__dot" id="md-refresh-dot"></span><span
+                        id="md-refresh-text"
+                    >{% trans "Just now" %}</span><button
+                        class="md-refresh__toggle"
+                        id="md-refresh-toggle"
+                        title="{% trans 'Toggle auto-refresh' %}"
+                    >
+                        ⟳
+                    </button>
+                </div>
+            </div>
+            <div class="md-header__actions">
+                <div class="md-period-picker" hidden>
+                    <button class="md-period-preset" data-preset="this_month">{% trans "This Month" %}</button>
+                    <button class="md-period-preset" data-preset="last_month">{% trans "Last Month" %}</button>
+                    <button class="md-period-preset" data-preset="this_quarter">{% trans "Quarter" %}</button>
+                    <input type="date" id="md-from-date" title="{% trans 'From' %}">
+                    <span class="md-period-picker__sep">→</span>
+                    <input type="date" id="md-to-date" title="{% trans 'To' %}">
+                </div>
+                <button class="md-btn-customize" id="md-open-customize" title="{% trans 'Customize dashboard' %}">
+                    <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                    {% trans "Customize Dashboard" %}
+                </button>
+            </div>
+        </div>
+
+        <!-- Setup checklist banner (shown to new accounts until all steps complete or dismissed) -->
+        {% if show_setup_checklist %}
+            {% include "base/setup_checklist_banner.html" %}
+        {% endif %}
+
+        <div class="md-kpi-grid" id="md-kpi-grid">
+            <div class="md-kpi-card md-kpi-card--skeleton">
+                <div class="md-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton md-skeleton--sub"></div>
+            </div>
+            <div class="md-kpi-card md-kpi-card--skeleton">
+                <div class="md-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton md-skeleton--sub"></div>
+            </div>
+            <div class="md-kpi-card md-kpi-card--skeleton">
+                <div class="md-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton md-skeleton--sub"></div>
+            </div>
+            <div class="md-kpi-card md-kpi-card--skeleton">
+                <div class="md-skeleton md-skeleton--icon"></div>
+                <div class="md-skeleton md-skeleton--label"></div>
+                <div class="md-skeleton md-skeleton--value"></div>
+                <div class="md-skeleton md-skeleton--sub"></div>
+            </div>
+        </div>
+
+        <!-- Main layout -->
+        <div class="md-layout">
+            <!-- Left: Charts (single flat grid for reordering) -->
+            <div class="md-main">
+                <div class="md-section-heading">
+                    <div>
+                        <h2>{% trans "Employee Insights" %}</h2>
+                        <p>{% trans "Secondary workforce signals from today's operational data." %}</p>
+                    </div>
+                </div>
+                <div class="md-insight-grid" id="md-employee-insights">
+                    <div class="md-insight-card">
+                        <div class="md-skeleton md-skeleton--label"></div>
+                        <div class="md-skeleton md-skeleton--value"></div>
+                    </div>
+                    <div class="md-insight-card">
+                        <div class="md-skeleton md-skeleton--label"></div>
+                        <div class="md-skeleton md-skeleton--value"></div>
+                    </div>
+                    <div class="md-insight-card">
+                        <div class="md-skeleton md-skeleton--label"></div>
+                        <div class="md-skeleton md-skeleton--value"></div>
+                    </div>
+                    <div class="md-insight-card">
+                        <div class="md-skeleton md-skeleton--label"></div>
+                        <div class="md-skeleton md-skeleton--value"></div>
+                    </div>
+                </div>
+                <div class="md-section-heading">
+                    <div>
+                        <h2>{% trans "Workforce Overview" %}</h2>
+                        <p>{% trans "Attendance trend, workforce mix, and supporting operational analytics." %}</p>
+                    </div>
+                </div>
+                <div class="md-chart-grid" id="md-charts-container">
+                    <!-- Department Headcount -->
+                    <div
+                        class="md-chart-card"
+                        data-chart-id="department_headcount"
+                        data-chart-section="overview"
+                        data-chart-label="{% trans 'Workforce Distribution' %}"
+                    >
+                        <div class="md-chart-card__header">
+                            <div>
+                                <div class="md-chart-card__title">{% trans "Workforce Distribution" %}</div>
+                                <div class="md-chart-card__subtitle">{% trans "Employees by department" %}</div>
+                            </div>
+                        </div>
+                        <div class="md-chart-card__body"><div id="chart-departments"></div></div>
+                    </div>
+
+                    <div
+                        class="md-chart-card md-chart-card--wide"
+                        data-chart-id="department_overview"
+                        data-chart-section="overview"
+                        data-chart-label="{% trans 'Department Overview' %}"
+                        data-chart-wide="1"
+                    >
+                        <div class="md-chart-card__header">
+                            <div>
+                                <div class="md-chart-card__title">{% trans "Department Overview" %}</div>
+                                <div class="md-chart-card__subtitle">{% trans "Headcount by department from existing employee data" %}</div>
+                            </div>
+                        </div>
+                        <div class="md-chart-card__body" id="md-department-overview">
+                            <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                        </div>
+                    </div>
+
+                    {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+                        <!-- Leave Trends -->
+                        <div
+                            class="md-chart-card"
+                            data-chart-id="leave_trends"
+                            data-chart-section="overview"
+                            data-chart-label="{% trans 'Leave Trends' %}"
+                            data-chart-default="hidden"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Leave Trends" %}</div>
+                                    <div class="md-chart-card__subtitle">{% trans "Leave count vs Date" %}</div>
+                                </div>
+                                <a
+                                    class="md-link text-xs"
+                                    href="{% url 'leave-dashboard' %}"
+                                >{% trans "Open Leave dashboard" %}</a>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-leave-trend"></div></div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Employee Status -->
+                    <div
+                        class="md-chart-card"
+                        data-chart-id="employee_status"
+                        data-chart-section="overview"
+                        data-chart-label="{% trans 'Employee Status' %}"
+                        data-chart-default="hidden"
+                    >
+                        <div class="md-chart-card__header">
+                            <div>
+                                <div class="md-chart-card__title">{% trans "Employee Status" %}</div>
+                                <div class="md-chart-card__subtitle">{% trans "Active vs Inactive" %}</div>
+                            </div>
+                            <a
+                                class="md-link text-xs"
+                                href="{% url 'employee-dashboard' %}"
+                            >{% trans "Open Employee dashboard" %}</a>
+                        </div>
+                        <div class="md-chart-card__body"><div id="chart-employee-status"></div></div>
+                    </div>
+
+                    <!-- Gender Distribution -->
+                    <div
+                        class="md-chart-card"
+                        data-chart-id="gender_distribution"
+                        data-chart-section="overview"
+                        data-chart-label="{% trans 'Gender Distribution' %}"
+                        data-chart-default="hidden"
+                    >
+                        <div class="md-chart-card__header">
+                            <div>
+                                <div class="md-chart-card__title">{% trans "Gender Distribution" %}</div>
+                                <div class="md-chart-card__subtitle">{% trans "Active employees" %}</div>
+                            </div>
+                        </div>
+                        <div class="md-chart-card__body"><div id="chart-gender"></div></div>
+                    </div>
+
+                    {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+                        <!-- Leave Breakdown -->
+                        <div
+                            class="md-chart-card"
+                            data-chart-id="leave_breakdown"
+                            data-chart-section="overview"
+                            data-chart-label="{% trans 'Leave Breakdown' %}"
+                            data-chart-default="hidden"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Leave Breakdown" %}</div>
+                                    <div class="md-chart-card__subtitle" id="leave-month">{% trans "This month" %}</div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-leave"></div></div>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.attendance.view_attendance or request.user.is_superuser or home_role == "manager" %}
+                        <!-- Attendance Overview -->
+                        <div
+                            class="md-chart-card md-chart-card--wide"
+                            data-chart-id="attendance_overview"
+                            data-chart-section="attendance"
+                            data-chart-label="{% trans 'Attendance Overview' %}"
+                            data-chart-wide="1"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Attendance Overview" %}</div>
+                                    <div class="md-chart-card__subtitle">
+                                        {% trans "On-time, late arrivals & early departures by department" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-attendance-overview"></div></div>
+                        </div>
+
+                        <!-- Department Overtime -->
+                        <div
+                            class="md-chart-card"
+                            data-chart-id="department_overtime"
+                            data-chart-section="attendance"
+                            data-chart-label="{% trans 'Department Overtime' %}"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Department Overtime" %}</div>
+                                    <div class="md-chart-card__subtitle">
+                                        {% trans "Overtime hours by department" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-overtime"></div></div>
+                        </div>
+
+                        <!-- Attendance Trend -->
+                        <div
+                            class="md-chart-card"
+                            data-chart-id="attendance_trend"
+                            data-chart-section="attendance"
+                            data-chart-label="{% trans 'Attendance Trend' %}"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Attendance Trend" %}</div>
+                                    <div class="md-chart-card__subtitle" id="md-attendance-trend-subtitle">
+                                        {% trans "Weekly rate — last 12 weeks" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-attendance-trend"></div></div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Leave Coverage (7 days) -->
+                    <div
+                        class="md-chart-card md-chart-card--wide"
+                        data-chart-id="leave_coverage"
+                        data-chart-section="leave"
+                        data-chart-label="{% trans 'Leave Coverage' %}"
+                        data-chart-wide="1"
+                    >
+                        <div class="md-chart-card__header">
+                            <div>
+                                <div class="md-chart-card__title">{% trans "Leave Coverage" %}</div>
+                                <div class="md-chart-card__subtitle">
+                                    {% trans "Next 7 days — who is out vs available" %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md-chart-card__body"><div id="chart-leave-coverage"></div></div>
+                    </div>
+
+                    {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
+                        <!-- Recruitment Pipeline -->
+                        <div
+                            class="md-chart-card md-chart-card--wide"
+                            data-chart-id="recruitment_pipeline"
+                            data-chart-section="recruitment"
+                            data-chart-label="{% trans 'Recruitment Pipeline' %}"
+                            data-chart-wide="1"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Recruitment Pipeline" %}</div>
+                                    <div class="md-chart-card__subtitle">
+                                        {% trans "Candidates by stage per recruitment" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-pipeline"></div></div>
+                        </div>
+
+                        <!-- Hiring Timeline -->
+                        <div
+                            class="md-chart-card md-chart-card--wide"
+                            data-chart-id="hiring_timeline"
+                            data-chart-section="recruitment"
+                            data-chart-label="{% trans 'Hiring Timeline' %}"
+                            data-chart-wide="1"
+                            data-chart-default="hidden"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Hiring Timeline" %}</div>
+                                    <div class="md-chart-card__subtitle">{% trans "Employees joined by month" %}</div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-hiring"></div></div>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+                        <!-- Leave by Department -->
+                        <div
+                            class="md-chart-card"
+                            data-chart-id="leave_by_department"
+                            data-chart-section="leave"
+                            data-chart-label="{% trans 'Leave by Department' %}"
+                            data-chart-default="hidden"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Leave by Department" %}</div>
+                                    <div class="md-chart-card__subtitle">
+                                        {% trans "Requests ranked by department" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-leave-dept"></div></div>
+                        </div>
+
+                        <!-- Department Leave Days -->
+                        <div
+                            class="md-chart-card"
+                            data-chart-id="department_leave_days"
+                            data-chart-section="leave"
+                            data-chart-label="{% trans 'Department Leave Days' %}"
+                            data-chart-default="hidden"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Department Leave Days" %}</div>
+                                    <div class="md-chart-card__subtitle">
+                                        {% trans "Total leave days by department" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-leave-days"></div></div>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
+                        <!-- Recruitment Funnel (NEW) -->
+                        <div
+                            class="md-chart-card md-chart-card--wide"
+                            data-chart-id="recruitment_funnel"
+                            data-chart-section="recruitment"
+                            data-chart-label="{% trans 'Recruitment Funnel' %}"
+                            data-chart-wide="1"
+                            data-chart-default="hidden"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Recruitment Funnel" %}</div>
+                                    <div class="md-chart-card__subtitle">
+                                        {% trans "Stage pipeline — share of candidates" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-recruitment-funnel"></div></div>
+                        </div>
+                    {% endif %}
+
+                    {% if perms.employee.view_employee or request.user.is_superuser %}
+                        <!-- Employee Turnover -->
+                        <div
+                            class="md-chart-card md-chart-card--wide"
+                            data-chart-id="employee_turnover"
+                            data-chart-section="overview"
+                            data-chart-label="{% trans 'Employee Turnover' %}"
+                            data-chart-wide="1"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Employee Turnover" %}</div>
+                                    <div class="md-chart-card__subtitle" id="turnover-rate">
+                                        {% trans "New hires vs exits — last 6 months" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-turnover"></div></div>
+                        </div>
+                    {% endif %}
+
+                    {% if request.user.is_superuser or perms.payroll.view_payslip and request.user.is_staff or perms.payroll.view_payslip and perms.payroll.change_payslip %}
+                        <!-- Payroll Summary — payroll operators only (staff/superuser/change_payslip) -->
+                        <div
+                            class="md-chart-card"
+                            data-chart-id="payroll_summary"
+                            data-chart-section="overview"
+                            data-chart-label="{% trans 'Payroll Summary' %}"
+                        >
+                            <div class="md-chart-card__header">
+                                <div>
+                                    <div class="md-chart-card__title">{% trans "Payroll Summary" %}</div>
+                                    <div class="md-chart-card__subtitle" id="payroll-month">
+                                        {% trans "Current vs previous month" %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-chart-card__body"><div id="chart-payroll"></div></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Operational overview -->
+            <div class="md-sidebar">
+                <div class="md-info-panel md-info-panel--actions">
+                    <div class="md-info-panel__header">
+                        <div>
+                            <div class="md-info-panel__title">{% trans "Needs Your Attention" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Approvals and requests waiting for review" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-info-panel__body" id="md-pending-approvals">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+                <div class="md-info-panel md-info-panel--upcoming">
+                    <div class="md-info-panel__header">
+                        <div>
+                            <div class="md-info-panel__title">{% trans "Upcoming & Activity" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Announcements, time away, holidays, birthdays, and anniversaries" %}</div>
+                        </div>
+                        {% if perms.base.add_announcement %}
+                            <button
+                                class="md-btn-add"
+                                id="md-add-announcement"
+                                title="{% trans 'New Announcement' %}"
+                                hx-get="{% url 'create-announcement' %}"
+                                hx-target="#objectCreateModalTarget"
+                                hx-swap="innerHTML"
+                                data-toggle="oh-modal-toggle"
+                                data-target="#objectCreateModal"
+                            >
+                                +
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="md-info-panel__body">
+                        <div class="md-upcoming-grid">
+                            <section class="md-upcoming-column">
+                                <div class="md-upcoming-column__header">
+                                    <div class="md-upcoming-column__title">{% trans "Announcements" %}</div>
+                                </div>
+                                <div id="md-announcements">
+                                    <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                                </div>
+                            </section>
+                            <section class="md-upcoming-column">
+                                <div class="md-upcoming-column__header">
+                                    <div class="md-upcoming-column__title">{% trans "On Leave Today" %}</div>
+                                    <a id="md-leave-viewall" href="{% url 'request-view' %}" class="md-link-subtle">{% trans "View all" %}</a>
+                                </div>
+                                <div id="md-todays-leave">
+                                    <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                                </div>
+                            </section>
+                            <section class="md-upcoming-column">
+                                <div class="md-upcoming-column__header">
+                                    <div class="md-upcoming-column__title">{% trans "Upcoming Holidays" %}</div>
+                                    <a id="md-holidays-viewall" href="{% url 'holiday-view' %}" class="md-link-subtle">{% trans "View all" %}</a>
+                                </div>
+                                <div id="md-holidays">
+                                    <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                                </div>
+                            </section>
+                            <section class="md-upcoming-column">
+                                <div class="md-upcoming-column__header">
+                                    <div class="md-upcoming-column__title">{% trans "Birthdays & Anniversaries" %}</div>
+                                </div>
+                                <div id="md-birthdays">
+                                    <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customize Panel (slide-out) -->
+    <div class="md-customize-overlay" id="md-customize-overlay"></div>
+    <div class="md-customize-panel" id="md-customize-panel">
+        <div class="md-customize-panel__header">
+            <h3>{% trans "Customize Dashboard" %}</h3>
+            <button class="md-customize-panel__close" id="md-close-customize">&times;</button>
+        </div>
+        <div class="md-customize-panel__body" id="md-customize-list"></div>
+        <div class="md-customize-panel__footer">
+            <button class="oh-btn oh-btn--light-bkg" id="md-reset-customize">{% trans "Reset to default" %}</button>
+            <button class="oh-btn oh-btn--secondary" id="md-save-customize">{% trans "Save" %}</button>
+        </div>
+    </div>
+
+    <!-- Create Announcement Modal -->
+    <!-- Announcement create uses standard #objectCreateModal via HTMX on the + button -->
+
+    <script>
+        (function() {
+            const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
+            const textColor = isDark ? '#cbd5e1' : '#334155';
+            const subTextColor = isDark ? '#64748b' : '#94a3b8';
+            const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+            const cardBg = isDark ? '#242424' : '#ffffff';
+            const COLORS = ['#4F46E5','#0EA5E9','#14B8A6','#22C55E','#F59E0B','#EF4444','#94A3B8'];
+            const ANIM = { enabled: true, easing: 'easeinout', speed: 700, animateGradually: { enabled: true, delay: 80 }, dynamicAnimation: { enabled: true, speed: 500 } };
+            const GRID = { borderColor: gridColor, strokeDashArray: 5, padding: { left: 4, right: 4 } };
+            const TOOLTIP_STYLE = { theme: isDark ? 'dark' : 'light', style: { fontSize: '12px' } };
+            const LEGEND_STYLE = { position: 'bottom', labels: { colors: textColor }, fontSize: '11px', fontWeight: 500, markers: { width: 8, height: 8, radius: 3 }, itemMargin: { horizontal: 8 } };
+            const XAXIS_STYLE = { labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } }, axisBorder: { show: false }, axisTicks: { show: false } };
+            const YAXIS_STYLE = { labels: { style: { colors: textColor, fontSize: '11px' } } };
+            const STORAGE_KEY = 'md_dashboard_prefs_v2';
+
+            const SECTION_LABELS = {
+                overview: "{% trans 'Overview'|escapejs %}",
+                attendance: "{% trans 'Attendance & Overtime'|escapejs %}",
+                recruitment: "{% trans 'Recruitment'|escapejs %}",
+                leave: "{% trans 'Leave Analytics'|escapejs %}",
+                payroll: "{% trans 'Payroll'|escapejs %}"
+            };
+
+            // Permission flags — server-rendered; control chart click/drill-down behaviour
+            const PERM = {
+                employee:    {% if perms.employee.view_employee    or request.user.is_superuser %}true{% else %}false{% endif %},
+                attendance:  {% if perms.attendance.view_attendance or request.user.is_superuser %}true{% else %}false{% endif %},
+                leave:       {% if perms.leave.view_leaverequest   or request.user.is_superuser %}true{% else %}false{% endif %},
+                candidate:   {% if perms.recruitment.view_candidate or request.user.is_superuser %}true{% else %}false{% endif %},
+                recruitment: {% if perms.recruitment.view_recruitment or request.user.is_superuser %}true{% else %}false{% endif %},
+            };
+
+            const emptyHtml = (msg) => `<div class="md-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+            const hideCard  = id => document.querySelector(`[data-chart-id="${id}"]`)?.classList.add('md-chart-card--hidden');
+            const kpiCard   = (href, perm, colorClass, svg, label, value, sub, extra = '') => {
+                const body = `<div class="md-kpi-card__icon ${colorClass}">${svg}</div><div class="md-kpi-card__label">${label}</div><div class="md-kpi-card__value">${value}</div>`;
+                const subHtml = `<div class="md-kpi-card__sub">${sub}</div>${extra}`;
+                if (!perm) return `<div class="md-kpi-card">${body}${subHtml}</div>`;
+                return `<div class="md-kpi-card"><a href="${href}" class="md-kpi-card__hit">${body}</a>${subHtml}</div>`;
+            };
+            // Small "On-Office · 30  WFH · 12" row shown under Present Today,
+            // built from server-grouped work_type_id__work_type counts.
+            const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const kpiBreakdown = (rows) => {
+                if (!rows || !rows.length) return '';
+                const items = rows.map(r => `<span class="md-kpi-card__breakdown-item">${escapeHtml(r.label)}<b>${r.count}</b></span>`).join('');
+                return `<div class="md-kpi-card__breakdown">${items}</div>`;
+            };
+
+            document.getElementById('md-date').textContent = new Date().toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            });
+
+            // ═══════════════════════════════════════════
+            //  PERIOD PICKER
+            // ═══════════════════════════════════════════
+            const PERIOD_KEY = 'md_period_v2';
+            const fromInput = document.getElementById('md-from-date');
+            const toInput = document.getElementById('md-to-date');
+
+            function ymdLocal(d) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const da = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${da}`;
+            }
+            function getToday() { return ymdLocal(new Date()); }
+            function getFirstOfMonth() { const dt = new Date(); return ymdLocal(new Date(dt.getFullYear(), dt.getMonth(), 1)); }
+            function getLastOfMonth() { const dt = new Date(); return ymdLocal(new Date(dt.getFullYear(), dt.getMonth() + 1, 0)); }
+
+            function initPeriod() {
+                const urlParams = new URLSearchParams(location.search);
+                const urlFrom = urlParams.get('from_date');
+                const urlTo = urlParams.get('to_date');
+                if (urlFrom && urlTo) {
+                    fromInput.value = urlFrom;
+                    toInput.value = urlTo;
+                    savePeriod();
+                    return;
+                }
+                const saved = sessionStorage.getItem(PERIOD_KEY);
+                if (saved) {
+                    try {
+                        const p = JSON.parse(saved);
+                        fromInput.value = p.from;
+                        toInput.value = p.to;
+                        return;
+                    } catch {}
+                }
+                fromInput.value = getFirstOfMonth();
+                toInput.value = getLastOfMonth();
+            }
+
+            function savePeriod() {
+                sessionStorage.setItem(PERIOD_KEY, JSON.stringify({ from: fromInput.value, to: toInput.value }));
+            }
+
+            function periodParams() {
+                const from = fromInput.value;
+                const to = toInput.value;
+                if (!from || !to) return "";
+                return "from_date=" + encodeURIComponent(from) + "&to_date=" + encodeURIComponent(to);
+            }
+
+            function urlWithPeriod(baseUrl) {
+                const sep = baseUrl.includes('?') ? '&' : '?';
+                return baseUrl + sep + periodParams();
+            }
+
+            function setPreset(preset) {
+                const today = new Date();
+                let from, to;
+                if (preset === 'this_month') {
+                    from = new Date(today.getFullYear(), today.getMonth(), 1);
+                    to = new Date(today.getFullYear(), today.getMonth()+1, 0);
+                } else if (preset === 'last_month') {
+                    from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    to = new Date(today.getFullYear(), today.getMonth(), 0);
+                } else if (preset === 'this_quarter') {
+                    const qMonth = Math.floor(today.getMonth() / 3) * 3;
+                    from = new Date(today.getFullYear(), qMonth, 1);
+                    to = new Date(today.getFullYear(), qMonth + 3, 0);
+                }
+                fromInput.value = ymdLocal(from);
+                toInput.value = ymdLocal(to);
+                savePeriod();
+                highlightPreset(preset);
+                loadAllData();
+            }
+
+            function highlightPreset(active) {
+                document.querySelectorAll('.md-period-preset').forEach(btn => {
+                    btn.classList.toggle('md-period-preset--active', btn.dataset.preset === active);
+                });
+            }
+
+            function detectPreset() {
+                const today = new Date();
+                const ranges = {
+                    this_month: [
+                        ymdLocal(new Date(today.getFullYear(), today.getMonth(), 1)),
+                        ymdLocal(new Date(today.getFullYear(), today.getMonth() + 1, 0)),
+                    ],
+                    last_month: [
+                        ymdLocal(new Date(today.getFullYear(), today.getMonth() - 1, 1)),
+                        ymdLocal(new Date(today.getFullYear(), today.getMonth(), 0)),
+                    ],
+                    this_quarter: (() => {
+                        const qMonth = Math.floor(today.getMonth() / 3) * 3;
+                        return [
+                            ymdLocal(new Date(today.getFullYear(), qMonth, 1)),
+                            ymdLocal(new Date(today.getFullYear(), qMonth + 3, 0)),
+                        ];
+                    })(),
+                };
+                for (const [key, [f, t]] of Object.entries(ranges)) {
+                    if (fromInput.value === f && toInput.value === t) return key;
+                }
+                return '';
+            }
+
+            // Preset buttons
+            document.querySelectorAll('.md-period-preset').forEach(btn => {
+                btn.addEventListener('click', () => setPreset(btn.dataset.preset));
+            });
+
+            // Date input change
+            [fromInput, toInput].forEach(input => {
+                input.addEventListener('change', () => {
+                    savePeriod();
+                    highlightPreset('');
+                    loadAllData();
+                });
+            });
+
+            initPeriod();
+            highlightPreset(detectPreset());
+
+            // ═══════════════════════════════════════════
+            //  CHART REORDER + VISIBILITY SYSTEM
+            // ═══════════════════════════════════════════
+
+            function getDefaultOrder() {
+                const roleDefaults = {{ role_default_prefs|default:"[]"|safe }};
+                const byId = {};
+                if (Array.isArray(roleDefaults)) {
+                    roleDefaults.forEach(p => { if (p && p.id) byId[p.id] = !!p.visible; });
+                }
+                const cards = document.querySelectorAll('#md-charts-container [data-chart-id]');
+                return Array.from(cards).map(c => {
+                    const id = c.dataset.chartId;
+                    let visible;
+                    if (Object.prototype.hasOwnProperty.call(byId, id)) {
+                        visible = byId[id];
+                    } else {
+                        visible = c.dataset.chartDefault !== 'hidden';
+                    }
+                    return { id, visible };
+                });
+            }
+
+            function loadPrefs() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    // Validate: must be array of objects with id property (not old Horilla string format)
+                    if (!Array.isArray(parsed) || (parsed.length > 0 && typeof parsed[0] !== 'object')) {
+                        localStorage.removeItem(STORAGE_KEY);
+                        return null;
+                    }
+                    return parsed;
+                } catch { return null; }
+            }
+
+            function savePrefs(prefs) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+            }
+
+            function applyPrefs(prefs) {
+                if (!prefs) return;
+                const container = document.getElementById('md-charts-container');
+                const cards = {};
+                container.querySelectorAll('[data-chart-id]').forEach(c => { cards[c.dataset.chartId] = c; });
+
+                // Reorder
+                prefs.forEach(p => {
+                    const card = cards[p.id];
+                    if (card) {
+                        container.appendChild(card);
+                        if (p.visible === false) {
+                            card.classList.add('md-chart-card--hidden');
+                        } else {
+                            card.classList.remove('md-chart-card--hidden');
+                        }
+                    }
+                });
+
+                // Append any new charts not in prefs (honor data-chart-default)
+                Object.keys(cards).forEach(id => {
+                    if (!prefs.find(p => p.id === id)) {
+                        container.appendChild(cards[id]);
+                        if (cards[id].dataset.chartDefault === 'hidden') {
+                            cards[id].classList.add('md-chart-card--hidden');
+                        } else {
+                            cards[id].classList.remove('md-chart-card--hidden');
+                        }
+                    }
+                });
+            }
+
+            // Apply saved preferences on load (localStorage first, DB fallback, else role defaults)
+            // DB prefs are embedded in the page context by the server (already normalized)
+            let _dbPrefsRaw = {{ employee_chart_prefs|safe }};
+            if (!Array.isArray(_dbPrefsRaw) || (_dbPrefsRaw.length && typeof _dbPrefsRaw[0] === 'string')) {
+                _dbPrefsRaw = [];
+            }
+            const _localPrefs = loadPrefs();
+            if (_localPrefs) {
+                applyPrefs(_localPrefs);
+            } else if (_dbPrefsRaw && _dbPrefsRaw.length) {
+                applyPrefs(_dbPrefsRaw);
+                savePrefs(_dbPrefsRaw);
+            } else {
+                const rolePrefs = getDefaultOrder();
+                applyPrefs(rolePrefs);
+            }
+
+            document.getElementById('md-reset-customize').addEventListener('click', () => {
+                const rolePrefs = getDefaultOrder();
+                localStorage.removeItem(STORAGE_KEY);
+                // Persist role defaults so reload does not restore a stale customized layout
+                fetch("{% url 'dashboard-save-prefs' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+                    },
+                    body: JSON.stringify({ prefs: rolePrefs }),
+                }).finally(() => {
+                    savePrefs(rolePrefs);
+                    location.reload();
+                });
+            });
+
+            // ── Customize panel ──
+            const overlay = document.getElementById('md-customize-overlay');
+            const panel = document.getElementById('md-customize-panel');
+            const listEl = document.getElementById('md-customize-list');
+
+            function openCustomize() {
+                const prefs = loadPrefs() || getDefaultOrder();
+                renderCustomizeList(prefs);
+                overlay.classList.add('md-customize-overlay--open');
+                panel.classList.add('md-customize-panel--open');
+            }
+
+            function closeCustomize() {
+                overlay.classList.remove('md-customize-overlay--open');
+                panel.classList.remove('md-customize-panel--open');
+            }
+
+            function renderCustomizeList(prefs) {
+                // Build from current DOM + prefs
+                const allCards = {};
+                document.querySelectorAll('#md-charts-container [data-chart-id]').forEach(c => {
+                    allCards[c.dataset.chartId] = {
+                        id: c.dataset.chartId,
+                        label: c.dataset.chartLabel,
+                        section: c.dataset.chartSection,
+                    };
+                });
+
+                // Merge: ordered prefs first, then any missing
+                const ordered = [];
+                prefs.forEach(p => {
+                    if (allCards[p.id]) {
+                        ordered.push({ ...allCards[p.id], visible: p.visible !== false });
+                    }
+                });
+                Object.keys(allCards).forEach(id => {
+                    if (!ordered.find(o => o.id === id)) {
+                        ordered.push({ ...allCards[id], visible: true });
+                    }
+                });
+
+                let html = '';
+                let lastSection = '';
+                ordered.forEach((item, idx) => {
+                    if (item.section !== lastSection) {
+                        html += `<div class="md-cust-section-title">${SECTION_LABELS[item.section] || item.section}</div>`;
+                        lastSection = item.section;
+                    }
+                    html += `
+                <div class="md-cust-item" draggable="true" data-cust-id="${item.id}" data-cust-idx="${idx}">
+                    <span class="md-cust-item__handle">&#x2630;</span>
+                    <div class="md-cust-item__label">${item.label}</div>
+                    <button class="md-cust-item__toggle ${item.visible ? 'md-cust-item__toggle--on' : ''}" data-cust-toggle="${item.id}" title="{% trans 'Toggle visibility'|escapejs %}"></button>
+                </div>`;
+                });
+
+                listEl.innerHTML = html;
+                initDragAndDrop();
+            }
+
+            function initDragAndDrop() {
+                let dragEl = null;
+
+                listEl.querySelectorAll('.md-cust-item').forEach(item => {
+                    item.addEventListener('dragstart', e => {
+                        dragEl = item;
+                        item.classList.add('md-dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', '');
+                    });
+
+                    item.addEventListener('dragend', () => {
+                        if (dragEl) dragEl.classList.remove('md-dragging');
+                        listEl.querySelectorAll('.md-cust-item').forEach(i => i.classList.remove('md-drag-over'));
+                        dragEl = null;
+                    });
+
+                    item.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        if (item !== dragEl) {
+                            item.classList.add('md-drag-over');
+                        }
+                    });
+
+                    item.addEventListener('dragleave', () => {
+                        item.classList.remove('md-drag-over');
+                    });
+
+                    item.addEventListener('drop', e => {
+                        e.preventDefault();
+                        item.classList.remove('md-drag-over');
+                        if (dragEl && item !== dragEl) {
+                            // Find all items (exclude section titles)
+                            const items = Array.from(listEl.querySelectorAll('.md-cust-item'));
+                            const fromIdx = items.indexOf(dragEl);
+                            const toIdx = items.indexOf(item);
+
+                            if (fromIdx < toIdx) {
+                                item.parentNode.insertBefore(dragEl, item.nextSibling);
+                            } else {
+                                item.parentNode.insertBefore(dragEl, item);
+                            }
+                        }
+                    });
+                });
+
+                // Toggle visibility
+                listEl.querySelectorAll('.md-cust-item__toggle').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.stopPropagation();
+                        btn.classList.toggle('md-cust-item__toggle--on');
+                    });
+                });
+            }
+
+            function getCustomizeState() {
+                const items = listEl.querySelectorAll('.md-cust-item');
+                return Array.from(items).map(item => ({
+                    id: item.dataset.custId,
+                    visible: item.querySelector('.md-cust-item__toggle').classList.contains('md-cust-item__toggle--on')
+                }));
+            }
+
+            document.getElementById('md-open-customize').addEventListener('click', openCustomize);
+            document.getElementById('md-close-customize').addEventListener('click', closeCustomize);
+            overlay.addEventListener('click', closeCustomize);
+
+            document.getElementById('md-save-customize').addEventListener('click', () => {
+                const prefs = getCustomizeState();
+                savePrefs(prefs);
+                applyPrefs(prefs);
+                closeCustomize();
+                // Persist to DB
+                fetch("{% url 'dashboard-save-prefs' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+                    },
+                    body: JSON.stringify({ prefs: prefs }),
+                });
+            });
+
+            // ═══════════════════════════════════════════
+            //  DATA FETCHES
+            // ═══════════════════════════════════════════
+
+            // ═══════════════════════════════════════════
+            //  PERIOD-AWARE RELOAD
+            // ═══════════════════════════════════════════
+            function loadAllData() {
+                const params = periodParams();
+                const newUrl = location.pathname + (params ? '?' + params : '');
+                location.assign(newUrl);
+            }
+
+            // Helper: fetch with period params for period-sensitive endpoints
+            function fetchP(url) { return fetch(urlWithPeriod(url)); }
+
+            // ── Chart instance registry ──
+            // ApexCharts.render() always appends a new SVG into the target
+            // element rather than replacing it, so calling the same chart
+            // block twice (e.g. on auto-refresh) would stack duplicate
+            // charts on top of each other. Every chart goes through here so
+            // a refresh destroys the previous instance first.
+            const chartInstances = {};
+            function renderChart(key, el, options) {
+                if (!el) return null;
+                if (chartInstances[key]) {
+                    chartInstances[key].destroy();
+                    chartInstances[key] = null;
+                }
+                // Ensure axis/legend/default label color contrasts with card surface
+                const chartOpts = options.chart || {};
+                options = {
+                    ...options,
+                    chart: {
+                        fontFamily: 'inherit',
+                        background: 'transparent',
+                        foreColor: textColor,
+                        ...chartOpts,
+                    },
+                    theme: options.theme || { mode: isDark ? 'dark' : 'light' },
+                };
+                const chart = new ApexCharts(el, options);
+                chartInstances[key] = chart;
+                chart.render();
+                return chart;
+            }
+
+            // ── Auto-refresh ──
+            const REFRESH_INTERVAL = 300000; // 5 minutes
+            const REFRESH_KEY = 'md_auto_refresh';
+            let refreshTimer = null;
+            let lastRefresh = Date.now();
+            const refreshDot = document.getElementById('md-refresh-dot');
+            const refreshText = document.getElementById('md-refresh-text');
+            const refreshToggle = document.getElementById('md-refresh-toggle');
+            let autoRefreshOn = localStorage.getItem(REFRESH_KEY) !== 'off';
+
+            function updateRefreshText() {
+                const mins = Math.floor((Date.now() - lastRefresh) / 60000);
+                refreshText.textContent = mins < 1 ? '{% trans "Just now"|escapejs %}' : mins + '{% trans "m ago"|escapejs %}';
+            }
+            registerAutoRefresh(setInterval(updateRefreshText, 30000));
+
+            // Re-runs every data/chart load in place instead of reloading
+            // the whole document -- refreshAllData() is defined further
+            // down, once every load function it calls exists, but function
+            // declarations are hoisted so referencing it here is safe.
+            function startAutoRefresh() {
+                autoRefreshOn = true;
+                localStorage.setItem(REFRESH_KEY, 'on');
+                refreshDot.classList.add('md-refresh__dot--pulse');
+                refreshToggle.textContent = '⟳';
+                refreshToggle.title = '{% trans "Auto-refresh ON (5 min)"|escapejs %}';
+                // Wrapped so a hidden tab does not keep fetching; refreshes once on return.
+                const refreshTick = autoRefreshWhenVisible(() => {
+                    lastRefresh = Date.now();
+                    updateRefreshText();
+                    refreshAllData();
+                });
+                refreshTimer = setInterval(refreshTick, REFRESH_INTERVAL);
+                registerAutoRefresh(refreshTimer);
+            }
+            function stopAutoRefresh() {
+                autoRefreshOn = false;
+                localStorage.setItem(REFRESH_KEY, 'off');
+                refreshDot.classList.remove('md-refresh__dot--pulse');
+                refreshToggle.textContent = '⏸';
+                refreshToggle.title = '{% trans "Auto-refresh OFF"|escapejs %}';
+                if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+            }
+            refreshToggle.addEventListener('click', () => { if (autoRefreshOn) stopAutoRefresh(); else startAutoRefresh(); });
+            if (autoRefreshOn) startAutoRefresh(); else stopAutoRefresh();
+
+            // ─── KPI CARDS ───
+            function loadKpiCards() {
+                fetchP("{% url 'dashboard-kpi-data' %}")
+                    .then(r => r.json())
+                    .then(data => {
+                        const empSvg   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+                        const attSvg   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>';
+                        const leaveSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+                        const actionSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>';
+                        document.getElementById('md-kpi-grid').innerHTML =
+                            kpiCard("{% url 'employee-view' %}?is_active=True&filter_applied=on",   PERM.employee,    'md-kpi-card__icon--indigo', empSvg,   '{% trans "Total Employees"|escapejs %}',   data.total_employees,   data.new_joiners > 0 ? '<span class="md-badge md-badge--green">+' + data.new_joiners + ' {% trans "This Month"|escapejs %}</span>' : '<span class="md-badge md-badge--blue">{% trans "No New Joiners"|escapejs %}</span>') +
+                            kpiCard("{% url 'employee-view' %}?present_on={% now 'Y-m-d' %}&is_active=True&filter_applied=on",  PERM.employee,    'md-kpi-card__icon--green',  attSvg,   '{% trans "Present Today"|escapejs %}',     data.present_today,     '<span class="md-badge ' + (data.attendance_rate >= 80 ? 'md-badge--green' : 'md-badge--amber') + '">' + data.attendance_rate + '% {% trans "Of Expected"|escapejs %}</span>', kpiBreakdown(data.present_by_work_type)) +
+                            kpiCard(`{% url 'request-view' %}?status=approved&today_leave=true&filter_applied=on`,     PERM.leave,       'md-kpi-card__icon--amber',  leaveSvg, '{% trans "On Leave"|escapejs %}',           data.on_leave,          (data.half_day_today > 0 ? '<span class="md-badge md-badge--amber">' + data.half_day_today + ' {% trans "Half Day"|escapejs %}</span>' : '<span class="md-badge md-badge--blue">{% trans "Approved Today"|escapejs %}</span>')) +
+                            kpiCard("{% url 'request-view' %}?status=requested&filter_applied=on", PERM.leave, 'md-kpi-card__icon--blue', actionSvg, '{% trans "Pending Actions"|escapejs %}', '<span id="md-pending-actions-value">' + data.pending_leaves + '</span>', '<span id="md-pending-actions-sub" class="md-badge md-badge--amber">{% trans "Loading approvals"|escapejs %}</span>');
+                        const insights = document.getElementById('md-employee-insights');
+                        if (insights) {
+                            insights.innerHTML = `
+                                <div class="md-insight-card">
+                                    <div class="md-insight-card__label">{% trans "New Hires"|escapejs %}</div>
+                                    <div class="md-insight-card__value">${data.new_joiners}</div>
+                                    <div class="md-insight-card__sub">{% trans "Joined in selected period"|escapejs %}</div>
+                                </div>
+                                <div class="md-insight-card">
+                                    <div class="md-insight-card__label">{% trans "Yet to Check In"|escapejs %}</div>
+                                    <div class="md-insight-card__value">${data.not_checked_in}</div>
+                                    <div class="md-insight-card__sub">{% trans "Expected today, excluding approved leave"|escapejs %}</div>
+                                </div>
+                                <div class="md-insight-card">
+                                    <div class="md-insight-card__label">{% trans "Open Recruitment"|escapejs %}</div>
+                                    <div class="md-insight-card__value">${data.open_recruitments}</div>
+                                    <div class="md-insight-card__sub">{% trans "Active hiring pipelines"|escapejs %}</div>
+                                </div>
+                                <div class="md-insight-card">
+                                    <div class="md-insight-card__label">{% trans "Attendance Rate"|escapejs %}</div>
+                                    <div class="md-insight-card__value">${data.attendance_rate}%</div>
+                                    <div class="md-insight-card__sub">{% trans "Present vs expected today"|escapejs %}</div>
+                                </div>`;
+                        }
+                    });
+            }
+            loadKpiCards();
+
+            // ─── ANNOUNCEMENTS ───
+            function loadAnnouncements() {
+                fetch("{% url 'dashboard-announcements' %}")
+                    .then(r => r.json())
+                    .then(data => {
+                        const el = document.getElementById('md-announcements');
+                        if (!data.announcements.length) { el.innerHTML = '<div class="md-info-panel__empty">{% trans "No announcements"|escapejs %}</div>'; return; }
+                        el.innerHTML = data.announcements.map(a => `
+                    <div class="md-ann-item" data-ann-id="${a.id}" style="cursor:pointer;">
+                        <div class="md-ann-item__title">${a.title}</div>
+                        <div class="md-ann-item__meta">${a.date}${a.expire_date ? '<span class="md-ann-item__expire">{% trans "Expires"|escapejs %} ' + a.expire_date + '</span>' : ''}</div>
+                    </div>`).join('');
+
+                        // Clicking opens the announcement in the standard Horilla detail modal
+                        const annIds = data.announcements.map(a => a.id);
+                        el.querySelectorAll('.md-ann-item[data-ann-id]').forEach(item => {
+                            item.addEventListener('click', () => {
+                                const id = item.dataset.annId;
+                                const instanceIds = JSON.stringify(annIds);
+                                htmx.ajax('GET',
+                                    `/announcement-single-view/${id}/?instance_ids=${encodeURIComponent(instanceIds)}`,
+                                    { target: '#objectDetailsModalTarget', swap: 'innerHTML' }
+                                ).then(() => {
+                                    document.getElementById('objectDetailsModal').classList.add('oh-modal--show');
+                                    htmx.process(document.getElementById('objectDetailsModalTarget'));
+                                });
+                            });
+                        });
+                    }).catch(() => { document.getElementById('md-announcements').innerHTML = '<div class="md-info-panel__empty">{% trans "No announcements"|escapejs %}</div>'; });
+            }
+            loadAnnouncements();
+
+            // ─── TODAY'S LEAVE ───
+            function loadTodaysLeave() {
+                fetch("{% url 'dashboard-todays-leave' %}")
+                .then(r => r.json())
+                .then(data => {
+                    const el = document.getElementById('md-todays-leave');
+                    const viewAllLink = document.getElementById('md-leave-viewall');
+
+                    if (data.is_restricted) {
+                        // Normal user: hide "View all" and update panel title
+                        if (viewAllLink) viewAllLink.style.display = 'none';
+                        const leaveTitle = document.getElementById('md-todays-leave')
+                            ?.closest('.md-info-panel')
+                            ?.querySelector('.md-info-panel__title');
+                        if (leaveTitle) leaveTitle.textContent = '{% trans "My Leave Today"|escapejs %}';
+                    } else {
+                        if (viewAllLink) viewAllLink.href = `{% url 'request-view' %}?status=approved&today_leave=true`;
+                    }
+
+                    if (!data.leaves.length) {
+                        el.innerHTML = data.is_restricted
+                            ? '<div class="md-info-panel__empty">{% trans "You are not on leave today"|escapejs %}</div>'
+                            : '<div class="md-info-panel__empty">{% trans "No one on leave today"|escapejs %}</div>';
+                        return;
+                    }
+
+                    el.innerHTML = data.leaves.map(l => {
+                        const initials = (l.employee || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
+                        const avatarInner = l.avatar ? `<img src="${l.avatar}" alt="" onerror="this.parentElement.textContent='${initials}'">` : initials;
+                        if (data.is_restricted) {
+                            // No clickable HTMX link — restricted user can't open the leave detail
+                            return `
+                    <div class="md-leave-item">
+                        <div class="md-leave-item__avatar">${avatarInner}</div>
+                        <div class="md-leave-item__info">
+                            <div class="md-leave-item__name">${l.employee}</div>
+                            <div class="md-leave-item__type">${l.leave_type}</div>
+                        </div>
+                        <div class="md-leave-item__dates">
+                            <div>${l.start}${l.start !== l.end ? ' – ' + l.end : ''}</div>
+                            <span class="md-leave-item__days">${l.days}d</span>
+                        </div>
+                    </div>`;
+                        }
+                        return `
+                <div class="md-leave-item" style="cursor:pointer;"
+                     hx-get="/leave/leave-requests-detail-view/${l.id}/?instance_ids=&dashboard=True"
+                     hx-target="#genericModalBody" hx-swap="innerHTML"
+                     data-toggle="oh-modal-toggle" data-target="#genericModal">
+                    <div class="md-leave-item__avatar">${avatarInner}</div>
+                    <div class="md-leave-item__info">
+                        <div class="md-leave-item__name">${l.employee}</div>
+                        <div class="md-leave-item__type">${l.leave_type}</div>
+                    </div>
+                    <div class="md-leave-item__dates">
+                        <div>${l.start}${l.start !== l.end ? ' – ' + l.end : ''}</div>
+                        <span class="md-leave-item__days">${l.days}d</span>
+                    </div>
+                </div>`;
+                    }).join('');
+                    if (!data.is_restricted) htmx.process(el);
+                }).catch(() => { document.getElementById('md-todays-leave').innerHTML = '<div class="md-info-panel__empty">{% trans "No one on leave today"|escapejs %}</div>'; });
+            }
+            loadTodaysLeave();
+
+            {% if perms.attendance.view_attendance or request.user.is_superuser %}
+            // ─── ATTENDANCE TREND ───
+            function loadAttendanceTrend() {
+                fetchP("{% url 'dashboard-attendance-trend' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('attendance_trend'); return; }
+                    const sub = document.getElementById('md-attendance-trend-subtitle');
+                    if (sub && fromInput.value && toInput.value) {
+                        sub.textContent = `{% trans "Weekly rate"|escapejs %} — ${fromInput.value} → ${toInput.value}`;
+                    }
+                    renderChart('attendance-trend', document.querySelector("#chart-attendance-trend"), {
+                        series: [{ name: '{% trans "Attendance Rate"|escapejs %}', data: data.weeks.map(w => w.rate) }],
+                        chart: { type: 'area', height: 280, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
+                        colors: ['#4F46E5'],
+                        fill: { type: 'solid', opacity: 0.12 },
+                        stroke: { curve: 'straight', width: 3 },
+                        markers: { size: 5, colors: ['#4F46E5'], strokeColors: cardBg, strokeWidth: 2, hover: { size: 7 } },
+                        dataLabels: { enabled: false },
+                        xaxis: { ...XAXIS_STYLE, categories: data.weeks.map(w => w.week) },
+                        yaxis: { ...YAXIS_STYLE, min: 0, max: 100, tickAmount: 5, forceNiceScale: false, labels: { ...YAXIS_STYLE.labels, formatter: v => v + '%' } },
+                        grid: GRID,
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + '% {% trans "attendance"|escapejs %}' } },
+                    });
+                });
+            }
+            loadAttendanceTrend();
+            {% endif %}
+
+            // ─── DEPARTMENT HEADCOUNT ───
+            function loadDepartmentHeadcount() {
+                fetch("{% url 'dashboard-department-headcount' %}")
+                .then(r => r.json())
+                .then(data => {
+                    const tableEl = document.getElementById('md-department-overview');
+                    if (tableEl) {
+                        if (!data.departments.length) {
+                            tableEl.innerHTML = '<div class="md-info-panel__empty">{% trans "No department data"|escapejs %}</div>';
+                        } else {
+                            tableEl.innerHTML = `
+                                <table class="md-department-table">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "Department"|escapejs %}</th>
+                                            <th>{% trans "Employees"|escapejs %}</th>
+                                            <th>{% trans "Status"|escapejs %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.departments.map(d => `
+                                            <tr>
+                                                <td>
+                                                    <strong>${escapeHtml(d.department)}</strong>
+                                                    <div class="md-department-table__muted">{% trans "Active workforce"|escapejs %}</div>
+                                                </td>
+                                                <td>${d.count}</td>
+                                                <td><span class="md-badge md-badge--blue">{% trans "Tracked"|escapejs %}</span></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>`;
+                        }
+                    }
+                    if (!data.departments.length) { document.querySelector("#chart-departments").innerHTML = emptyHtml('{% trans "No department data"|escapejs %}'); return; }
+                    if (data.departments.length === 1) {
+                        const only = data.departments[0];
+                        document.querySelector("#chart-departments").innerHTML = `
+                            <div class="md-empty">
+                                <strong>${escapeHtml(only.department)}</strong>
+                                <span>${only.count} {% trans "employees"|escapejs %}</span>
+                            </div>`;
+                        return;
+                    }
+                    renderChart('departments', document.querySelector("#chart-departments"), {
+                        series: data.departments.map(d => d.count),
+                        chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                            events: { dataPointSelection: (e, ctx, config) => {
+                                if (!PERM.employee) return;
+                                const dept = data.departments[config.dataPointIndex].department;
+                                window.location.href = "{% url 'employee-view' %}?department=" + encodeURIComponent(dept);
+                            }}
+                        },
+                        labels: data.departments.map(d => d.department),
+                        colors: COLORS.slice(0, data.departments.length),
+                        plotOptions: { pie: { expandOnClick: true, donut: { size: '68%',
+                            labels: { show: true,
+                                name: { fontSize: '13px', fontWeight: 700, color: textColor, offsetY: -4 },
+                                value: { fontSize: '22px', fontWeight: 800, color: textColor, offsetY: 4 },
+                                total: { show: true, label: '{% trans "Total"|escapejs %}', color: subTextColor, fontSize: '12px', fontWeight: 600, formatter: w => w.globals.seriesTotals.reduce((a,b)=>a+b,0) } } } } },
+                        stroke: { width: 3, colors: [cardBg] },
+                        dataLabels: { enabled: false },
+                        legend: { ...LEGEND_STYLE },
+                        tooltip: { ...TOOLTIP_STYLE },
+                    });
+                });
+            }
+            loadDepartmentHeadcount();
+
+            // ─── GENDER ───
+            function loadGenderSplit() {
+                fetch("{% url 'dashboard-gender-split' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.genders.length) { document.querySelector("#chart-gender").innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
+                    {# keyed on the raw gender value: the name the API sends is translated #}
+                    const gc = { 'male': '#0EA5E9', 'female': '#14B8A6', 'other': '#4F46E5', '': '#94A3B8' };
+                    renderChart('gender', document.querySelector("#chart-gender"), {
+                        series: data.genders.map(g => g.count),
+                        chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                            events: { dataPointSelection: (e, ctx, config) => {
+                                if (!PERM.employee) return;
+                                const g = data.genders[config.dataPointIndex];
+                                window.location.href = "{% url 'employee-view' %}?gender=" + encodeURIComponent(g.key != null ? g.key : g.gender.toLowerCase());
+                            }}
+                        },
+                        labels: data.genders.map(g => g.gender),
+                        colors: data.genders.map(g => gc[g.key != null ? g.key : ''] || '#94a3b8'),
+                        plotOptions: { pie: { expandOnClick: true, donut: { size: '68%',
+                            labels: { show: true,
+                                name: { fontSize: '13px', fontWeight: 700, color: textColor },
+                                value: { fontSize: '20px', fontWeight: 800, color: textColor },
+                                total: { show: true, label: '{% trans "Total"|escapejs %}', color: subTextColor, fontSize: '11px', fontWeight: 600,
+                                    formatter: w => w.globals.seriesTotals.reduce((a,b)=>a+b,0) }
+                            }
+                        } } },
+                        stroke: { width: 3, colors: [cardBg] },
+                        dataLabels: { enabled: false },
+                        legend: { ...LEGEND_STYLE },
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "employees"|escapejs %}' } },
+                    });
+                });
+            }
+            loadGenderSplit();
+
+            {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+            // ─── LEAVE BREAKDOWN ───
+            function loadLeaveBreakdown() {
+                fetchP("{% url 'dashboard-leave-breakdown' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('leave_breakdown'); return; }
+                    document.getElementById('leave-month').textContent = data.month;
+                    if (!data.breakdown.length) { document.querySelector("#chart-leave").innerHTML = emptyHtml('{% trans "No leave data this month"|escapejs %}'); return; }
+                    renderChart('leave-breakdown', document.querySelector("#chart-leave"), {
+                        series: [{ name: '{% trans "Requests"|escapejs %}', data: data.breakdown.map(b => b.count) }],
+                        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                            events: { dataPointSelection: (e, ctx, config) => {
+                                if (!PERM.leave) return;
+                                const leaveType = data.breakdown[config.dataPointIndex]?.type || '';
+                                window.location.href = "{% url 'request-view' %}?leave_type_id__name=" + encodeURIComponent(leaveType);
+                            }}
+                        },
+                        colors: COLORS,
+                        plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', horizontal: true, barHeight: '52%', distributed: true } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.breakdown.map(b => b.type) },
+                        yaxis: { labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } } },
+                        grid: GRID,
+                        dataLabels: { enabled: true, formatter: (v, { dataPointIndex: i }) => v + ' (' + data.breakdown[i].days + 'd)', style: { fontSize: '11px', fontWeight: 600, colors: [textColor] }, offsetX: 6 },
+                        legend: { show: false },
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "requests"|escapejs %}' } },
+                        states: { hover: { filter: { type: 'darken', value: 0.85 } } },
+                    });
+                });
+            }
+            loadLeaveBreakdown();
+            {% endif %}
+
+            // ─── EMPLOYEE STATUS ───
+            // Donut (not radialBar): API returns absolute headcounts; radialBar treats series as 0–100%.
+            function loadEmployeeStatus() {
+                fetch("{% url 'dashboard-employee-status' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.dataSet || !data.dataSet.length) { document.querySelector("#chart-employee-status").innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
+                    {# keyed on the API's stable series keys, not on the translated labels #}
+                    const sc = { 'active': '#22c55e', 'inactive': '#ef4444' };
+                    const statusKeys = data.keys || ['active', 'inactive'];
+                    renderChart('employee-status', document.querySelector("#chart-employee-status"), {
+                        series: data.dataSet[0].data,
+                        chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                            events: { dataPointSelection: (e, ctx, config) => {
+                                if (!PERM.employee) return;
+                                const active = statusKeys[config.dataPointIndex] === 'active' ? 'true' : 'false';
+                                window.location.href = "{% url 'employee-view' %}?is_active=" + active;
+                            }}
+                        },
+                        labels: data.labels,
+                        colors: statusKeys.map(k => sc[k] || '#94a3b8'),
+                        plotOptions: { pie: { expandOnClick: true, donut: { size: '68%',
+                            labels: { show: true,
+                                name: { fontSize: '13px', fontWeight: 700, color: textColor },
+                                value: { fontSize: '20px', fontWeight: 800, color: textColor },
+                                total: { show: true, label: '{% trans "Total"|escapejs %}', color: subTextColor, fontSize: '11px', fontWeight: 600,
+                                    formatter: w => w.globals.seriesTotals.reduce((a,b)=>a+b,0) }
+                            }
+                        } } },
+                        legend: { ...LEGEND_STYLE, show: true },
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "employees"|escapejs %}' } },
+                    });
+                });
+            }
+            loadEmployeeStatus();
+
+            {% if perms.attendance.view_attendance or request.user.is_superuser %}
+            // ─── ATTENDANCE OVERVIEW ───
+            function loadAttendanceOverview() {
+                fetch("{% url 'dashboard-attendance-overview' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('attendance_overview'); return; }
+                    if (!data.dataSet || !data.dataSet.length) { document.querySelector("#chart-attendance-overview").innerHTML = emptyHtml('{% trans "No attendance records available"|escapejs %}'); return; }
+                    renderChart('attendance-overview', document.querySelector("#chart-attendance-overview"), {
+                        series: data.dataSet.map(d => ({ name: d.label, data: d.data })),
+                        chart: { type: 'bar', height: 320, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', stacked: false, animations: ANIM,
+                            events: { dataPointSelection: (e, ctx, config) => {
+                                if (!PERM.employee) return;
+                                // A series is a DEPARTMENT and a data point is a STATUS --
+                                // see generate_data_set in attendance/views/dashboard.py:
+                                // labels are the three statuses, dataSet has one entry per
+                                // department. Indexing the statuses (rather than matching
+                                // data.labels text) also keeps this working under
+                                // translation, since those labels are gettext'd.
+                                const ATT_STATUS = ['on_time', 'late_come', 'early_out'];
+                                const deptId = data.dataSet[config.seriesIndex]?.id;
+                                const status = ATT_STATUS[config.dataPointIndex];
+                                if (!deptId || !status) return;
+                                const params = new URLSearchParams({
+                                    present_on: '{% now "Y-m-d" %}',
+                                    attendance_status: status,
+                                    employee_work_info__department_id: deptId,
+                                    is_active: 'True',
+                                    filter_applied: 'on',
+                                });
+                                window.location.href = "{% url 'employee-view' %}?" + params.toString();
+                            }}
+                        },
+                        colors: ['#22C55E', '#F59E0B', '#EF4444'],
+                        fill: { type: 'solid', opacity: 1 },
+                        plotOptions: { bar: { borderRadius: 6, borderRadiusApplication: 'end', columnWidth: '58%' } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.labels },
+                        yaxis: { ...YAXIS_STYLE },
+                        grid: GRID,
+                        dataLabels: { enabled: false },
+                        legend: { ...LEGEND_STYLE, position: 'top', horizontalAlign: 'right' },
+                        tooltip: { ...TOOLTIP_STYLE },
+                        states: { hover: { filter: { type: 'darken', value: 0.85 } } },
+                    });
+                }).catch(() => { document.querySelector("#chart-attendance-overview").innerHTML = emptyHtml('{% trans "Unable to load attendance data"|escapejs %}'); });
+            }
+            loadAttendanceOverview();
+
+            // ─── DEPARTMENT OVERTIME ───
+            function loadDepartmentOvertime() {
+                fetch("{% url 'dashboard-department-overtime' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('department_overtime'); return; }
+                    if (!data.labels || !data.labels.length || !data.dataset || !data.dataset.length) { document.querySelector("#chart-overtime").innerHTML = emptyHtml('{% trans "No overtime data"|escapejs %}'); return; }
+                    renderChart('overtime', document.querySelector("#chart-overtime"), {
+                        series: [{ name: '{% trans "Hours"|escapejs %}', data: data.dataset[0].data }],
+                        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
+                        colors: ['#14B8A6'],
+                        plotOptions: { bar: { borderRadius: 6, borderRadiusApplication: 'end', horizontal: true, barHeight: '55%', distributed: true } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.labels, labels: { ...XAXIS_STYLE.labels, formatter: v => (parseFloat(v) || 0).toFixed(1) + 'h' } },
+                        yaxis: { labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } } },
+                        grid: GRID,
+                        dataLabels: { enabled: true, formatter: v => parseFloat(v).toFixed(1) + 'h', style: { fontSize: '11px', fontWeight: 600, colors: [textColor] }, offsetX: 6 },
+                        legend: { show: false },
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => (parseFloat(v) || 0).toFixed(1) + ' {% trans "hrs"|escapejs %}' } },
+                    });
+                }).catch(() => { document.querySelector("#chart-overtime").innerHTML = emptyHtml('{% trans "No overtime data"|escapejs %}'); });
+            }
+            loadDepartmentOvertime();
+            {% endif %}
+
+            {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+            // ─── LEAVE OVER PERIOD ───
+            function loadLeaveOverPeriod() {
+                fetch("{% url 'dashboard-leave-trends' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('leave_trends'); return; }
+                    if (!data.labels || !data.labels.length) { document.querySelector("#chart-leave-trend").innerHTML = emptyHtml('{% trans "No leave data this month"|escapejs %}'); return; }
+                    const seriesArr = Array.isArray(data.dataset) ? data.dataset : [data.dataset];
+                    renderChart('leave-trend', document.querySelector("#chart-leave-trend"), {
+                        series: seriesArr.map(s => ({ name: s.label || 'Leaves', data: s.data })),
+                        chart: { type: 'area', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                            dropShadow: { enabled: false } },
+                        colors: ['#4F46E5'],
+                        fill: { type: 'solid', opacity: 0.12 },
+                        stroke: { curve: 'smooth', width: 3 },
+                        markers: { size: 5, colors: ['#4F46E5'], strokeColors: cardBg, strokeWidth: 2, hover: { size: 7 } },
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#4F46E5'] }, background: { enabled: true, foreColor: '#fff', borderRadius: 4, padding: 3, borderWidth: 0, fillColors: ['#4F46E5'] } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.labels },
+                        yaxis: { ...YAXIS_STYLE, min: 0, tickAmount: 4 },
+                        grid: GRID,
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "leave(s)"|escapejs %}' } },
+                    });
+                }).catch(() => { document.querySelector("#chart-leave-trend").innerHTML = emptyHtml('{% trans "No leave data this month"|escapejs %}'); });
+            }
+            loadLeaveOverPeriod();
+            {% endif %}
+
+            {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
+            // ─── RECRUITMENT PIPELINE ───
+            function loadRecruitmentPipeline() {
+                fetch("{% url 'dashboard-recruitment-by-stage' %}?_t=" + Date.now())
+                .then(r => {
+                    const ct = r.headers.get('content-type') || '';
+                    if (!r.ok || !ct.includes('application/json')) {
+                        hideCard('recruitment_pipeline');
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    if (!data.dataSet || !data.dataSet.length) { document.querySelector("#chart-pipeline").innerHTML = emptyHtml('{% trans "No active recruitments"|escapejs %}'); return; }
+                    try {
+                        renderChart('pipeline', document.querySelector("#chart-pipeline"), {
+                            series: data.dataSet.map(r => ({ name: r.label, data: r.data })),
+                            chart: { type: 'bar', height: 320, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit',
+                                events: { dataPointSelection: (e, ctx, config) => {
+                                    if (!PERM.candidate) return;
+                                    const recruitment = data.dataSet[config.seriesIndex]?.label || '';
+                                    const stage = data.labels[config.dataPointIndex] || '';
+                                    window.location.href = "{% url 'candidate-view' %}?recruitment=" + encodeURIComponent(recruitment) + "&stage_id__stage_type=" + encodeURIComponent(stage.toLowerCase());
+                                }}
+                            },
+                            colors: ['#4F46E5', '#0EA5E9', '#14B8A6', '#22C55E', '#F59E0B'],
+                            plotOptions: { bar: { borderRadius: 6, columnWidth: '60%' } },
+                            xaxis: { ...XAXIS_STYLE, categories: data.labels },
+                            yaxis: { ...YAXIS_STYLE },
+                            grid: GRID,
+                            dataLabels: { enabled: false },
+                            legend: { ...LEGEND_STYLE, position: 'top', horizontalAlign: 'right' },
+                            tooltip: { ...TOOLTIP_STYLE,
+                                custom: ({ seriesIndex, dataPointIndex, w }) => {
+                                    const stage = w.globals.labels[dataPointIndex] || '';
+                                    const recruitment = w.globals.seriesNames[seriesIndex] || '';
+                                    const value = w.globals.series[seriesIndex][dataPointIndex] || 0;
+                                    return `<div style="padding:10px 14px;font-size:12px;border-radius:8px;"><b>${recruitment}</b><br><span style="opacity:0.7">${stage}:</span> <b>${value}</b> candidates</div>`;
+                                }
+                            },
+                        });
+                    } catch(e) { document.querySelector("#chart-pipeline").innerHTML = emptyHtml('{% trans "Chart error"|escapejs %}: ' + e.message); }
+                }).catch(() => { hideCard('recruitment_pipeline'); });
+            }
+            loadRecruitmentPipeline();
+
+            // ─── HIRING TIMELINE ───
+            function loadHiringTimeline() {
+                fetch("{% url 'dashboard-hiring-timeline' %}")
+                .then(r => {
+                    const ct = r.headers.get('content-type') || '';
+                    if (!r.ok || !ct.includes('application/json')) {
+                        hideCard('hiring_timeline');
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    if (!data.dataSet || !data.dataSet.length) { document.querySelector("#chart-hiring").innerHTML = emptyHtml('{% trans "No hiring data"|escapejs %}'); return; }
+                    renderChart('hiring', document.querySelector("#chart-hiring"), {
+                        series: [{ name: data.dataSet[0].label || 'Joined', data: data.dataSet[0].data }],
+                        chart: { type: 'bar', height: 280, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                            events: { dataPointSelection: (e, ctx, config) => {
+                                if (!PERM.candidate) return;
+                                const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                                const label = data.labels[config.dataPointIndex] || '';
+                                const monthNum = monthNames.indexOf(label) + 1;
+                                if (!monthNum) return;
+                                const year = new Date().getFullYear();
+                                const lastDay = new Date(year, monthNum, 0).getDate();
+                                const pad = n => String(n).padStart(2, '0');
+                                const from = `${year}-${pad(monthNum)}-01`;
+                                const till = `${year}-${pad(monthNum)}-${lastDay}`;
+                                window.location.href = "{% url 'candidate-view' %}?joining_date_from=" + from + "&joining_date_till=" + till + "&hired=true";
+                            }}
+                        },
+                        colors: ['#F59E0B'],
+                        fill: { type: 'solid', opacity: 1 },
+                        plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', columnWidth: '48%' } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.labels },
+                        yaxis: { ...YAXIS_STYLE },
+                        grid: GRID,
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#fff'] }, background: { enabled: false } },
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "employee(s)"|escapejs %}' } },
+                        states: { hover: { filter: { type: 'darken', value: 0.85 } } },
+                    });
+                }).catch(() => { hideCard('hiring_timeline'); });
+            }
+            loadHiringTimeline();
+            {% endif %}
+
+            {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+            // ─── LEAVE BY DEPARTMENT ───
+            function loadLeaveCoverage() {
+                const el = document.querySelector("#chart-leave-coverage");
+                if (!el) return;
+                fetchP("{% url 'dashboard-leave-coverage' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.days || !data.days.length) {
+                        el.innerHTML = emptyHtml('{% trans "No leave coverage data"|escapejs %}');
+                        return;
+                    }
+                    renderChart('leave-coverage', el, {
+                        series: [
+                            { name: '{% trans "On leave"|escapejs %}', data: data.days.map(d => d.on_leave) },
+                            { name: '{% trans "Available"|escapejs %}', data: data.days.map(d => d.available) },
+                        ],
+                        chart: { type: 'bar', height: 280, stacked: true, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+                        colors: ['#F59E0B', '#22C55E'],
+                        plotOptions: { bar: { columnWidth: '55%', borderRadius: 4 } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.days.map(d => d.label) },
+                        yaxis: { labels: { style: { colors: textColor, fontSize: '11px' } } },
+                        legend: { ...LEGEND_STYLE, position: 'top', horizontalAlign: 'left' },
+                        grid: GRID,
+                        dataLabels: { enabled: false },
+                        tooltip: {
+                            theme: isDark ? 'dark' : 'light',
+                            y: { formatter: v => v + ' {% trans "employees"|escapejs %}' },
+                        },
+                    });
+                }).catch(() => {
+                    if (el) el.innerHTML = emptyHtml('{% trans "Could not load coverage"|escapejs %}');
+                });
+            }
+            loadLeaveCoverage();
+
+            function loadLeaveByDepartment() {
+                fetch("{% url 'dashboard-leave-by-department' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('leave_by_department'); return; }
+                    if (!data.labels || !data.labels.length || !data.data || !data.data.length) { document.querySelector("#chart-leave-dept").innerHTML = emptyHtml('{% trans "No leave data"|escapejs %}'); return; }
+                    renderChart('leave-dept', document.querySelector("#chart-leave-dept"), {
+                        series: [{ name: '{% trans "Requests"|escapejs %}', data: data.data }],
+                        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                            events: { dataPointSelection: (e, ctx, config) => {
+                                if (!PERM.leave) return;
+                                const dept = data.labels[config.dataPointIndex];
+                                window.location.href = "{% url 'request-view' %}?department=" + encodeURIComponent(dept);
+                            }}
+                        },
+                        colors: ['#4F46E5','#0EA5E9','#14B8A6','#22C55E','#F59E0B','#EF4444'],
+                        plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', horizontal: true, barHeight: '52%', distributed: true } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.labels },
+                        yaxis: { labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } } },
+                        grid: GRID,
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 600, colors: [textColor] }, offsetX: 6 },
+                        legend: { show: false },
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "request(s)"|escapejs %}' } },
+                        states: { hover: { filter: { type: 'darken', value: 0.85 } } },
+                    });
+                }).catch(() => { document.querySelector("#chart-leave-dept").innerHTML = emptyHtml('{% trans "No leave data"|escapejs %}'); });
+            }
+            loadLeaveByDepartment();
+
+            // ─── DEPARTMENT LEAVE DAYS ───
+            function loadDepartmentLeaveDays() {
+                fetch("{% url 'dashboard-department-leave-days' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('department_leave_days'); return; }
+                    if (!data.labels || !data.labels.length || !data.dataset || !data.dataset.length) { document.querySelector("#chart-leave-days").innerHTML = emptyHtml('{% trans "No leave data this month"|escapejs %}'); return; }
+                    renderChart('leave-days', document.querySelector("#chart-leave-days"), {
+                        series: [{ name: '{% trans "Leave Days"|escapejs %}', data: data.dataset[0].data }],
+                        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
+                        colors: ['#4F46E5','#0EA5E9','#14B8A6','#22C55E','#F59E0B','#EF4444','#94A3B8'],
+                        plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', horizontal: true, barHeight: '50%', distributed: true } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.labels },
+                        yaxis: { labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } } },
+                        grid: GRID,
+                        dataLabels: { enabled: true, formatter: v => v + ' {% trans "days"|escapejs %}', style: { fontSize: '11px', fontWeight: 600, colors: [textColor] }, offsetX: 6 },
+                        legend: { show: false },
+                        tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "day(s)"|escapejs %}' } },
+                        states: { hover: { filter: { type: 'darken', value: 0.85 } } },
+                    });
+                }).catch(() => { document.querySelector("#chart-leave-days").innerHTML = emptyHtml('{% trans "No leave data this month"|escapejs %}'); });
+            }
+            loadDepartmentLeaveDays();
+            {% endif %}
+
+            // ─── UPCOMING HOLIDAYS ───
+            function loadUpcomingHolidays() {
+                fetch("{% url 'dashboard-upcoming-holidays' %}")
+                .then(r => r.json())
+                .then(data => {
+                    const el = document.getElementById('md-holidays');
+                    if (!el) return;
+                    const viewAllLink = document.getElementById('md-holidays-viewall');
+                    if (viewAllLink) viewAllLink.href = `{% url 'holiday-view' %}`;
+
+                    if (!data.holidays.length) { el.innerHTML = '<div class="md-info-panel__empty">{% trans "No holidays this month"|escapejs %}</div>'; return; }
+                    el.innerHTML = data.holidays.map(h => {
+                        const badge = h.days_away === 0
+                            ? '<span class="md-bday-item__badge md-bday-item__badge--today">{% trans "Today"|escapejs %}</span>'
+                            : `<span class="md-bday-item__badge md-bday-item__badge--soon">${h.start_date}</span>`;
+                        const dateRange = h.end_date && h.end_date !== h.start_date ? `${h.start_date} – ${h.end_date}` : h.start_date;
+                        return `
+                    <div class="md-bday-item">
+                        <div class="md-bday-item__avatar" style="background:#fef3c7;color:#92400e;">H</div>
+                        <div class="md-bday-item__info">
+                            <div class="md-bday-item__name">${h.name}</div>
+                            <div class="md-bday-item__detail">${dateRange}</div>
+                        </div>
+                        ${badge}
+                    </div>`;
+                    }).join('');
+                }).catch(() => {
+                    const el = document.getElementById('md-holidays');
+                    if (el) el.innerHTML = '<div class="md-info-panel__empty">{% trans "No holidays this month"|escapejs %}</div>';
+                });
+            }
+            loadUpcomingHolidays();
+
+            // ─── BIRTHDAYS & ANNIVERSARIES ───
+            function loadBirthdaysAnniversaries() {
+                fetch("{% url 'dashboard-birthdays-anniversaries' %}")
+                .then(r => r.json())
+                .then(data => {
+                    const el = document.getElementById('md-birthdays');
+                    if (!el) return;
+                    const items = [];
+                    (data.birthdays || []).forEach(b => {
+                        items.push({
+                            name: b.name,
+                            detail: '{% trans "Birthday"|escapejs %}',
+                            date: b.date,
+                            days_away: b.days_away,
+                            avatar: b.avatar,
+                        });
+                    });
+                    (data.anniversaries || []).forEach(a => {
+                        items.push({
+                            name: a.name,
+                            detail: (a.years || 0) + ' {% trans "yr anniversary"|escapejs %}',
+                            date: a.date,
+                            days_away: a.days_away,
+                            avatar: a.avatar,
+                        });
+                    });
+                    items.sort((a, b) => a.days_away - b.days_away);
+                    if (!items.length) {
+                        el.innerHTML = '<div class="md-info-panel__empty">{% trans "None this month"|escapejs %}</div>';
+                        return;
+                    }
+                    el.innerHTML = items.slice(0, 8).map(item => {
+                        const badge = item.days_away === 0
+                            ? '<span class="md-bday-item__badge md-bday-item__badge--today">{% trans "Today"|escapejs %}</span>'
+                            : `<span class="md-bday-item__badge md-bday-item__badge--soon">${item.date}</span>`;
+                        const avatar = item.avatar
+                            ? `<img src="${item.avatar}" alt="">`
+                            : (item.name || '?').charAt(0);
+                        return `
+                    <div class="md-bday-item">
+                        <div class="md-bday-item__avatar">${avatar}</div>
+                        <div class="md-bday-item__info">
+                            <div class="md-bday-item__name">${item.name}</div>
+                            <div class="md-bday-item__detail">${item.detail}</div>
+                        </div>
+                        ${badge}
+                    </div>`;
+                    }).join('');
+                }).catch(() => {
+                    const el = document.getElementById('md-birthdays');
+                    if (el) el.innerHTML = '<div class="md-info-panel__empty">{% trans "Could not load"|escapejs %}</div>';
+                });
+            }
+            loadBirthdaysAnniversaries();
+
+            // ─── PENDING APPROVALS ───
+            function renderPendingCards(p) {
+                return `
+                <div class="md-pending-grid">
+                    <a href="{% url 'request-view' %}?status=requested&filter_applied=1" class="md-pending-card md-pending-card--amber">
+                        <div class="md-pending-card__count">${p.leave_requests}</div>
+                        <div class="md-pending-card__label">{% trans "Leave"|escapejs %}</div>
+                    </a>
+                    <a href="{% url 'request-attendance-view' %}?open_tab=1&is_validate_request_approved=False&filter_applied=1" class="md-pending-card md-pending-card--blue">
+                        <div class="md-pending-card__count">${p.attendance_requests}</div>
+                        <div class="md-pending-card__label">{% trans "Attendance"|escapejs %}</div>
+                    </a>
+                    <a href="{% url 'asset-request-allocation-view' %}?open_tab=2&asset_request_status=Requested&filter_applied=1" class="md-pending-card md-pending-card--green">
+                        <div class="md-pending-card__count">${p.asset_requests}</div>
+                        <div class="md-pending-card__label">{% trans "Assets"|escapejs %}</div>
+                    </a>
+                    <a href="{% url 'shift-request-view' %}?open_tab=1&status=requested&filter_applied=1" class="md-pending-card" style="background:#f0fdfa;">
+                        <div class="md-pending-card__count" style="color:#0d9488;">${p.shift_requests}</div>
+                        <div class="md-pending-card__label">{% trans "Shift"|escapejs %}</div>
+                    </a>
+                    <a href="{% url 'work-type-request-view' %}?status=requested&filter_applied=1" class="md-pending-card" style="background:#eef2ff;">
+                        <div class="md-pending-card__count" style="color:#4f46e5;">${p.work_type_requests}</div>
+                        <div class="md-pending-card__label">{% trans "Work Type"|escapejs %}</div>
+                    </a>
+                    <a href="{% url 'view-reimbursement' %}?open_tab=1&status=requested&type=reimbursement&filter_applied=1" class="md-pending-card md-pending-card--purple">
+                        <div class="md-pending-card__count">${p.reimbursements}</div>
+                        <div class="md-pending-card__label">{% trans "Reimbursements"|escapejs %}</div>
+                    </a>
+                </div>`;
+            }
+            function loadPendingApprovals() {
+                fetchP("{% url 'dashboard-pending-approvals' %}")
+                .then(r => r.json())
+                .then(data => {
+                    const sideEl = document.getElementById('md-pending-approvals');
+                    if (data.is_restricted) {
+                        const panel = sideEl?.closest('.md-info-panel');
+                        if (panel) panel.style.display = 'none';
+                        return;
+                    }
+                    const pending = data.pending || {};
+                    const pendingTotal = Object.values(pending).reduce((sum, value) => sum + (Number(value) || 0), 0);
+                    const pendingValue = document.getElementById('md-pending-actions-value');
+                    const pendingSub = document.getElementById('md-pending-actions-sub');
+                    if (pendingValue) pendingValue.textContent = pendingTotal;
+                    if (pendingSub) {
+                        pendingSub.className = 'md-badge ' + (pendingTotal > 0 ? 'md-badge--amber' : 'md-badge--green');
+                        pendingSub.textContent = pendingTotal > 0 ? '{% trans "Awaiting review"|escapejs %}' : '{% trans "All clear"|escapejs %}';
+                    }
+                    if (sideEl) sideEl.innerHTML = renderPendingCards(data.pending);
+                }).catch(() => {
+                    const sideEl = document.getElementById('md-pending-approvals');
+                    if (sideEl) sideEl.innerHTML = '<div class="md-info-panel__empty">{% trans "Unable to load"|escapejs %}</div>';
+                });
+            }
+            loadPendingApprovals();
+
+            {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
+            // ─── RECRUITMENT FUNNEL (HTML stage funnel — share of candidates) ───
+            function loadRecruitmentFunnel() {
+                fetch("{% url 'dashboard-recruitment-pipeline' %}?_t=" + Date.now())
+                .then(r => r.json())
+                .then(data => {
+                    const el = document.querySelector("#chart-recruitment-funnel");
+                    if (!el) return;
+                    if (data.no_permission) {
+                        hideCard('recruitment_funnel');
+                        return;
+                    }
+                    if (chartInstances['recruitment-funnel']) {
+                        chartInstances['recruitment-funnel'].destroy();
+                        chartInstances['recruitment-funnel'] = null;
+                    }
+                    if (!data.stages || !data.stages.length) { el.innerHTML = emptyHtml('{% trans "No active recruitments"|escapejs %}'); return; }
+                    const stageColors = { initial: '#94A3B8', applied: '#4F46E5', test: '#0EA5E9', interview: '#F59E0B', hired: '#22C55E', cancelled: '#EF4444' };
+                    const maxCount = Math.max(...data.stages.map(s => s.count), 1);
+                    const total = data.total_candidates || data.stages.reduce((a, s) => a + (s.count || 0), 0) || 1;
+                    let html = '<div class="md-funnel">';
+                    data.stages.forEach((s, i) => {
+                        const pct = Math.max(18, (s.count / maxCount) * 100);
+                        const share = Math.round((s.count / total) * 1000) / 10;
+                        const color = stageColors[s.type] || COLORS[i % COLORS.length];
+                        const url = PERM.candidate
+                            ? ("{% url 'candidate-view' %}?stage_id__stage_type=" + encodeURIComponent(s.type))
+                            : '';
+                        const click = url ? `onclick="window.location.href='${url}'"` : '';
+                        html += `<div class="md-funnel-step" ${click} title="${s.stage}">
+                            <div class="md-funnel-step__label">${s.stage}</div>
+                            <div class="md-funnel-step__bar" style="width:${pct}%;background:${color};">${s.count}</div>
+                            <div class="md-funnel-step__share">${share}%</div>
+                        </div>`;
+                    });
+                    html += `</div><div class="md-funnel-meta">${data.total_active || 0} {% trans "active recruitments"|escapejs %} · ${data.total_candidates || 0} {% trans "candidates"|escapejs %} · ${data.hired || 0} {% trans "hired"|escapejs %}</div>`;
+                    el.innerHTML = html;
+                }).catch(() => {
+                    const el = document.querySelector("#chart-recruitment-funnel");
+                    if (el) el.innerHTML = emptyHtml('{% trans "Failed to load recruitment data"|escapejs %}');
+                });
+            }
+            loadRecruitmentFunnel();
+            {% endif %}
+
+            {% if perms.employee.view_employee or request.user.is_superuser %}
+            // ─── EMPLOYEE TURNOVER ───
+            function loadEmployeeTurnover() {
+                fetchP("{% url 'dashboard-turnover' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.months.length) { document.querySelector("#chart-turnover").innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
+                    const rateEl = document.getElementById('turnover-rate');
+                    const rateTxt = `{% trans "6-month turnover rate"|escapejs %}: ${data.turnover_rate_6m}%`;
+                    if (data.report_url) {
+                        rateEl.innerHTML = `${rateTxt} · <a class="md-link" href="${data.report_url}">{% trans "Open turnover report"|escapejs %}</a>`;
+                    } else {
+                        rateEl.textContent = rateTxt;
+                    }
+                    renderChart('turnover', document.querySelector("#chart-turnover"), {
+                        series: [
+                            { name: '{% trans "New Hires"|escapejs %}', data: data.months.map(m => m.hires) },
+                            { name: '{% trans "Exits"|escapejs %}', data: data.months.map(m => m.exits) },
+                        ],
+                        chart: { type: 'bar', height: 290, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
+                        colors: ['#22C55E', '#EF4444'],
+                        fill: { type: 'solid', opacity: 1 },
+                        plotOptions: { bar: { borderRadius: 6, borderRadiusApplication: 'end', columnWidth: '52%', grouped: true } },
+                        xaxis: { ...XAXIS_STYLE, categories: data.months.map(m => m.month) },
+                        yaxis: { ...YAXIS_STYLE },
+                        grid: GRID,
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#fff'] }, background: { enabled: false } },
+                        legend: { ...LEGEND_STYLE, position: 'top', horizontalAlign: 'right' },
+                        tooltip: { ...TOOLTIP_STYLE },
+                        states: { hover: { filter: { type: 'darken', value: 0.85 } } },
+                    });
+                }).catch(() => { document.querySelector("#chart-turnover").innerHTML = emptyHtml('{% trans "No turnover data"|escapejs %}'); });
+            }
+            loadEmployeeTurnover();
+            {% endif %}
+
+            {% if request.user.is_superuser or perms.payroll.view_payslip and request.user.is_staff or perms.payroll.view_payslip and perms.payroll.change_payslip %}
+            // ─── PAYROLL SUMMARY ───
+            function loadPayrollSummary() {
+                fetchP("{% url 'dashboard-payroll-summary' %}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.no_permission) { hideCard('payroll_summary'); return; }
+                    const el = document.querySelector("#chart-payroll");
+                    document.getElementById('payroll-month').textContent = data.current_month;
+                    if (data.current.count === 0 && data.previous.count === 0) {
+                        el.innerHTML = emptyHtml('{% trans "No payroll data"|escapejs %}');
+                        return;
+                    }
+                    const fmt = v => v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                    const changeIcon = data.change_percent > 0 ? '↑' : data.change_percent < 0 ? '↓' : '→';
+                    const changeClass = data.change_percent > 0 ? 'md-badge--amber' : data.change_percent < 0 ? 'md-badge--green' : '';
+
+                    el.innerHTML = `
+                <div style="padding:10px 4px 4px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:14px 16px;border-radius:12px;background:#4F46E5;">
+                        <div>
+                            <div style="font-size:10px;color:rgba(255,255,255,0.7);text-transform:uppercase;font-weight:700;letter-spacing:0.06em;margin-bottom:2px;">{% trans "Net Pay"|escapejs %}</div>
+                            <div style="font-size:28px;font-weight:800;color:#fff;line-height:1;">${fmt(data.current.net)}</div>
+                        </div>
+                        <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">${changeIcon} ${Math.abs(data.change_percent)}%</span>
+                    </div>
+                    <div class="md-payroll-summary">
+                        <div class="md-payroll-stat" style="background:rgba(34,197,94,0.08);border-radius:10px;padding:10px;">
+                            <div class="md-payroll-stat__value" style="color:var(--md-green)">${fmt(data.current.gross)}</div>
+                            <div class="md-payroll-stat__label">{% trans "Gross"|escapejs %}</div>
+                        </div>
+                        <div class="md-payroll-stat" style="background:rgba(239,68,68,0.08);border-radius:10px;padding:10px;">
+                            <div class="md-payroll-stat__value" style="color:var(--md-red)">${fmt(data.current.deductions)}</div>
+                            <div class="md-payroll-stat__label">{% trans "Deductions"|escapejs %}</div>
+                        </div>
+                        <div class="md-payroll-stat" style="background:rgba(99,102,241,0.08);border-radius:10px;padding:10px;">
+                            <div class="md-payroll-stat__value" style="color:var(--md-indigo)">${data.current.count}</div>
+                            <div class="md-payroll-stat__label">{% trans "Payslips"|escapejs %}</div>
+                        </div>
+                        <div class="md-payroll-stat" style="background:rgba(128,128,128,0.06);border-radius:10px;padding:10px;">
+                            <div class="md-payroll-stat__value" style="opacity:0.55">${fmt(data.previous.net)}</div>
+                            <div class="md-payroll-stat__label">{% trans "Prev Month"|escapejs %}</div>
+                        </div>
+                    </div>
+                </div>`;
+                }).catch(() => { document.querySelector("#chart-payroll").innerHTML = emptyHtml('{% trans "No payroll data"|escapejs %}'); });
+            }
+            loadPayrollSummary();
+            {% endif %}
+
+            // ── Re-run every load/chart function above in place (used by the
+            // auto-refresh timer instead of location.reload()). Permission-gated
+            // load functions only exist when their Django if-block rendered, so
+            // each is guarded with a typeof check.
+            function refreshAllData() {
+                loadKpiCards();
+                loadAnnouncements();
+                loadTodaysLeave();
+                if (typeof loadAttendanceTrend === 'function') loadAttendanceTrend();
+                loadDepartmentHeadcount();
+                loadGenderSplit();
+                if (typeof loadLeaveBreakdown === 'function') loadLeaveBreakdown();
+                loadEmployeeStatus();
+                if (typeof loadAttendanceOverview === 'function') loadAttendanceOverview();
+                if (typeof loadDepartmentOvertime === 'function') loadDepartmentOvertime();
+                if (typeof loadLeaveOverPeriod === 'function') loadLeaveOverPeriod();
+                if (typeof loadRecruitmentPipeline === 'function') loadRecruitmentPipeline();
+                if (typeof loadHiringTimeline === 'function') loadHiringTimeline();
+                if (typeof loadLeaveCoverage === 'function') loadLeaveCoverage();
+                if (typeof loadLeaveByDepartment === 'function') loadLeaveByDepartment();
+                if (typeof loadDepartmentLeaveDays === 'function') loadDepartmentLeaveDays();
+                loadUpcomingHolidays();
+                if (typeof loadBirthdaysAnniversaries === 'function') loadBirthdaysAnniversaries();
+                loadPendingApprovals();
+                if (typeof loadRecruitmentFunnel === 'function') loadRecruitmentFunnel();
+                if (typeof loadEmployeeTurnover === 'function') loadEmployeeTurnover();
+                if (typeof loadPayrollSummary === 'function') loadPayrollSummary();
+            }
+
+            // ═══════════════════════════════════════════
+            //  ANNOUNCEMENT MODALS
+            // ═══════════════════════════════════════════
+
+            // Custom announcement modal removed — now uses standard #objectCreateModal via HTMX
+
+            // ── Create Announcement — uses standard #objectCreateModal via HTMX ──
+            // Reload announcements when the create modal is closed (after successful save)
+            const createModal = document.getElementById('objectCreateModal');
+            if (createModal) {
+                const observer = new MutationObserver(() => {
+                    if (!createModal.classList.contains('oh-modal--show')) {
+                        loadAnnouncements();
+                    }
+                });
+                observer.observe(createModal, { attributes: true, attributeFilter: ['class'] });
+            }
+
+        })();
+    </script>
+{% endblock %}

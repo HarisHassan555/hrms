@@ -1,0 +1,114 @@
+{% load i18n %}
+
+{% if not modules %}
+    <div class="md-chart-card">
+        <div class="lms-builder-empty">
+            <p class="font-semibold text-secondary-900 mb-1">{% trans "No modules yet" %}</p>
+            <p>{% trans "Add a module, then add lessons (video, PDF, or text)." %}</p>
+        </div>
+    </div>
+{% else %}
+    {% for module in modules %}
+        <div class="lms-builder-module" id="lmsModule{{ module.pk }}">
+            <div class="lms-builder-module__head">
+                <div>
+                    <div class="text-sm font-semibold text-secondary-900">
+                        {{ module.title }}
+                        <span class="text-xs font-normal text-secondary-500 ml-2">
+                            {% blocktrans with order=module.sort_order %}Order {{ order }}{% endblocktrans %}
+                        </span>
+                    </div>
+                    {% if module.description %}
+                        <p class="text-xs text-secondary-600 mt-1 mb-0">{{ module.description }}</p>
+                    {% endif %}
+                </div>
+                {% if can_edit %}
+                    <div class="flex gap-2 shrink-0">
+                        <button
+                            type="button"
+                            class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                            title="{% trans 'Add lesson' %}"
+                            data-toggle="oh-modal-toggle"
+                            data-target="#genericModal"
+                            hx-get="{% url 'lms-lesson-create' module_id=module.pk %}"
+                            hx-target="#genericModalBody"
+                        >
+                            <ion-icon name="add-outline"></ion-icon>
+                        </button>
+                        <button
+                            type="button"
+                            class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                            title="{% trans 'Edit module' %}"
+                            data-toggle="oh-modal-toggle"
+                            data-target="#genericModal"
+                            hx-get="{% url 'lms-module-update' course_id=course.pk pk=module.pk %}"
+                            hx-target="#genericModalBody"
+                        >
+                            <ion-icon name="create-outline"></ion-icon>
+                        </button>
+                        <button
+                            type="button"
+                            class="oh-btn oh-btn--danger oh-btn--sq-sm"
+                            title="{% trans 'Delete module' %}"
+                            hx-get="{% url 'generic-delete' %}?model=lms.coursemodule&pk={{ module.pk }}"
+                            data-toggle="oh-modal-toggle"
+                            data-target="#deleteConfirmation"
+                            hx-target="#deleteConfirmationBody"
+                        >
+                            <ion-icon name="trash-outline"></ion-icon>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if module.lesson_list %}
+                {% for lesson in module.lesson_list %}
+                    <div class="lms-builder-lesson" id="lmsLesson{{ lesson.pk }}">
+                        <div class="min-w-0">
+                            <div class="text-sm font-medium text-secondary-900">{{ lesson.title }}</div>
+                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                <span class="md-badge md-badge--blue">{{ lesson.get_type_display }}</span>
+                                {% if lesson.duration_minutes %}
+                                    <span class="text-xs text-secondary-500">
+                                        {% blocktrans with mins=lesson.duration_minutes %}{{ mins }} min{% endblocktrans %}
+                                    </span>
+                                {% endif %}
+                                <span class="text-xs text-secondary-500">
+                                    {% blocktrans with order=lesson.sort_order %}Order {{ order }}{% endblocktrans %}
+                                </span>
+                            </div>
+                        </div>
+                        {% if can_edit %}
+                            <div class="flex gap-2 shrink-0">
+                                <button
+                                    type="button"
+                                    class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                                    data-toggle="oh-modal-toggle"
+                                    data-target="#genericModal"
+                                    hx-get="{% url 'lms-lesson-update' module_id=module.pk pk=lesson.pk %}"
+                                    hx-target="#genericModalBody"
+                                >
+                                    <ion-icon name="create-outline"></ion-icon>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="oh-btn oh-btn--danger oh-btn--sq-sm"
+                                    hx-get="{% url 'generic-delete' %}?model=lms.lesson&pk={{ lesson.pk }}"
+                                    data-toggle="oh-modal-toggle"
+                                    data-target="#deleteConfirmation"
+                                    hx-target="#deleteConfirmationBody"
+                                >
+                                    <ion-icon name="trash-outline"></ion-icon>
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="lms-builder-empty text-sm py-4">
+                    {% trans "No lessons in this module." %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endif %}

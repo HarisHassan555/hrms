@@ -1,0 +1,83 @@
+{% extends "index.html" %}
+{% load static i18n %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    <style>
+        .lms-builder-module {
+            border: 1px solid var(--md-border, #E2E8F0);
+            border-radius: 12px;
+            background: #fff;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .lms-builder-module__head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--md-page, #F8FAFC);
+            border-bottom: 1px solid var(--md-border-light, #F1F5F9);
+        }
+        .lms-builder-lesson {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--md-border-light, #F1F5F9);
+        }
+        .lms-builder-lesson:last-child {
+            border-bottom: 0;
+        }
+        .lms-builder-empty {
+            padding: 24px;
+            text-align: center;
+            color: var(--md-text-secondary, #475569);
+            font-size: 14px;
+        }
+    </style>
+
+    <div class="md-dashboard">
+        <div class="md-header">
+            <div>
+                <h1>{% trans "Course builder" %}</h1>
+                <div class="md-header__description">
+                    {{ course.title }}
+                    {% if course.code %}<span class="text-secondary-500">· {{ course.code }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="md-header__actions">
+                <a href="{% url 'lms-courses' %}" class="md-btn-customize">{% trans "Back to courses" %}</a>
+                {% if can_edit %}
+                    <button
+                        type="button"
+                        class="md-btn-customize"
+                        style="background: var(--md-indigo, #4F46E5); color: #fff; border-color: transparent;"
+                        data-toggle="oh-modal-toggle"
+                        data-target="#genericModal"
+                        hx-get="{% url 'lms-module-create' course_id=course.pk %}"
+                        hx-target="#genericModalBody"
+                    >
+                        {% trans "Add module" %}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <button
+            type="button"
+            id="lmsBuilderReload"
+            class="hidden"
+            hx-get="{% url 'lms-course-builder-panel' course_id=course.pk %}"
+            hx-target="#lmsBuilderBody"
+            hx-swap="innerHTML"
+        ></button>
+
+        <div id="lmsBuilderBody" hx-get="{% url 'lms-course-builder-panel' course_id=course.pk %}" hx-trigger="load" hx-swap="innerHTML">
+            <div class="lms-builder-empty">{% trans "Loading…" %}</div>
+        </div>
+    </div>
+    <script src="{% static 'cbv/deleteFunc.js' %}"></script>
+{% endblock %}

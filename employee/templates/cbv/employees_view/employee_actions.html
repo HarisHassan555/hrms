@@ -1,0 +1,149 @@
+{% load i18n basefilters horillafilters %}
+
+<div class="emp-row-actions" onclick="event.stopPropagation()">
+  <button
+    type="button"
+    class="emp-row-actions__trigger"
+    aria-label="{% trans 'Employee actions' %}"
+    title="{% trans 'Actions' %}"
+  >
+    <ion-icon name="ellipsis-horizontal"></ion-icon>
+  </button>
+
+  <div class="emp-row-actions__menu" role="menu">
+    {% if "leave"|app_installed or "payroll"|app_installed or "attendance"|app_installed %}
+      <button
+        type="button"
+        hx-get="{% url 'export-data-employee' instance.id %}"
+        hx-target="#export-content"
+        hx-swap="innerHTML"
+        class="emp-row-actions__item"
+        data-toggle="oh-modal-toggle"
+        data-target="#dataExport"
+        role="menuitem"
+      >
+        <ion-icon name="download-outline"></ion-icon>
+        <span>{% trans "Download" %}</span>
+      </button>
+    {% endif %}
+
+    {% if perms.employee.change_employee or request.user|check_manager:instance %}
+      <button
+        type="button"
+        hx-get="{% url 'allocation-view' instance.id %}"
+        class="emp-row-actions__item"
+        data-toggle="oh-modal-toggle"
+        data-target="#allocationModal"
+        hx-target="#allocationModalBody"
+        hx-push-url="?allocation={{ instance.id }}"
+        role="menuitem"
+      >
+        <ion-icon name="clipboard-outline"></ion-icon>
+        <span>{% trans "Allocations" %}</span>
+      </button>
+    {% endif %}
+
+    <button
+      type="button"
+      hx-get="{% url 'send-mail-employee' instance.id %}"
+      hx-target="#mail-content"
+      hx-swap="innerHTML"
+      class="emp-row-actions__item"
+      data-toggle="oh-modal-toggle"
+      data-target="#sendMailModal"
+      role="menuitem"
+    >
+      <ion-icon name="mail-open-outline"></ion-icon>
+      <span>{% trans "Send Email" %}</span>
+    </button>
+
+    {% if perms.employee.change_employee or request.user|check_manager:instance %}
+      <button
+        type="button"
+        class="emp-row-actions__item"
+        hx-get="{% url 'employee-view-update' instance.id %}?container=true"
+        hx-target="#listContainer"
+        hx-swap="innerHTML"
+        hx-push-url="{% url 'employee-view-update' instance.id %}?container=true"
+        role="menuitem"
+      >
+        <ion-icon name="create-outline"></ion-icon>
+        <span>{% trans "Edit" %}</span>
+      </button>
+    {% endif %}
+
+    {% if perms.employee.change_employee %}
+      <button
+        type="button"
+        hx-post="{% url 'employee-reset-password-admin' instance.id %}"
+        hx-target="#genericModalBody"
+        hx-swap="innerHTML"
+        data-toggle="oh-modal-toggle"
+        data-target="#genericModal"
+        hx-confirm="{% trans 'This will immediately invalidate the current password. Continue?' %}"
+        class="emp-row-actions__item"
+        role="menuitem"
+      >
+        <ion-icon name="key-outline"></ion-icon>
+        <span>{% trans "Reset Password" %}</span>
+      </button>
+
+      <button
+        type="button"
+        hx-post="{% url 'employee-send-invitation' instance.id %}"
+        hx-target="#relatedModel"
+        hx-confirm="{% trans 'Send an invitation email to this employee?' %}"
+        class="emp-row-actions__item"
+        role="menuitem"
+      >
+        <ion-icon name="mail-outline"></ion-icon>
+        <span>{% trans "Send Invitation" %}</span>
+      </button>
+    {% endif %}
+
+    {% if perms.employee.delete_employee %}
+      {% if instance.is_active %}
+        <button
+          type="button"
+          hx-confirm="{% trans 'Do you want to archive this employee?' %}"
+          hx-post="{% url 'employee-archive' instance.id %}?{{pd}}"
+          hx-target="#relatedModel"
+          class="emp-row-actions__item emp-row-actions__item--danger"
+          role="menuitem"
+        >
+          <ion-icon name="archive-outline"></ion-icon>
+          <span>{% trans "Deactivate" %}</span>
+        </button>
+      {% else %}
+        <form
+          hx-confirm="{% trans 'Do you want to un-archive this employee?' %}"
+          hx-post="{% url 'employee-archive' instance.id %}"
+          hx-target="#relatedModel"
+        >
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="emp-row-actions__item"
+            role="menuitem"
+          >
+            <ion-icon name="archive-outline"></ion-icon>
+            <span>{% trans "Activate" %}</span>
+          </button>
+        </form>
+      {% endif %}
+
+      <button
+        type="button"
+        hx-get="{% url 'generic-delete' %}?model=employee.Employee&pk={{instance.id}}"
+        hx-target="#deleteConfirmationBody"
+        data-toggle="oh-modal-toggle"
+        data-target="#deleteConfirmation"
+        class="emp-row-actions__item emp-row-actions__item--danger"
+        role="menuitem"
+      >
+        <ion-icon name="trash-outline"></ion-icon>
+        <span>{% trans "Delete" %}</span>
+      </button>
+    {% endif %}
+  </div>
+</div>

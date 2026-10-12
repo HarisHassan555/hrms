@@ -1,0 +1,1262 @@
+{% extends "index.html" %}
+
+{% load i18n horillafilters %}
+{% block content %}
+    {% get_company as theme_obj %}
+    <style>
+        :root {
+            --ess-primary: var(--primary-600, {{ theme_obj.primary_600|default:"#E54F38" }});
+            --ess-primary-hover: var(--primary-800, {{ theme_obj.primary_800|default:"#AC3B2A" }});
+            --ess-primary-soft: var(--primary-100, {{ theme_obj.primary_100|default:"#FFF5F1" }});
+            --ess-primary-border: var(--primary-500, {{ theme_obj.primary_500|default:"#F7C8C1" }});
+            --ess-page-background: #f8fafc;
+            --ess-surface: #ffffff;
+            --ess-surface-muted: #f1f5f9;
+            --ess-text-primary: #0f172a;
+            --ess-text-secondary: #475569;
+            --ess-text-muted: #94a3b8;
+            --ess-border: #e2e8f0;
+            --ess-border-light: #f1f5f9;
+            --ess-success: #16a34a;
+            --ess-warning: #d97706;
+            --ess-danger: #dc2626;
+            --ess-info: #0284c7;
+            --ess-radius-sm: 6px;
+            --ess-radius-md: 8px;
+            --ess-radius-lg: 12px;
+            --ess-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+        }
+
+        .ess-dashboard {
+            min-height: calc(100vh - 80px);
+            margin: -24px;
+            padding: 28px;
+            background: var(--ess-page-background);
+            color: var(--ess-text-primary);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .ess-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            gap: 20px;
+        }
+
+        .ess-header h1 {
+            margin: 0;
+            color: var(--ess-text-primary);
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 32px;
+        }
+
+        .ess-header__subtitle,
+        .ess-header__date {
+            margin-top: 4px;
+            color: var(--ess-text-secondary);
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .ess-header__date {
+            color: var(--ess-text-muted);
+            font-size: 13px;
+        }
+
+        .ess-header__actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .ess-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 16px;
+            gap: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--ess-radius-md);
+            background: var(--ess-surface);
+            color: #334155;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+        }
+
+        .ess-btn:hover {
+            background: #f8fafc;
+            color: #334155;
+            text-decoration: none;
+        }
+
+        .ess-btn--primary {
+            border-color: transparent;
+            background: var(--ess-primary);
+            color: #ffffff;
+        }
+
+        .ess-btn--primary:hover {
+            background: var(--ess-primary-hover);
+            color: #ffffff;
+        }
+
+        .ess-period-picker {
+            display: none !important;
+        }
+
+        .ess-kpi-grid,
+        .ess-content-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .ess-kpi-grid {
+            margin-bottom: 20px;
+        }
+
+        .ess-kpi-card,
+        .ess-card {
+            border: 1px solid var(--ess-border);
+            border-radius: var(--ess-radius-lg);
+            background: var(--ess-surface);
+            box-shadow: var(--ess-shadow-sm);
+        }
+
+        .ess-kpi-card {
+            grid-column: span 3;
+            display: flex;
+            min-height: 132px;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            color: inherit;
+            text-decoration: none;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        .ess-kpi-card:hover {
+            border-color: var(--ess-primary-border);
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .ess-kpi-card__top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .ess-kpi-card__label {
+            color: var(--ess-text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 18px;
+        }
+
+        .ess-kpi-card__icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            flex: 0 0 auto;
+            border-radius: var(--ess-radius-md);
+            background: var(--ess-primary-soft);
+            color: var(--ess-primary);
+        }
+
+        .ess-kpi-card__value {
+            margin-top: 14px;
+            color: var(--ess-text-primary);
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 36px;
+        }
+
+        .ess-kpi-card__sub {
+            margin-top: 6px;
+            color: var(--ess-text-secondary);
+            font-size: 13px;
+            line-height: 18px;
+        }
+
+        .ess-card {
+            grid-column: span 12;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .ess-span-5 {
+            grid-column: span 5;
+        }
+
+        .ess-span-6 {
+            grid-column: span 6;
+        }
+
+        .ess-span-7 {
+            grid-column: span 7;
+        }
+
+        .ess-card__header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 20px 20px 12px;
+            gap: 16px;
+        }
+
+        .ess-card__title {
+            color: var(--ess-text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+        }
+
+        .ess-card__subtitle {
+            margin-top: 3px;
+            color: var(--ess-text-secondary);
+            font-size: 13px;
+            line-height: 18px;
+        }
+
+        .ess-card__action {
+            color: var(--ess-primary);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .ess-card__action:hover {
+            color: var(--ess-primary-hover);
+            text-decoration: none;
+        }
+
+        .ess-card__body {
+            padding: 0 20px 20px;
+        }
+
+        .ess-workday {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+            align-items: end;
+            gap: 20px;
+        }
+
+        .ess-workday__value {
+            color: var(--ess-text-primary);
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 40px;
+        }
+
+        .ess-workday__meta {
+            margin-top: 6px;
+            color: var(--ess-text-secondary);
+            font-size: 13px;
+        }
+
+        .ess-metric-list,
+        .ess-leave-list,
+        .ess-list,
+        .ess-payslip-list,
+        #essGoalsContainer {
+            display: grid;
+            gap: 10px;
+        }
+
+        .ess-metric-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border: 1px solid var(--ess-border-light);
+            border-radius: var(--ess-radius-md);
+            background: #fbfdff;
+            gap: 12px;
+        }
+
+        .ess-metric-row__label {
+            color: var(--ess-text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .ess-metric-row__value {
+            color: var(--ess-text-primary);
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .ess-progress {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: var(--ess-surface-muted);
+        }
+
+        .ess-progress__bar {
+            height: 100%;
+            border-radius: inherit;
+            background: var(--ess-primary);
+            transition: width 200ms ease;
+        }
+
+        .ess-leave-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--ess-border-light);
+            gap: 10px;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .ess-leave-row:last-child {
+            border-bottom: 0;
+        }
+
+        .ess-leave-row:hover {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .ess-leave-row__title,
+        .ess-list-row__title,
+        .ess-goal-row__title {
+            color: var(--ess-text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+        }
+
+        .ess-leave-row__meta,
+        .ess-list-row__sub,
+        .ess-goal-row__meta,
+        .ess-payslip-row__meta {
+            color: var(--ess-text-secondary);
+            font-size: 13px;
+            line-height: 18px;
+        }
+
+        .ess-leave-row__days {
+            color: var(--ess-text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .ess-calendar-legend,
+        .ess-cal-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            color: var(--ess-text-secondary);
+            font-size: 12px;
+        }
+
+        .ess-calendar-legend {
+            padding: 0 20px 4px;
+        }
+
+        .ess-cal-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 5px;
+            border-radius: 999px;
+            vertical-align: middle;
+        }
+
+        .ess-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            padding: 8px 20px 12px;
+            gap: 4px;
+        }
+
+        .ess-cal-header {
+            padding: 4px 0;
+            color: var(--ess-text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .ess-cal-day {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            border-radius: var(--ess-radius-sm);
+            color: var(--ess-text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .ess-cal-day--present {
+            border: 1px solid #bbf7d0;
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .ess-cal-day--absent {
+            border: 1px solid #fecaca;
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .ess-cal-day--late {
+            border: 1px solid #fde68a;
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .ess-cal-day--leave {
+            border: 1px solid var(--ess-primary-border);
+            background: var(--ess-primary-soft);
+            color: var(--ess-primary-hover);
+        }
+
+        .ess-cal-day--holiday {
+            border: 1px solid #bae6fd;
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .ess-cal-day--weekend,
+        .ess-cal-day--future {
+            opacity: 0.45;
+        }
+
+        .ess-cal-day--empty {
+            visibility: hidden;
+        }
+
+        .ess-cal-summary {
+            padding: 0 20px 20px;
+        }
+
+        .ess-cal-summary__item {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .ess-list-row,
+        .ess-payslip-row,
+        .ess-goal-row,
+        .ess-upcoming-row {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--ess-border-light);
+        }
+
+        .ess-list-row:last-child,
+        .ess-payslip-row:last-child,
+        .ess-goal-row:last-child,
+        .ess-upcoming-row:last-child {
+            border-bottom: 0;
+        }
+
+        .ess-list-row,
+        .ess-payslip-row {
+            cursor: pointer;
+        }
+
+        .ess-list-row__main,
+        .ess-payslip-row__main,
+        .ess-goal-row__header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .ess-payslip-row__amount {
+            color: var(--ess-text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .ess-upcoming-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--ess-text-secondary);
+            font-size: 13px;
+            line-height: 18px;
+        }
+
+        .ess-upcoming-row ion-icon {
+            flex: 0 0 auto;
+            margin-top: 2px;
+            color: var(--ess-primary);
+            font-size: 16px;
+        }
+
+        .ess-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 3px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+            white-space: nowrap;
+        }
+
+        .ess-badge--requested,
+        .ess-badge--Not-Started,
+        .ess-badge--On-Track {
+            border-color: #bae6fd;
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .ess-badge--approved,
+        .ess-badge--Closed,
+        .ess-badge--green {
+            border-color: #bbf7d0;
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .ess-badge--cancelled,
+        .ess-badge--amber {
+            border-color: #fde68a;
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .ess-badge--rejected,
+        .ess-badge--At-Risk,
+        .ess-badge--Behind,
+        .ess-badge--red {
+            border-color: #fecaca;
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .ess-badge--indigo,
+        .ess-badge--purple,
+        .ess-badge--blue {
+            border-color: var(--ess-primary-border);
+            background: var(--ess-primary-soft);
+            color: var(--ess-primary-hover);
+        }
+
+        .ess-empty,
+        .ess-empty-sm {
+            padding: 24px 12px;
+            color: var(--ess-text-muted);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .ess-empty-sm {
+            padding: 16px 8px;
+        }
+
+        .ess-skeleton {
+            min-height: 132px;
+            border-radius: var(--ess-radius-lg);
+            background: linear-gradient(90deg, #f1f5f9 25%, #ffffff 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: ess-shimmer 1.4s infinite;
+        }
+
+        @keyframes ess-shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        @media (max-width: 1180px) {
+            .ess-kpi-card,
+            .ess-span-5,
+            .ess-span-6,
+            .ess-span-7 {
+                grid-column: span 6;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ess-dashboard {
+                margin: -16px;
+                padding: 20px;
+            }
+
+            .ess-header,
+            .ess-workday {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .ess-header__actions {
+                justify-content: flex-start;
+            }
+
+            .ess-kpi-card,
+            .ess-span-5,
+            .ess-span-6,
+            .ess-span-7 {
+                grid-column: span 12;
+            }
+        }
+    </style>
+
+    <div class="ess-dashboard">
+        <div class="ess-header">
+            <div>
+                <h1>{% blocktrans with employee_name=employee.get_full_name %}Good afternoon, {{ employee_name }}{% endblocktrans %}</h1>
+                <div class="ess-header__subtitle">{% trans "Here's your workday at a glance." %}</div>
+                <div class="ess-header__date" id="essHeaderDate"></div>
+            </div>
+            <div class="ess-header__actions">
+                <button
+                    type="button"
+                    class="ess-btn ess-btn--primary"
+                    data-toggle="oh-modal-toggle"
+                    data-target="#objectCreateModal"
+                    hx-get="{% url 'leave-request-create' %}"
+                    hx-target="#objectCreateModalTarget"
+                >
+                    <ion-icon name="add-outline"></ion-icon>
+                    {% trans "Request Leave" %}
+                </button>
+                {% if request|is_check_in_enabled %}
+                    <a href="{% url 'view-my-attendance' %}" class="ess-btn">
+                        <ion-icon name="calendar-outline"></ion-icon>
+                        {% trans "View Attendance" %}
+                    </a>
+                {% endif %}
+                <div class="ess-period-picker" hidden>
+                    <button class="ess-period-preset" data-preset="this_month">{% trans "This Month" %}</button>
+                    <button class="ess-period-preset" data-preset="last_month">{% trans "Last Month" %}</button>
+                    <button class="ess-period-preset" data-preset="this_quarter">{% trans "Quarter" %}</button>
+                    <input type="date" id="essFromDate" title="{% trans 'From' %}" />
+                    <input type="date" id="essToDate" title="{% trans 'To' %}" />
+                </div>
+            </div>
+        </div>
+
+        <div class="ess-kpi-grid" id="essKpiGrid">
+            <div class="ess-skeleton"></div>
+            <div class="ess-skeleton"></div>
+            <div class="ess-skeleton"></div>
+            <div class="ess-skeleton"></div>
+        </div>
+
+        <div class="ess-content-grid">
+            {% if request|is_check_in_enabled %}
+                <section class="ess-card ess-span-7">
+                    <div class="ess-card__header">
+                        <div>
+                            <div class="ess-card__title">{% trans "Today's Workday" %}</div>
+                            <div class="ess-card__subtitle" id="essMonthLabel"></div>
+                        </div>
+                        <a href="{% url 'view-my-attendance' %}" class="ess-card__action">{% trans "Details" %}</a>
+                    </div>
+                    <div class="ess-card__body">
+                        <div class="ess-workday">
+                            <div>
+                                <div class="ess-workday__value" id="essTodayHours">--</div>
+                                <div class="ess-workday__meta" id="essTodayHoursMeta">{% trans "Loading work hours" %}</div>
+                                <div class="ess-progress" style="margin-top: 16px;">
+                                    <div class="ess-progress__bar" id="essTodayProgress" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="ess-metric-list" id="essWorkdayMetrics">
+                                <div class="ess-metric-row">
+                                    <span class="ess-metric-row__label">{% trans "Target Hours" %}</span>
+                                    <span class="ess-metric-row__value">8h</span>
+                                </div>
+                                <div class="ess-metric-row">
+                                    <span class="ess-metric-row__label">{% trans "Month Total" %}</span>
+                                    <span class="ess-metric-row__value">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            {% endif %}
+
+            <section class="ess-card {% if request|is_check_in_enabled %}ess-span-5{% endif %}">
+                <div class="ess-card__header">
+                    <div>
+                        <div class="ess-card__title">{% trans "Leave Balance" %}</div>
+                        <div class="ess-card__subtitle">{% trans "Available days by leave type" %}</div>
+                    </div>
+                    <a href="{% url 'user-request-view' %}" class="ess-card__action">{% trans "View all" %}</a>
+                </div>
+                <div class="ess-card__body">
+                    <div id="essLeaveBalanceList" class="ess-leave-list">
+                        <div class="ess-empty-sm">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ess-card">
+                <div class="ess-card__header">
+                    <div>
+                        <div class="ess-card__title">{% trans "My Attendance" %}</div>
+                        <div class="ess-card__subtitle" id="essCalMonthLabel"></div>
+                    </div>
+                    {% if request|is_check_in_enabled %}
+                        <a href="{% url 'view-my-attendance' %}" class="ess-card__action">{% trans "Open attendance" %}</a>
+                    {% endif %}
+                </div>
+                <div class="ess-calendar-legend">
+                    {% if request|is_check_in_enabled %}
+                        <span><span class="ess-cal-dot" style="background: var(--ess-success)"></span>{% trans "Present" %}</span>
+                        <span><span class="ess-cal-dot" style="background: var(--ess-warning)"></span>{% trans "Late" %}</span>
+                        <span><span class="ess-cal-dot" style="background: var(--ess-danger)"></span>{% trans "Absent" %}</span>
+                    {% endif %}
+                    <span><span class="ess-cal-dot" style="background: var(--ess-primary)"></span>{% trans "Leave" %}</span>
+                    <span><span class="ess-cal-dot" style="background: var(--ess-info)"></span>{% trans "Holiday" %}</span>
+                </div>
+                <div id="essAttendanceCalendar" class="ess-calendar-grid"></div>
+                <div id="essCalSummary" class="ess-cal-summary"></div>
+            </section>
+
+            <section class="ess-card ess-span-6">
+                <div class="ess-card__header">
+                    <div>
+                        <div class="ess-card__title">{% trans "Recent Requests" %}</div>
+                        <div class="ess-card__subtitle">{% trans "Your latest leave request activity" %}</div>
+                    </div>
+                    <a href="{% url 'user-request-view' %}" class="ess-card__action">{% trans "View all" %}</a>
+                </div>
+                <div class="ess-card__body">
+                    <div id="essLeaveRequestsList" class="ess-list">
+                        <div class="ess-empty-sm">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ess-card ess-span-6">
+                <div class="ess-card__header">
+                    <div>
+                        <div class="ess-card__title">{% trans "Upcoming & Announcements" %}</div>
+                        <div class="ess-card__subtitle">{% trans "Notices, holidays, and personal milestones" %}</div>
+                    </div>
+                </div>
+                <div class="ess-card__body">
+                    <div id="essAnnouncementsList" class="ess-list">
+                        <div class="ess-empty-sm">{% trans "Loading..." %}</div>
+                    </div>
+                    <div id="essUpcomingList" class="ess-list" style="margin-top: 8px;"></div>
+                </div>
+            </section>
+
+            <section class="ess-card ess-span-6">
+                <div class="ess-card__header">
+                    <div>
+                        <div class="ess-card__title">{% trans "Recent Payslips" %}</div>
+                        <div class="ess-card__subtitle">{% trans "Latest confirmed payroll records" %}</div>
+                    </div>
+                    <a href="{% url 'view-payslip' %}" class="ess-card__action">{% trans "Open payroll" %}</a>
+                </div>
+                <div class="ess-card__body">
+                    <div id="essPayslipList" class="ess-payslip-list">
+                        <div class="ess-empty-sm">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ess-card ess-span-6">
+                <div class="ess-card__header">
+                    <div>
+                        <div class="ess-card__title">{% trans "My Goals" %}</div>
+                        <div class="ess-card__subtitle">{% trans "Active objectives and progress" %}</div>
+                    </div>
+                    <a href="{% url 'objective-list-view' %}?open_tab=1&archive=false" class="ess-card__action">{% trans "View goals" %}</a>
+                </div>
+                <div class="ess-card__body">
+                    <div id="essGoalsContainer">
+                        <div class="ess-empty-sm">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var today = new Date();
+            var uiLocale = window.CURRENT_LANGUAGE || 'en-US';
+            var PERIOD_KEY = 'ess_period_v1';
+            var fromInput = document.getElementById('essFromDate');
+            var toInput = document.getElementById('essToDate');
+
+            document.getElementById('essHeaderDate').textContent =
+                today.toLocaleDateString(uiLocale, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+            function pad2(n) { return String(n).padStart(2, '0'); }
+            function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+            function firstOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+            function lastOfMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0); }
+            function todayIso() { return ymd(today); }
+
+            function initPeriod() {
+                var saved = sessionStorage.getItem(PERIOD_KEY);
+                if (saved) {
+                    try {
+                        var p = JSON.parse(saved);
+                        if (p && p.from && p.to) {
+                            fromInput.value = p.from;
+                            toInput.value = p.to;
+                            return;
+                        }
+                    } catch (e) {}
+                }
+                fromInput.value = ymd(firstOfMonth(today));
+                toInput.value = ymd(lastOfMonth(today));
+            }
+
+            function savePeriod() {
+                sessionStorage.setItem(PERIOD_KEY, JSON.stringify({ from: fromInput.value, to: toInput.value }));
+            }
+
+            function periodParams() {
+                var f = fromInput.value;
+                var t = toInput.value;
+                return (f && t) ? ('from_date=' + encodeURIComponent(f) + '&to_date=' + encodeURIComponent(t)) : '';
+            }
+
+            function urlWithPeriod(u) {
+                var qs = periodParams();
+                if (!qs) return u;
+                return u + (u.indexOf('?') >= 0 ? '&' : '?') + qs;
+            }
+
+            function fetchP(url) {
+                return fetch(urlWithPeriod(url));
+            }
+
+            function syncMonthLabels() {
+                var lbl = '';
+                if (fromInput.value) {
+                    var d = new Date(fromInput.value + 'T00:00:00');
+                    lbl = d.toLocaleDateString(uiLocale, { month: 'long', year: 'numeric' });
+                }
+                setText('essCalMonthLabel', lbl);
+                setText('essMonthLabel', lbl);
+            }
+
+            function reloadAll() {
+                syncMonthLabels();
+                loadKpi();
+                loadLeaveBalance();
+                loadWorkHours();
+                loadAttendanceCalendar();
+                loadPayslips();
+                loadObjectives();
+                loadLeaveRequests();
+                loadAnnouncements();
+                loadUpcoming();
+            }
+
+            function setPreset(p) {
+                var t = new Date();
+                var f;
+                var to;
+                if (p === 'this_month') {
+                    f = new Date(t.getFullYear(), t.getMonth(), 1);
+                    to = new Date(t.getFullYear(), t.getMonth() + 1, 0);
+                } else if (p === 'last_month') {
+                    f = new Date(t.getFullYear(), t.getMonth() - 1, 1);
+                    to = new Date(t.getFullYear(), t.getMonth(), 0);
+                } else if (p === 'this_quarter') {
+                    var qStart = Math.floor(t.getMonth() / 3) * 3;
+                    f = new Date(t.getFullYear(), qStart, 1);
+                    to = new Date(t.getFullYear(), qStart + 3, 0);
+                } else {
+                    return;
+                }
+                fromInput.value = ymd(f);
+                toInput.value = ymd(to);
+                savePeriod();
+                reloadAll();
+            }
+
+            document.querySelectorAll('.ess-period-preset').forEach(function (b) {
+                b.addEventListener('click', function () { setPreset(b.dataset.preset); });
+            });
+
+            [fromInput, toInput].forEach(function (i) {
+                i.addEventListener('change', function () {
+                    if (fromInput.value && toInput.value && toInput.value < fromInput.value) {
+                        toInput.value = fromInput.value;
+                    }
+                    savePeriod();
+                    reloadAll();
+                });
+            });
+
+            initPeriod();
+            syncMonthLabels();
+
+            function loadKpi() {
+                fetchP('/ess/api/kpi/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var iconCalendar = icon('calendar-outline');
+                        var iconTimer = icon('time-outline');
+                        var iconLeaf = icon('trail-sign-outline');
+                        var iconInbox = icon('file-tray-full-outline');
+                        var iconTarget = icon('radio-button-on-outline');
+                        var grid = document.getElementById('essKpiGrid');
+                        grid.innerHTML =
+                            {% if request|is_check_in_enabled %}
+                            kpiCard(iconCalendar, '{% trans "Present This Month"|escapejs %}',
+                                d.present_this_month != null ? d.present_this_month : 0,
+                                '<span class="ess-badge ess-badge--blue">' + (d.late_this_month || 0) + ' {% trans "late"|escapejs %}</span>',
+                                '{% url "view-my-attendance" %}?attendance_date__gte=' + fromInput.value + '&attendance_date__lte=' + toInput.value + '&filter_applied=1') +
+                            kpiCard(iconTimer, '{% trans "Work Hours Today"|escapejs %}',
+                                '<span id="essWorkHoursTodayValue">--</span>',
+                                '<span id="essWorkHoursTodaySub">{% trans "Loading"|escapejs %}</span>',
+                                '{% url "view-my-attendance" %}') +
+                            {% else %}
+                            kpiCard(iconCalendar, '{% trans "Upcoming Leave"|escapejs %}',
+                                d.upcoming_leave_count != null ? d.upcoming_leave_count : 0,
+                                '<span class="ess-badge ess-badge--green">{% trans "approved ahead"|escapejs %}</span>',
+                                '{% url "user-request-view" %}?status=approved&start_date_gte=' + todayIso() + '&filter_applied=1') +
+                            kpiCard(iconTarget, '{% trans "Open Goals"|escapejs %}',
+                                d.open_objectives != null ? d.open_objectives : 0,
+                                '<span class="ess-badge ess-badge--indigo">{% trans "active objectives"|escapejs %}</span>',
+                                '{% url "objective-list-view" %}?open_tab=1&archive=false') +
+                            {% endif %}
+                            kpiCard(iconLeaf, '{% trans "Leave Balance"|escapejs %}',
+                                formatNumber(d.total_available_leave || 0),
+                                '{% trans "available days"|escapejs %}',
+                                '{% url "user-request-view" %}?filter_applied=1') +
+                            kpiCard(iconInbox, '{% trans "Pending Requests"|escapejs %}',
+                                d.pending_leave_requests != null ? d.pending_leave_requests : 0,
+                                '<span class="ess-badge ess-badge--amber">{% trans "awaiting approval"|escapejs %}</span>',
+                                '{% url "user-request-view" %}?status=requested&filter_applied=1');
+                    })
+                    .catch(function () {});
+            }
+
+            function kpiCard(iconHtml, label, value, sub, href) {
+                return '<a href="' + href + '" class="ess-kpi-card">' +
+                    '<div class="ess-kpi-card__top">' +
+                    '<div class="ess-kpi-card__label">' + label + '</div>' +
+                    '<div class="ess-kpi-card__icon">' + iconHtml + '</div>' +
+                    '</div>' +
+                    '<div>' +
+                    '<div class="ess-kpi-card__value">' + value + '</div>' +
+                    '<div class="ess-kpi-card__sub">' + sub + '</div>' +
+                    '</div>' +
+                    '</a>';
+            }
+
+            function loadLeaveBalance() {
+                fetchP('/ess/api/leave-balance/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var el = document.getElementById('essLeaveBalanceList');
+                        if (!d.balances || !d.balances.length) {
+                            el.innerHTML = '<div class="ess-empty-sm">{% trans "No leave balance data"|escapejs %}</div>';
+                            return;
+                        }
+                        el.innerHTML = d.balances.map(function (b) {
+                            var total = Number(b.total || 0);
+                            var available = Number(b.available || 0) + Number(b.carryforward || 0);
+                            var pct = total > 0 ? Math.max(0, Math.min(100, (available / total) * 100)) : 0;
+                            var url = '{% url "user-request-view" %}?filter_applied=1';
+                            if (b.id != null) url += '&leave_type_id=' + encodeURIComponent(b.id);
+                            return '<a class="ess-leave-row" href="' + url + '">' +
+                                '<div>' +
+                                '<div class="ess-leave-row__title">' + esc(b.type) + '</div>' +
+                                '<div class="ess-leave-row__meta">' + formatNumber(b.taken_in_month || 0) + ' {% trans "taken this month"|escapejs %}</div>' +
+                                '<div class="ess-progress" style="margin-top: 8px;">' +
+                                '<div class="ess-progress__bar" style="width:' + pct + '%"></div>' +
+                                '</div>' +
+                                '</div>' +
+                                '<div class="ess-leave-row__days">' + formatNumber(available) + 'd</div>' +
+                                '</a>';
+                        }).join('');
+                    })
+                    .catch(function () {});
+            }
+
+            function loadWorkHours() {
+                var summary = document.getElementById('essTodayHours');
+                if (!summary) return;
+                fetchP('/ess/api/work-hours-month/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        setText('essMonthLabel', d.month_label || '');
+                        var day = (d.days || []).filter(function (x) { return x.iso_date === todayIso(); })[0];
+                        var hours = day ? Number(day.hours || 0) : 0;
+                        var target = 8;
+                        var pct = Math.max(0, Math.min(100, (hours / target) * 100));
+                        setText('essTodayHours', formatNumber(hours) + 'h');
+                        setText('essTodayHoursMeta', pct >= 100 ? '{% trans "Target reached today"|escapejs %}' : '{% trans "Recorded hours for today"|escapejs %}');
+                        setWidth('essTodayProgress', pct + '%');
+                        setText('essWorkHoursTodayValue', formatNumber(hours) + 'h');
+                        setHtml('essWorkHoursTodaySub', '<span class="ess-badge ess-badge--indigo">' + Math.round(pct) + '% {% trans "of target"|escapejs %}</span>');
+                        setHtml('essWorkdayMetrics',
+                            metricRow('{% trans "Target Hours"|escapejs %}', target + 'h') +
+                            metricRow('{% trans "Month Total"|escapejs %}', formatNumber(d.total_hours || 0) + 'h'));
+                    })
+                    .catch(function () {});
+            }
+
+            function loadAttendanceCalendar() {
+                fetchP('/ess/api/attendance-calendar/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var container = document.getElementById('essAttendanceCalendar');
+                        var DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                        var html = DAY_LABELS.map(function (h) {
+                            return '<div class="ess-cal-header">' + h + '</div>';
+                        }).join('');
+                        var startDow = (typeof d.start_weekday === 'number')
+                            ? d.start_weekday
+                            : (function () {
+                                var firstDate = new Date(d.year, d.month - 1, 1);
+                                return (firstDate.getDay() + 6) % 7;
+                            }());
+                        for (var p = 0; p < startDow; p++) {
+                            html += '<div class="ess-cal-day ess-cal-day--empty"></div>';
+                        }
+                        (d.days || []).forEach(function (day) {
+                            var title = '';
+                            var onClick = '';
+                            if (day.status === 'present' || day.status === 'late') {
+                                title = Number(day.hours || 0).toFixed(1) + ' {% trans "hrs"|escapejs %}';
+                            }
+                            if (day.status !== 'empty' && day.status !== 'future' && day.status !== 'weekend' && day.status !== 'workday') {
+                                onClick = ' onclick="window.location.href=\'{% url "view-my-attendance" %}?attendance_date=' + day.date + '\'" style="cursor:pointer"';
+                            }
+                            html += '<div class="ess-cal-day ess-cal-day--' + esc(day.status) + '"' +
+                                (title ? ' title="' + title + '"' : '') + onClick + '>' +
+                                esc(day.day) + '</div>';
+                        });
+                        container.innerHTML = html;
+                        var s = d.summary || {};
+                        document.getElementById('essCalSummary').innerHTML =
+                            {% if request|is_check_in_enabled %}
+                            calSummItem(s.present, '#16a34a', '{% trans "Present"|escapejs %}') +
+                            calSummItem(s.absent, '#dc2626', '{% trans "Absent"|escapejs %}') +
+                            calSummItem(s.late, '#d97706', '{% trans "Late"|escapejs %}') +
+                            {% endif %}
+                            calSummItem(s.leave, 'var(--ess-primary)', '{% trans "Leave"|escapejs %}') +
+                            calSummItem(s.holiday, '#0284c7', '{% trans "Holiday"|escapejs %}');
+                    })
+                    .catch(function () {});
+            }
+
+            function calSummItem(count, color, label) {
+                return '<div class="ess-cal-summary__item">' +
+                    '<span class="ess-cal-dot" style="background:' + color + '"></span>' +
+                    '<strong>' + (count || 0) + '</strong>&nbsp;' + label + '</div>';
+            }
+
+            function loadPayslips() {
+                fetchP('/ess/api/payslips/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var el = document.getElementById('essPayslipList');
+                        if (!d.payslips || !d.payslips.length) {
+                            el.innerHTML = '<div class="ess-empty-sm">{% trans "No payslips available"|escapejs %}</div>';
+                            return;
+                        }
+                        el.innerHTML = d.payslips.slice(0, 4).map(function (p) {
+                            return '<div class="ess-payslip-row" onclick="window.location.href=\'{% url "view-payslip" %}\'">' +
+                                '<div class="ess-payslip-row__main">' +
+                                '<div>' +
+                                '<div class="ess-list-row__title">' + esc(p.period) + '</div>' +
+                                '<div class="ess-payslip-row__meta">' + esc(p.status) + '</div>' +
+                                '</div>' +
+                                '<div class="ess-payslip-row__amount">' + formatMoney(p.net_pay) + '</div>' +
+                                '</div>' +
+                                '</div>';
+                        }).join('');
+                    })
+                    .catch(function () {});
+            }
+
+            function loadObjectives() {
+                fetchP('/ess/api/objectives/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var container = document.getElementById('essGoalsContainer');
+                        if (!d.objectives || !d.objectives.length) {
+                            container.innerHTML = '<div class="ess-empty-sm">{% trans "No active goals"|escapejs %}</div>';
+                            return;
+                        }
+                        var goalsUrl = '{% url "objective-list-view" %}?open_tab=1&archive=false';
+                        container.innerHTML = d.objectives.slice(0, 5).map(function (obj) {
+                            var progress = Math.max(0, Math.min(100, Number(obj.progress || 0)));
+                            return '<div class="ess-goal-row" onclick="window.location.href=\'' + goalsUrl + '\'" style="cursor:pointer">' +
+                                '<div class="ess-goal-row__header">' +
+                                '<span class="ess-goal-row__title">' + esc(obj.title) + '</span>' +
+                                '<span class="ess-badge ess-badge--' + statusClass(obj.status) + '">' + esc(obj.status) + '</span>' +
+                                '</div>' +
+                                '<div class="ess-progress" style="margin-top: 8px;"><div class="ess-progress__bar" style="width:' + progress + '%"></div></div>' +
+                                '<div class="ess-goal-row__meta">' + progress + '% &middot; ' + esc(obj.key_results_count) + ' KRs</div>' +
+                                '</div>';
+                        }).join('');
+                    })
+                    .catch(function () {});
+            }
+
+            function loadLeaveRequests() {
+                fetchP('/ess/api/leave-requests/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var container = document.getElementById('essLeaveRequestsList');
+                        if (!d.requests || !d.requests.length) {
+                            container.innerHTML = '<div class="ess-empty-sm">{% trans "No recent requests"|escapejs %}</div>';
+                            return;
+                        }
+                        container.innerHTML = d.requests.map(function (lr) {
+                            return '<div class="ess-list-row" onclick="window.location.href=\'{% url "user-request-view" %}\'">' +
+                                '<div class="ess-list-row__main">' +
+                                '<span class="ess-list-row__title">' + esc(lr.leave_type) + '</span>' +
+                                '<span class="ess-badge ess-badge--' + statusClass(lr.status) + '">' + esc(lr.status_label) + '</span>' +
+                                '</div>' +
+                                '<div class="ess-list-row__sub">' + esc(lr.start) + ' to ' + esc(lr.end) + ' &middot; ' + esc(lr.days) + ' days</div>' +
+                                '</div>';
+                        }).join('');
+                    })
+                    .catch(function () {});
+            }
+
+            function loadAnnouncements() {
+                fetchP('/ess/api/announcements/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var container = document.getElementById('essAnnouncementsList');
+                        if (!d.announcements || !d.announcements.length) {
+                            container.innerHTML = '<div class="ess-empty-sm">{% trans "No announcements"|escapejs %}</div>';
+                            return;
+                        }
+                        container.innerHTML = d.announcements.map(function (a) {
+                            return '<div class="ess-list-row" style="cursor:default">' +
+                                '<div class="ess-list-row__title">' + esc(a.title) + '</div>' +
+                                '<div class="ess-list-row__sub">' + esc(a.date) +
+                                (a.expire_date ? ' &middot; {% trans "expires"|escapejs %} ' + esc(a.expire_date) : '') +
+                                '</div>' +
+                                '</div>';
+                        }).join('');
+                    })
+                    .catch(function () {});
+            }
+
+            function loadUpcoming() {
+                fetchP('/ess/api/upcoming/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var container = document.getElementById('essUpcomingList');
+                        var html = '';
+                        if (d.birthday) {
+                            var bdLabel = d.birthday.days_away === 0 ? '{% trans "Today"|escapejs %}' : d.birthday.days_away + ' {% trans "days"|escapejs %}';
+                            html += upcomingRow('gift-outline', '{% trans "Your Birthday"|escapejs %}', esc(d.birthday.date) + ' &middot; ' + bdLabel);
+                        }
+                        if (d.anniversary) {
+                            html += upcomingRow('ribbon-outline', d.anniversary.years + ' {% trans "Year Anniversary"|escapejs %}',
+                                esc(d.anniversary.date) + ' &middot; ' + d.anniversary.days_away + ' {% trans "days"|escapejs %}');
+                        }
+                        (d.holidays || []).forEach(function (h) {
+                            html += upcomingRow('calendar-outline', esc(h.name),
+                                esc(h.start) + (h.end !== h.start ? ' to ' + esc(h.end) : '') + ' &middot; ' + h.days_away + ' {% trans "days"|escapejs %}');
+                        });
+                        if (!html) html = '<div class="ess-empty-sm">{% trans "Nothing upcoming this month"|escapejs %}</div>';
+                        container.innerHTML = html;
+                    })
+                    .catch(function () {});
+            }
+
+            function upcomingRow(iconName, title, meta) {
+                return '<div class="ess-upcoming-row">' +
+                    icon(iconName) +
+                    '<span><strong style="color:var(--ess-text-primary)">' + title + '</strong><br>' + meta + '</span>' +
+                    '</div>';
+            }
+
+            function metricRow(label, value) {
+                return '<div class="ess-metric-row">' +
+                    '<span class="ess-metric-row__label">' + label + '</span>' +
+                    '<span class="ess-metric-row__value">' + value + '</span>' +
+                    '</div>';
+            }
+
+            function icon(name) {
+                return '<ion-icon name="' + name + '"></ion-icon>';
+            }
+
+            function statusClass(value) {
+                return esc(value).replace(/\s+/g, '-');
+            }
+
+            function setText(id, value) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = value;
+            }
+
+            function setHtml(id, value) {
+                var el = document.getElementById(id);
+                if (el) el.innerHTML = value;
+            }
+
+            function setWidth(id, value) {
+                var el = document.getElementById(id);
+                if (el) el.style.width = value;
+            }
+
+            function formatNumber(value) {
+                var num = Number(value || 0);
+                return Number.isInteger(num) ? String(num) : num.toFixed(1);
+            }
+
+            function formatMoney(value) {
+                return Number(value || 0).toLocaleString(uiLocale, {
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function esc(str) {
+                return String(str == null ? '' : str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#x27;');
+            }
+
+            reloadAll();
+        }());
+    </script>
+{% endblock %}

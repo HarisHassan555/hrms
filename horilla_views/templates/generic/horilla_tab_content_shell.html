@@ -1,0 +1,28 @@
+{% load i18n %}
+<div hx-get="{% url nav_url_name %}?{{ request.GET.urlencode }}" hx-trigger="load"></div>
+<div
+    class="oh-checkpoint-badge mb-2"
+    id="{{ selected_instances_key_id }}"
+    data-ids="[]"
+    data-clicked=""
+    style="display: none"
+>
+</div>
+<div class="oh-wrapper" id="{{ container_id }}">
+    <div class="animated-background"></div>
+</div>
+<script>
+    (function () {
+        // Keep only one tab's content live at a time to avoid duplicate-id collisions.
+        var myContent = document.currentScript.closest(".oh-tabs__content");
+        var contents = myContent && myContent.closest(".oh-tabs__contents");
+        if (!contents) return;
+        var tabsRoot = contents.closest("#{{ tabs_root_id }}") || contents.parentElement;
+        contents.querySelectorAll(".oh-tabs__content").forEach(function (el) {
+            if (el === myContent || !el.innerHTML.trim()) return;
+            el.innerHTML = "";
+            var btn = tabsRoot && tabsRoot.querySelector('[data-target="#' + el.id + '"]');
+            if (btn) btn.removeAttribute("data-loaded");
+        });
+    })();
+</script>

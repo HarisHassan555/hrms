@@ -1,0 +1,1075 @@
+
+
+{% extends "index.html" %}
+{% load i18n %}{% load static  %}
+
+
+{% block content %}
+
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+
+
+<style>
+.online--dot{
+  background-color:yellowgreen;
+}
+.offline--dot{
+  background-color:rgba(128, 128, 128, 0.482);
+}
+
+.hired-True{
+  border-left: 3.4px solid yellowgreen !important;
+  border-radius: 4px 0 0 4px;
+
+}
+
+
+  .profile-picture {
+    transition: transform 0.3s;
+    z-index:9999
+    ;
+  }
+
+  .profile-picture:hover {
+      transform: scale(2.4);
+  }
+
+  .custom-swal-container .swal2-styled {
+    display:block;
+    width:70%;
+  }
+
+  .employee-saas-page {
+    --employee-page-bg: #ffffff;
+    --employee-surface: #ffffff;
+    --employee-border: #e2e8f0;
+    --employee-border-soft: #f1f5f9;
+    --employee-text: #0f172a;
+    --employee-text-muted: #64748b;
+    --employee-text-soft: #94a3b8;
+    --employee-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    background: var(--employee-page-bg);
+    min-height: calc(100vh - 80px);
+    padding: 24px;
+  }
+
+  .employee-saas-page #employeeListNavBar {
+    margin-bottom: 16px;
+  }
+
+  .employee-saas-page #employeeListNavBar > div > .flex {
+    align-items: center;
+    background: var(--employee-surface);
+    border: 1px solid var(--employee-border);
+    border-radius: 12px;
+    box-shadow: var(--employee-shadow);
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px !important;
+    padding: 12px;
+  }
+
+  .employee-saas-page #employeeListNavBar h3 {
+    display: none;
+  }
+
+  .employee-saas-page #employeeListNavBar > div > .flex > .flex {
+    align-items: center;
+    flex: 1 1 auto;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .employee-saas-page .navFilterForm {
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    flex: 1 1 auto;
+    padding: 0;
+  }
+
+  .employee-saas-page .navFilterForm > .relative:first-of-type {
+    flex: 0 1 240px;
+    min-width: 220px;
+  }
+
+  .employee-saas-page .navFilterForm input[name="search"],
+  .employee-saas-page .navFilterForm select,
+  .employee-saas-page .oh-input,
+  .employee-saas-page .oh-select {
+    min-height: 40px;
+    border-color: #cbd5e1;
+    border-radius: 8px;
+    color: var(--employee-text);
+    font-size: 14px;
+  }
+
+  .employee-saas-page .navFilterForm input[name="search"] {
+    border-color: #cbd5e1 !important;
+    height: 40px;
+    min-width: 220px;
+  }
+
+  .employee-saas-page .navFilterForm input[name="search"]:focus,
+  .employee-saas-page .navFilterForm select:focus,
+  .employee-saas-page .oh-input:focus,
+  .employee-saas-page .oh-select:focus {
+    border-color: var(--theme-primary) !important;
+    box-shadow: 0 0 0 3px var(--theme-focus-ring);
+    outline: none;
+  }
+
+  .employee-saas-page #modernFilterTrigger,
+  .employee-saas-page .oh-btn,
+  .employee-saas-page .oh-dropdown__link {
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .employee-saas-page #modernFilterTrigger,
+  .employee-saas-page #employeeListNavBar .dropdown-wrapper > button,
+  .employee-saas-page .nav-view-btn {
+    align-items: center;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: var(--employee-text) !important;
+    display: inline-flex;
+    height: 40px !important;
+    justify-content: center;
+    margin: 0;
+    padding: 0 14px !important;
+    white-space: nowrap;
+  }
+
+  .employee-saas-page #modernFilterTrigger:hover,
+  .employee-saas-page #employeeListNavBar .dropdown-wrapper > button:hover,
+  .employee-saas-page .nav-view-btn:hover {
+    background: #f8fafc !important;
+    border-color: var(--theme-primary-border) !important;
+    color: var(--theme-primary) !important;
+  }
+
+  .employee-saas-page .nav-view-btn {
+    border-color: var(--theme-primary-border) !important;
+    color: var(--theme-primary) !important;
+    padding: 0 !important;
+    width: 52px;
+  }
+
+  .employee-saas-page .nav-view-btn.oh-view-btn--active {
+    background: var(--theme-primary-soft) !important;
+    border-color: var(--theme-primary) !important;
+  }
+
+  .employee-saas-page #employeeListNavBar .dropdown-wrapper > button img,
+  .employee-saas-page #modernFilterTrigger img {
+    height: 15px;
+    width: 15px;
+  }
+
+  .employee-toolbar-filter {
+    appearance: none;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: var(--employee-text);
+    font-size: 14px;
+    height: 40px;
+    min-width: 160px;
+    padding: 0 32px 0 12px;
+  }
+
+  .employee-toolbar-filter:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 3px var(--theme-focus-ring);
+    outline: none;
+  }
+
+  .employee-saas-page a[href*="employee-view-new"],
+  .employee-saas-page .bg-brand-600 {
+    background: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
+    color: #ffffff !important;
+  }
+
+  .employee-saas-page a[href*="employee-view-new"]:hover,
+  .employee-saas-page .bg-brand-600:hover {
+    background: var(--theme-primary-hover) !important;
+    border-color: var(--theme-primary-hover) !important;
+  }
+
+  .employee-saas-page .nav-view-btn,
+  .employee-saas-page .oh-view-type {
+    border-radius: 8px;
+  }
+
+  .employee-saas-page .oh-view-btn--active,
+  .employee-saas-page .oh-view-type--active,
+  .employee-saas-page .active {
+    background: var(--theme-primary-soft);
+    color: var(--theme-primary);
+  }
+
+  .employee-saas-page #filterTagContainerSectionNav,
+  .employee-saas-page .filter-tag-container {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    margin: 0 0 14px !important;
+    padding: 0 4px;
+  }
+
+  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__tag,
+  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__save {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    color: var(--employee-text);
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 6px;
+    min-height: 32px;
+    padding: 5px 10px;
+  }
+
+  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__tag--custom:first-child {
+    background: var(--theme-primary);
+    border-color: var(--theme-primary);
+    color: #ffffff;
+  }
+
+  .employee-saas-page #filterTagContainerSectionNav .filter-field {
+    background: var(--theme-primary-soft);
+    border-color: var(--theme-primary-border);
+    color: var(--employee-text);
+  }
+
+  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__tag-close {
+    align-items: center;
+    background: var(--theme-primary) !important;
+    border: 0;
+    border-radius: 999px;
+    color: #ffffff !important;
+    display: inline-flex;
+    height: 18px;
+    justify-content: center;
+    margin-left: 4px;
+    padding: 0;
+    width: 18px;
+  }
+
+  .employee-saas-page #filterTagContainerSectionNav .clear-all {
+    background: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
+    color: #ffffff !important;
+    height: 32px;
+    justify-content: center;
+    padding: 0;
+    width: 42px;
+  }
+
+  .employee-saas-page #listContainer {
+    padding: 0;
+  }
+
+  .employee-saas-page .hlv-container > .bg-white,
+  .employee-saas-page .fixed-table {
+    background: var(--employee-surface) !important;
+    border: 1px solid var(--employee-border);
+    border-radius: 12px;
+    box-shadow: var(--employee-shadow);
+  }
+
+  .employee-saas-page .hlv-container > .bg-white {
+    padding: 0 !important;
+    overflow: visible;
+  }
+
+  .employee-saas-page .fixed-table {
+    overflow: visible;
+  }
+
+  .employee-saas-page table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .employee-saas-page thead tr {
+    height: 44px;
+    border-bottom: 1px solid var(--employee-border);
+  }
+
+  .employee-saas-page thead th,
+  .employee-saas-page thead td {
+    background: #f8fafc !important;
+    border-bottom: 1px solid var(--employee-border) !important;
+    color: var(--employee-text-muted) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0;
+    padding: 0 16px !important;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  .employee-saas-page tbody tr {
+    min-height: 56px;
+    transition: background-color 160ms ease;
+  }
+
+  .employee-saas-page tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .employee-saas-page tbody tr.highlight-selected {
+    background: var(--theme-primary-soft) !important;
+  }
+
+  .employee-saas-page tbody td {
+    border-bottom: 1px solid var(--employee-border-soft) !important;
+    color: var(--employee-text) !important;
+    font-size: 14px !important;
+    height: 58px !important;
+    padding: 10px 16px !important;
+    vertical-align: middle;
+  }
+
+  .employee-saas-page tbody tr:last-child td {
+    border-bottom: 0 !important;
+  }
+
+  .employee-saas-page tbody td a {
+    color: var(--theme-primary);
+  }
+
+  .employee-saas-page .oh-profile {
+    align-items: center;
+    gap: 12px;
+  }
+
+  .employee-saas-page .oh-profile img,
+  .employee-saas-page .oh-profile__avatar,
+  .employee-saas-page .profile-picture {
+    border: 1px solid var(--employee-border);
+    border-radius: 999px;
+    height: 36px !important;
+    min-width: 36px !important;
+    object-fit: cover;
+    width: 36px !important;
+  }
+
+  .employee-identity-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .employee-identity-cell__name {
+    color: var(--employee-text);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .employee-identity-cell__meta {
+    color: var(--employee-text-muted);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .employee-status-badge {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 16px;
+    padding: 4px 8px;
+  }
+
+  .employee-status-badge--active {
+    background: #dcfce7;
+    border-color: #bbf7d0;
+    color: #15803d;
+  }
+
+  .employee-status-badge--inactive {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+  }
+
+  .emp-row-actions {
+    display: inline-flex;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+  }
+
+  .emp-row-actions__trigger {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--employee-border);
+    border-radius: 8px;
+    color: var(--employee-text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    height: 36px;
+    justify-content: center;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    width: 36px;
+  }
+
+  .emp-row-actions__trigger:hover,
+  .emp-row-actions__trigger:focus {
+    background: var(--theme-primary-soft);
+    border-color: var(--theme-primary-border);
+    color: var(--theme-primary);
+    outline: none;
+  }
+
+  .emp-row-actions__menu {
+    background: #ffffff;
+    border: 1px solid var(--employee-border);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+    display: none;
+    min-width: 190px;
+    padding: 6px;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 40;
+  }
+
+  .emp-row-actions:hover .emp-row-actions__menu,
+  .emp-row-actions:focus-within .emp-row-actions__menu {
+    display: block;
+  }
+
+  .emp-row-actions__item,
+  .emp-row-actions__menu form {
+    width: 100%;
+  }
+
+  .emp-row-actions__item {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--employee-text);
+    cursor: pointer;
+    display: flex;
+    font-size: 14px;
+    font-weight: 500;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 10px;
+    text-align: left;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .emp-row-actions__item:hover,
+  .emp-row-actions__item:focus {
+    background: #f8fafc;
+    color: var(--theme-primary);
+    outline: none;
+  }
+
+  .emp-row-actions__item--danger {
+    color: #b91c1c;
+  }
+
+  .emp-row-actions__item--danger:hover,
+  .emp-row-actions__item--danger:focus {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .emp-row-actions__item ion-icon {
+    color: inherit;
+    font-size: 16px;
+  }
+
+  .employee-saas-page .hlv-pagination a,
+  .employee-saas-page .hlv-pagination button {
+    border-radius: 8px;
+  }
+
+  .employee-saas-page .hlv-pagination .active,
+  .employee-saas-page .hlv-pagination [aria-current="page"] {
+    background: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
+    color: #ffffff !important;
+  }
+
+  .employee-saas-page .oh-modal__dialog,
+  .employee-saas-page .oh-dropdown__menu {
+    border-radius: 12px;
+  }
+
+  @media (max-width: 1180px) {
+    .employee-saas-page thead th:nth-child(6),
+    .employee-saas-page tbody td:nth-child(6),
+    .employee-saas-page thead th:nth-child(7),
+    .employee-saas-page tbody td:nth-child(7),
+    .employee-saas-page thead th:nth-child(8),
+    .employee-saas-page tbody td:nth-child(8) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .employee-saas-page {
+      padding: 16px;
+    }
+
+    .employee-saas-page .navFilterForm {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .employee-saas-page #employeeListNavBar > div > .flex,
+    .employee-saas-page #employeeListNavBar > div > .flex > .flex {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .employee-saas-page .navFilterForm > * {
+      width: 100%;
+    }
+
+    .employee-saas-page .navFilterForm > .relative:first-of-type,
+    .employee-saas-page .navFilterForm input[name="search"] {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .employee-toolbar-filter {
+      width: 100%;
+    }
+
+    .employee-saas-page .fixed-table {
+      overflow-x: auto;
+    }
+
+    .employee-saas-page table {
+      min-width: 760px;
+    }
+  }
+</style>
+
+<div class="employee-saas-page">
+  <div id="employeeListNavBar">
+  <div hx-get="{% url "employees-nav" %}?{{initial_nav_query|default:request.GET.urlencode}}" hx-trigger="load">
+  </div>
+  </div>
+{% comment %} my_app/templates/my_app/generic/index.html {% endcomment %}
+
+
+
+  {% include "generic/components.html" %}
+
+  <div
+    class="oh-checkpoint-badge mb-2"
+    id="selectedInstances"
+    data-ids="[]"
+    data-clicked=""
+    style="display: none"
+  ></div>
+
+
+  <div
+  class="oh-wrapper"
+  id="listContainer">
+</div>
+</div>
+
+
+
+
+<div id="relatedModel"></div>
+
+<div
+  class="oh-modal"
+  id="workInfoImport"
+  role="dialog"
+  aria-labelledby="workInfoImport"
+  aria-hidden="true"
+  >
+  <div class="oh-modal__dialog">
+    <div class="oh-modal__dialog-header">
+      <h2 class="oh-modal__dialog-title" id="workInfoImportLavel">
+        {% trans "Import Employee" %}
+      </h2>
+      <button class="oh-modal__close" aria-label={% trans 'Close' %}>
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      <div class="oh-modal__dialog-body p-0 pt-2" id="workInfoImportModalBody">
+        <form
+          action="#"
+          id="workInfoImportForm"
+          enctype="multipart/form-data">
+          <div
+            class="oh-modal__dialog-body mr-5"
+            id="uploading"
+            style="display: none"
+          >
+            <div class="loader-container">
+              <div class="loader"></div>
+              <div class="loader-text">{% trans "Uploading..." %}</div>
+            </div>
+          </div>
+          <div id="error-container" style="color: red"></div>
+          <div class="modal-body">
+            {% csrf_token %}
+            <div class="oh-dropdown__import-form">
+              <label class="oh-dropdown__import-label" for="workInfoImportFile">
+                <ion-icon
+                  name="cloud-upload"
+                  class="oh-dropdown__import-form-icon md hydrated"
+                  role="img"
+                  aria-label="{% trans 'cloud upload' %}"
+                ></ion-icon>
+                <span class="oh-dropdown__import-form-title"
+                  >{% trans "Upload a File" %}</span
+                >
+                <span class="oh-dropdown__import-form-text"
+                  >{% trans "Drag and drop files here" %}</span
+                >
+              </label>
+              <input type="file" name="file" id="workInfoImportFile" />
+            </div>
+          </div>
+          <div class="modal-footer d-flex flex-row-reverse">
+            <input
+            onclick="
+              validateFile($(this),'workInfoImportFile',true);
+              "
+              type="submit"
+              class="oh-btn oh-btn--small oh-btn--secondary w-100 mt-3"
+              value="{% trans 'Upload' %}"
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div
+  class="oh-modal"
+  id="employeeExport"
+  role="dialog"
+  aria-labelledby="employeeExport"
+  aria-hidden="true"
+  >
+  <div class="oh-modal__dialog" style="max-width: 750px">
+    <div class="oh-modal__dialog-header">
+      <h2 class="oh-modal__dialog-title" id="employeeExportLavel">
+        {% trans "Export Employees" %}
+      </h2>
+      <button class="oh-modal__close" aria-label={% trans 'Close' %}>
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      <div class="oh-modal__dialog-body p-0 pt-2" id="employeeExportModalBody">
+        <form
+          action="{%url 'employee-export' %}"
+          method="get"
+          onsubmit="event.stopPropagation();
+            $(this).find('[name=instance_ids]').val($('#selectedInstances').attr('data-ids') || '[]');
+            $(this).parents().find('.oh-modal--show').last().toggleClass('oh-modal--show');"
+          id="employeeExportForm"
+        >
+          {% csrf_token %}
+          {% include 'cbv/employees_view/employee_export.html' %}
+
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="oh-modal" id="sendMailModal" role="dialog" aria-labelledby="sendMailModal" aria-hidden="true">
+  <div class="oh-modal__dialog">
+    <div class="oh-modal__dialog-header">
+      <span class="oh-modal__dialog-title" id="sendMailModalLabel"><h5>{% trans 'Send Mail' %}</h5></span>
+      <button class="oh-modal__close" aria-label={% trans 'Close' %}><ion-icon name="close-outline"></ion-icon></button>
+    </div>
+    <div class="oh-modal__dialog-body" id="mail-content"></div>
+  </div>
+</div>
+
+<div
+  class="oh-modal"
+  id="bulkUpdateModal"
+  role="dialog"
+  aria-labelledby="bulkUpdateModal"
+  aria-hidden="true"
+  >
+  <div class="oh-modal__dialog" style="max-width: 750px">
+    <div class="oh-modal__dialog-header">
+      <h2 class="oh-modal__dialog-title" id="bulkUpdateModalLavel">
+        {% trans "Bulk Update Employees" %}
+      </h2>
+      <button class="oh-modal__close" aria-label={% trans 'Close' %}>
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      <div class="oh-modal__dialog-body p-0 pt-2" id="bulkUpdateModalBody">
+        <form
+          action="{%url 'employee-bulk-update' %}"
+          method="post"
+          onsubmit="event.stopPropagation();$(this).parents().find('.oh-modal--show').last().toggleClass('oh-modal--show');"
+          id="bulkUpdateModalForm"
+        >
+          {% csrf_token %} {{update_fields_form.update_fields.label}}
+          {{update_fields_form.update_fields}}
+          {{update_fields_form.bulk_employee_ids}}
+          <div class="oh-dropdown__filter-footer">
+            <button class="oh-btn oh-btn--secondary oh-btn--small w-100">
+              {% trans "Update" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="oh-modal" id="dataExport" role="dialog" aria-labelledby="dataExport" aria-hidden="true">
+  <div class="oh-modal__dialog">
+    <div class="oh-modal__dialog-header">
+      <span class="oh-modal__dialog-title" id="dataExport"><h5>{% trans 'Export Data' %}</h5></span>
+      <button class="oh-modal__close" aria-label={% trans 'Close' %}><ion-icon name="close-outline"></ion-icon></button>
+    </div>
+    <div class="oh-modal__dialog-body" id="export-content"></div>
+  </div>
+</div>
+
+
+
+<script src="{% static 'employee/importExport.js' %}"></script>
+<script src="{% static '/cbv/employee_view/actions.js' %}"></script>
+<script>
+  (function () {
+    function submitEmployeeFilter(form) {
+      var applyButton = form.querySelector("#applyFilter");
+      if (applyButton) {
+        applyButton.click();
+        return;
+      }
+      if (form.requestSubmit) {
+        form.requestSubmit();
+      }
+    }
+
+    function getSelectedDepartment(source) {
+      var selected = Array.prototype.slice.call(source.options).find(function (option) {
+        return option.selected && option.value;
+      });
+      return selected ? selected.value : "";
+    }
+
+    function syncToolbarFilters() {
+      var form = document.querySelector("#employeeListNavBar .navFilterForm");
+      if (!form || form.querySelector("[data-employee-toolbar-filter]")) {
+        return;
+      }
+
+      var filterWrapper = form.querySelector("#filterDropdownWrapper");
+      var departmentSource = form.querySelector("[name='employee_work_info__department_id']");
+      if (departmentSource && filterWrapper) {
+        var departmentFilter = document.createElement("select");
+        departmentFilter.className = "employee-toolbar-filter";
+        departmentFilter.setAttribute("data-employee-toolbar-filter", "department");
+        departmentFilter.setAttribute("aria-label", "{% trans 'Department filter' %}");
+        departmentFilter.innerHTML = '<option value="">{% trans "Department" %}</option>';
+
+        Array.prototype.slice.call(departmentSource.options || []).forEach(function (option) {
+          if (!option.value) {
+            return;
+          }
+          var clonedOption = document.createElement("option");
+          clonedOption.value = option.value;
+          clonedOption.textContent = option.textContent;
+          departmentFilter.appendChild(clonedOption);
+        });
+
+        departmentFilter.value = getSelectedDepartment(departmentSource);
+        departmentFilter.addEventListener("change", function () {
+          Array.prototype.slice.call(departmentSource.options || []).forEach(function (option) {
+            option.selected = option.value === departmentFilter.value;
+          });
+          $(departmentSource).trigger("change");
+          submitEmployeeFilter(form);
+        });
+        form.insertBefore(departmentFilter, filterWrapper);
+      }
+
+      var statusRadios = form.querySelectorAll("[name='is_active']");
+      if (statusRadios.length && filterWrapper) {
+        var statusFilter = document.createElement("select");
+        statusFilter.className = "employee-toolbar-filter";
+        statusFilter.setAttribute("data-employee-toolbar-filter", "status");
+        statusFilter.setAttribute("aria-label", "{% trans 'Status filter' %}");
+
+        Array.prototype.slice.call(statusRadios).forEach(function (radio) {
+          var label = form.querySelector("label[for='" + radio.id + "']");
+          var option = document.createElement("option");
+          option.value = radio.value;
+          option.textContent = radio.value ? (label ? label.textContent.trim() : radio.value) : "{% trans 'Status' %}";
+          if (radio.checked) {
+            option.selected = true;
+          }
+          statusFilter.appendChild(option);
+        });
+
+        statusFilter.addEventListener("change", function () {
+          Array.prototype.slice.call(statusRadios).forEach(function (radio) {
+            radio.checked = radio.value === statusFilter.value;
+            if (radio.checked) {
+              $(radio).trigger("change");
+            }
+          });
+          submitEmployeeFilter(form);
+        });
+        form.insertBefore(statusFilter, filterWrapper);
+      }
+
+      var modernFilterTrigger = form.querySelector("#modernFilterTrigger");
+      if (modernFilterTrigger) {
+        Array.prototype.slice.call(modernFilterTrigger.childNodes).forEach(function (node) {
+          if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+            node.textContent = " {% trans 'More Filters' %} ";
+          }
+        });
+      }
+    }
+
+    function isEmployeeDetailPath() {
+      var path = window.location.pathname.replace(/\/$/, "");
+      return /\/employee\/employee-view\/\d+$/.test(path);
+    }
+    function isEmployeeEditPath() {
+      var path = window.location.pathname.replace(/\/$/, "");
+      return /\/employee\/employee-view-update\/\d+$/.test(path);
+    }
+    function getHtmxSwapTarget(e) {
+      if (!e || !e.detail) {
+        return null;
+      }
+      return e.detail.target || e.detail.elt || null;
+    }
+    function syncEmployeeListNavBar() {
+      var nav = document.getElementById("employeeListNavBar");
+      var list = document.getElementById("listContainer");
+      if (!nav || !list) {
+        return;
+      }
+      var hasProfile = !!list.querySelector(".reload-profile-view");
+      var hasEditForm = !!list.querySelector("#employee-update-form-root");
+      var hide =
+        hasProfile ||
+        hasEditForm ||
+        isEmployeeDetailPath() ||
+        isEmployeeEditPath();
+      if (hide) {
+        nav.style.display = "none";
+        var tagRow = nav.querySelector("#filterTagContainerSectionNav");
+        if (tagRow) {
+          tagRow.innerHTML = "";
+        }
+      } else {
+        nav.style.display = "";
+      }
+    }
+    function onListContainerHtmxEvent(e) {
+      var t = getHtmxSwapTarget(e);
+      if (t && t.id === "listContainer") {
+        syncEmployeeListNavBar();
+      }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+      syncToolbarFilters();
+      syncEmployeeListNavBar();
+    });
+    document.addEventListener("htmx:load", syncToolbarFilters);
+    document.body.addEventListener("htmx:afterSwap", function (event) {
+      if (event.target && event.target.closest && event.target.closest("#employeeListNavBar")) {
+        syncToolbarFilters();
+      }
+    });
+    document.body.addEventListener("htmx:afterSwap", onListContainerHtmxEvent);
+    document.body.addEventListener("htmx:afterSettle", onListContainerHtmxEvent);
+    document.body.addEventListener("htmx:afterRequest", function (e) {
+      var url = (e.detail && e.detail.xhr && e.detail.xhr.responseURL) || "";
+      if (
+        e.detail &&
+        e.detail.successful &&
+        (url.indexOf("/employee/profile/employee/employee-view/") !== -1 ||
+          url.indexOf("/employee/employee-view-update/") !== -1)
+      ) {
+        setTimeout(syncEmployeeListNavBar, 0);
+      }
+    });
+    window.addEventListener("popstate", function () {
+      setTimeout(syncEmployeeListNavBar, 0);
+    });
+  })();
+</script>
+<script>
+  (function () {
+    // The Allocation button (employee_actions.html) pushes "?allocation=<id>"
+    // on the *list* URL when opening the modal -- not a path like
+    // /employee/employee-view/<id>/, which is the detail-view route and
+    // would otherwise render the full detail page on reload instead of the
+    // list with the modal open. This block is what actually reopens the
+    // modal on load/back-forward for that query param; the button only sets
+    // the URL, it doesn't know how to restore state from it.
+    var ALLOCATION_URL_TEMPLATE = "{% url 'allocation-view' 0 %}";
+
+    function allocationUrlFor(id) {
+      return ALLOCATION_URL_TEMPLATE.replace("/0/", "/" + id + "/");
+    }
+
+    function getAllocationIdFromUrl() {
+      var id = new URLSearchParams(window.location.search).get("allocation");
+      return id && /^\d+$/.test(id) ? id : null;
+    }
+
+    function openAllocationModal(id) {
+      var modal = document.getElementById("allocationModal");
+      if (!modal || !window.htmx) {
+        return;
+      }
+      htmx.ajax("GET", allocationUrlFor(id), {
+        target: "#allocationModalBody",
+        swap: "innerHTML",
+      });
+      modal.classList.add("oh-modal--show");
+    }
+
+    function closeAllocationModal() {
+      var modal = document.getElementById("allocationModal");
+      if (modal) {
+        modal.classList.remove("oh-modal--show");
+      }
+    }
+
+    function stripAllocationParam() {
+      var url = new URL(window.location.href);
+      if (!url.searchParams.has("allocation")) {
+        return;
+      }
+      url.searchParams.delete("allocation");
+      history.pushState({}, "", url.pathname + url.search);
+    }
+
+    // Reload/direct-link: reopen the modal the URL says should be open,
+    // instead of silently landing on the bare list.
+    document.addEventListener("DOMContentLoaded", function () {
+      var id = getAllocationIdFromUrl();
+      if (id) {
+        openAllocationModal(id);
+      }
+    });
+
+    // Explicit close ("x") drops the query param, so the URL goes back to
+    // the plain list -- otherwise the modal would keep reopening on every
+    // reload even after the user closed it.
+    document.addEventListener("click", function (event) {
+      if (
+        event.target.closest(
+          "#allocationModal .oh-modal__close, #allocationModal .oh-modal__cancel"
+        ) &&
+        getAllocationIdFromUrl()
+      ) {
+        stripAllocationParam();
+      }
+    });
+
+    // Back/forward: reflect whichever state the URL now represents, so the
+    // back button closes the modal (or a forward navigation reopens it)
+    // instead of leaving the visible modal out of sync with the address bar.
+    window.addEventListener("popstate", function () {
+      var id = getAllocationIdFromUrl();
+      var modal = document.getElementById("allocationModal");
+      var isShown = modal && modal.classList.contains("oh-modal--show");
+      if (id && !isShown) {
+        openAllocationModal(id);
+      } else if (!id && isShown) {
+        closeAllocationModal();
+      }
+    });
+  })();
+</script>
+<script>
+  function getCSRFToken() {
+    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  }
+
+  function deleteEmployee(url) {
+    Swal.fire({
+        text: "{% trans 'All non-active contracts of the employee will also be deleted. Do you want to continue ?'|escapejs %}",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: i18nMessages.confirm
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.setAttribute('action', url);
+            form.setAttribute('method', 'post');
+
+            const csrfTokenInput = document.createElement('input');
+            csrfTokenInput.setAttribute('type', 'hidden');
+            csrfTokenInput.setAttribute('name', 'csrfmiddlewaretoken');
+            csrfTokenInput.value = getCSRFToken();
+            form.appendChild(csrfTokenInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+</script>
+{% if request.GET.error_message %}
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const errorMessage = '{{ request.session.error_message|escapejs }}';
+          const formattedErrorMessage = errorMessage.replace(/,\s*/g, '<br>');
+          const finalErrorMessage = formattedErrorMessage.replace(/-\s*/g, '<span class="material-symbols-outlined me-2" style="font-size: 14px;"">adjust</span>');
+          Swal.fire({
+              icon: 'error',
+              title: '{% trans "Error"|escapejs %}',
+              html: `
+              <div style='text-align:left;'>
+                  <h5 class='mb-2 fw-bold ms-2'>{% trans "This employee is already related in,"|escapejs %}</h5>
+                  <p class='ms-2'>${finalErrorMessage}</p>
+              </div>
+              `,
+
+          });
+        });
+
+
+      </script>
+    {% endif %}
+{% endblock content %}

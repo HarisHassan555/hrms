@@ -1,0 +1,11 @@
+{% extends "lms/_page_shell.html" %}
+{% load i18n %}
+
+{% block lms_body %}
+    <p class="text-sm text-secondary-600 mb-4">
+        {% trans "Department and learner progress derived from enrollments and employee work information." %}
+    </p>
+    <p class="text-xs text-secondary-500">
+        {% trans "Example: assigned, in progress, completed, and average progress per department." %}
+    </p>
+{% endblock %}
