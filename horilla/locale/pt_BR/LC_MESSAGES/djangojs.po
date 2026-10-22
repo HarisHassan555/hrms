@@ -172,8 +172,8 @@ msgstr "Sequência de Estágio Atualizada"
 msgid "Dashboard"
 msgstr "Painel"
 
-msgid "Horilla dashboard section"
-msgstr "Seção do painel Horilla"
+msgid "DSG dashboard section"
+msgstr "Seção do painel DSG"
 
 msgid "Mark Attendance"
 msgstr "Registrar presença"
@@ -214,8 +214,8 @@ msgstr "Opções de perfil e alteração de senha"
 msgid "Dashboard Tiles"
 msgstr "Cartões do painel"
 
-msgid "Horilla Dashboard Tiles"
-msgstr "Cartões do painel Horilla"
+msgid "DSG Dashboard Tiles"
+msgstr "Cartões do painel DSG"
 
 msgid "Dashboard Actions"
 msgstr "Ações do painel"
@@ -245,7 +245,7 @@ msgid "App"
 msgstr "App"
 
 msgid "DSG HRMS Apps. eg Dashboard"
-msgstr "Apps Horilla RH, ex. Painel"
+msgstr "Apps DSG RH, ex. Painel"
 
 msgid "Pipeline"
 msgstr "Pipeline"

@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from asset.category_queryset import asset_categories_for_asset_form
 from asset.models import (
     Asset,
     AssetAssignment,
@@ -25,6 +26,7 @@ from asset.models import (
     AssetRequest,
     AssetServiceRequest,
 )
+from base.branding import white_label_text
 from base.forms import ModelForm
 from base.methods import reload_queryset
 from employee.forms import MultipleFileField
@@ -91,9 +93,15 @@ class AssetForm(ModelForm):
         if self.instance.pk is None:
             self.fields["expiry_date"].initial = None
 
+        category_field = self.fields.get("asset_category_id")
+        if category_field and not isinstance(
+            category_field.widget, forms.HiddenInput
+        ):
+            category_field.queryset = asset_categories_for_asset_form()
+
         uuid_map = {
             field: str(uuid.uuid4())
-            for field in ["asset_category_id", "asset_lot_number_id", "asset_status"]
+            for field in ["asset_lot_number_id", "asset_status"]
         }
         for field, uuid_value in uuid_map.items():
             self.fields[field].widget.attrs["id"] = uuid_value
@@ -653,7 +661,7 @@ _ASSET_HISTORY_EXPORT_EXCLUDED = {
 }
 
 _asset_history_field_choices = [
-    (field.name, field.verbose_name)
+    (field.name, white_label_text(field.verbose_name))
     for field in AssetAssignment._meta.get_fields()
     if hasattr(field, "verbose_name")
     and field.name not in _ASSET_HISTORY_EXPORT_EXCLUDED

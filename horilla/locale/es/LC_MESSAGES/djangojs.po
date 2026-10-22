@@ -171,8 +171,8 @@ msgstr "Secuencia de la etapa actualizada"
 msgid "Dashboard"
 msgstr "Panel"
 
-msgid "Horilla dashboard section"
-msgstr "Sección del panel de Horilla"
+msgid "DSG dashboard section"
+msgstr "Sección del panel de DSG"
 
 msgid "Mark Attendance"
 msgstr "Marcar asistencia"
@@ -213,8 +213,8 @@ msgstr "Opciones de perfil y cambio de contraseña"
 msgid "Dashboard Tiles"
 msgstr "Tarjetas del panel"
 
-msgid "Horilla Dashboard Tiles"
-msgstr "Tarjetas del panel de Horilla"
+msgid "DSG Dashboard Tiles"
+msgstr "Tarjetas del panel de DSG"
 
 msgid "Dashboard Actions"
 msgstr "Acciones del panel"

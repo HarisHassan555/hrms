@@ -127,6 +127,19 @@ def recruitment_pipeline_actions(request, rec):
             },
         )
 
+    if change_perm or rec_manager_perm:
+        actions.append(
+            {
+                "action": _("Applicant scoring"),
+                "attrs": f"""
+                    hx-get="{reverse('applicant-scoring', kwargs={'rec_id': rec.pk})}"
+                    hx-target="#pipelineTabContent{rec.pk}"
+                    hx-swap="innerHTML"
+                    style="cursor: pointer;"
+                """,
+            },
+        )
+
     if add_stage_perm or rec_manager_perm or change_perm:
         actions.append(
             {
@@ -885,6 +898,8 @@ class CandidateList(HorillaListView):
     manager_can_enter(perm="recruitment.view_recruitment"), name="dispatch"
 )
 class CandidateCard(HorillaKanbanView):
+    # Same board + card markup as onboarding (generic/horilla_kanban_view.html).
+    template_name = "generic/horilla_kanban_view.html"
     model = models.Candidate
     filter_class = filters.CandidateFilter
     group_filter_class = filters.StageFilter

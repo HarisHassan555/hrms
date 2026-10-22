@@ -20,7 +20,30 @@
 
 <div class="oh-modal__dialog-body border rounded-md shadow-card m-[20px]">
     <p class="oh-card__footer--border-top"></p>
-    {{ policy.body|sanitize_html }}
+    {% with pages=policy.slides.all %}
+        {% if pages|length > 1 %}
+            {% include "policies/policy_slideshow.html" with slides=pages policy=policy %}
+        {% elif pages|length == 1 %}
+            {% with page=pages.0 %}
+                {% if page.title %}
+                    <h3 class="text-base font-semibold text-[#0F172A] mb-2">{{ page.title }}</h3>
+                {% endif %}
+                {% if page.body %}
+                    <div class="oh-richtext mb-3">{{ page.body|sanitize_html }}</div>
+                {% endif %}
+                {% if page.image %}
+                    <img
+                        src="{{ page.image.url }}"
+                        alt="{{ page.title|default:policy.title }}"
+                        class="max-w-full rounded-md border border-secondary-200"
+                        loading="lazy"
+                    />
+                {% endif %}
+            {% endwith %}
+        {% elif policy.body %}
+            <div class="oh-richtext">{{ policy.body|sanitize_html }}</div>
+        {% endif %}
+    {% endwith %}
     {# Inline the attached documents: a policy that is just an uploaded PDF used to show an empty modal with a 40px icon. #}
     {% for attachment in policy.attachments.all %}
         {% if attachment.is_pdf %}

@@ -1,7 +1,22 @@
 var formButton = "#applyFilter";
 
+function resolveFilterForm() {
+	var $btn = $(formButton);
+	var $form = $btn.closest("form");
+	if (!$form.length) {
+		var formId = $btn.attr("form");
+		if (formId) {
+			$form = $("#" + formId);
+		}
+	}
+	if (!$form.length) {
+		$form = $("#filterForm");
+	}
+	return $form;
+}
+
 function clearFilterFromTag(element) {
-	let form = $(formButton).closest('form');
+	let form = resolveFilterForm();
 	let search_url = form.attr("hx-get") || "";
 	let urlParts = search_url.split('?');
 	let baseUrl = urlParts[0];
@@ -60,7 +75,7 @@ function clearFilterFromTag(element) {
 
 function clearAllFilter(element) {
 	$('[role="tooltip"]').remove();
-	let form = $(formButton).closest('form');
+	let form = resolveFilterForm();
 	let search_url = form.attr("hx-get") || "";
 	form.attr("hx-get", search_url.split('?')[0]);
 

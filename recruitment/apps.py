@@ -31,4 +31,6 @@ class RecruitmentConfig(AppConfig):
         urlpatterns.append(
             path("recruitment/", include("recruitment.urls")),
         )
+        from recruitment import sidebar  # noqa: F401 — after URLs; registers settings menu
+
         super().ready()

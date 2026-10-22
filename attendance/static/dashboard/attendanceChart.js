@@ -150,7 +150,7 @@ $(document).ready(function () {
             var noDataImage = new Image();
             noDataImage.src = departmentAttendanceChart.data.emptyImageSrc
                 ? departmentAttendanceChart.data.emptyImageSrc
-                : staticUrl + "images/ui/no_records.svg";
+                : staticUrl + "images/ui/application.png";
 
             var message = departmentAttendanceChart.data.message
                 ? departmentAttendanceChart.data.message

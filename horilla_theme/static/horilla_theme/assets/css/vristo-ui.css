@@ -1,0 +1,225 @@
+/**
+ * Vristo UI primitives — use alongside Horilla .oh-* hooks (vristo-components.css).
+ * Templates add .vr-* classes; behavior and HTMX bindings stay on Horilla markup.
+ */
+
+html.vristo-theme .vr-panel {
+  background: var(--vristo-panel);
+  border: 1px solid var(--vristo-border);
+  border-radius: var(--vristo-radius-lg);
+  box-shadow: var(--vristo-shadow-sm);
+}
+
+html.vristo-theme .vr-panel--flush {
+  padding: 0;
+}
+
+html.vristo-theme .vr-panel--padded {
+  padding: 0.75rem;
+}
+
+html.vristo-theme .vr-modal .oh-modal__dialog,
+html.vristo-theme .oh-modal.vr-modal .oh-modal__dialog {
+  border-radius: var(--vristo-radius-lg);
+  border: 1px solid var(--vristo-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+
+html.vristo-theme .oh-modal--show {
+  display: block;
+  padding: 1rem 0.75rem 1.5rem;
+  box-sizing: border-box;
+}
+
+html.vristo-theme .vr-modal-panel {
+  overflow: hidden;
+}
+
+html.vristo-theme .oh-modal__dialog-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: min(70vh, calc(100vh - 10rem));
+}
+
+html.vristo-theme #genericModalBody.oh-modal__dialog:has(> .modal-box),
+html.vristo-theme #genericModalBody.oh-modal__dialog:has(> .vr-modal-panel) {
+  overflow: visible;
+  max-height: none;
+  padding: 0;
+}
+
+html.vristo-theme .oh-modal__dialog-footer {
+  flex-shrink: 0;
+  padding-bottom: 1.25rem !important;
+}
+
+html.vristo-theme .oh-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+html.vristo-theme .oh-app-modal-root {
+  position: relative;
+  z-index: 1020;
+}
+
+/*
+ * Modals are position: fixed overlays, so they render correctly whether they
+ * live in #ohAppModalRoot or inline inside #ohMainContent (page templates
+ * declare ~240 inline modals). Do NOT add a blanket
+ * `#ohMainContent .oh-modal { display: none }` here -- it silently hides every
+ * inline modal in the app (dynamic create dialogs, confirm dialogs, etc.).
+ */
+html.vristo-theme .oh-modal.oh-modal--show {
+  display: block !important;
+}
+
+html.vristo-theme.dark .oh-modal__dialog,
+html.vristo-theme.dark .oh-modal__dialog-header,
+html.vristo-theme.dark .oh-modal__dialog-body {
+  color: var(--vristo-text) !important;
+}
+
+html.vristo-theme.dark .oh-modal__dialog-title,
+html.vristo-theme.dark .oh-modal__dialog-title span {
+  color: var(--vristo-heading) !important;
+}
+
+html.vristo-theme .vr-modal__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--vristo-heading);
+  line-height: 1.4;
+  margin: 0;
+}
+
+html.vristo-theme .vr-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+html.vristo-theme .vr-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  padding: 0.35rem 0.85rem;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: var(--vristo-radius);
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+html.vristo-theme .vr-toolbar-btn--outline {
+  background: transparent;
+  border-color: var(--vristo-primary);
+  color: var(--vristo-primary);
+}
+
+html.vristo-theme .vr-toolbar-btn--outline:hover {
+  background: var(--vristo-primary);
+  color: #fff;
+}
+
+html.vristo-theme .vr-toolbar-btn--outline-success {
+  border-color: var(--vristo-success);
+  color: var(--vristo-success);
+}
+
+html.vristo-theme .vr-toolbar-btn--outline-success:hover {
+  background: var(--vristo-success);
+  color: #fff;
+}
+
+html.vristo-theme .vr-toolbar-btn--white {
+  background: var(--vristo-panel);
+  border-color: var(--vristo-border);
+  color: var(--vristo-text);
+}
+
+html.vristo-theme .vr-toolbar-btn--white:hover {
+  border-color: var(--vristo-primary);
+  color: var(--vristo-primary);
+  background: #f6f8fa;
+}
+
+html.vristo-theme .vr-dropdown-menu {
+  background: var(--vristo-panel);
+  border: 1px solid var(--vristo-border);
+  border-radius: var(--vristo-radius-lg);
+  box-shadow: var(--vristo-shadow);
+  padding: 0.35rem;
+  min-width: 12.5rem;
+}
+
+html.vristo-theme .vr-pagination.hlv-pagination {
+  background: var(--vristo-panel);
+  border-color: var(--vristo-border) !important;
+}
+
+html.vristo-theme .vr-form-panel {
+  background: var(--vristo-panel) !important;
+  border: 1px solid var(--vristo-border) !important;
+  border-radius: var(--vristo-radius-lg) !important;
+  padding: 1.25rem !important;
+}
+
+html.vristo-theme .vr-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--vristo-primary);
+  color: #fff;
+}
+
+html.vristo-theme .vr-badge--soft {
+  background: var(--vristo-primary-light);
+  color: var(--vristo-primary);
+}
+
+html.vristo-theme .vr-alert-stack {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: min(420px, calc(100vw - 2rem));
+}
+
+html.vristo-theme .vr-alert-stack .oh-alert {
+  margin: 0;
+  box-shadow: var(--vristo-shadow-sm);
+}
+
+html.vristo-theme .vr-drawer.oh-activity-sidebar {
+  background: var(--vristo-panel);
+  border-left: 1px solid var(--vristo-border);
+  box-shadow: var(--vristo-shadow);
+}
+
+html.vristo-theme .vr-table-wrap {
+  border-radius: var(--vristo-radius-lg);
+  overflow: hidden;
+}
+
+html.vristo-theme .hlv-container > .vr-panel {
+  position: relative;
+}

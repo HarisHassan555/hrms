@@ -73,6 +73,7 @@ from horilla.http import HorillaRedirect
 from horilla_auth.models import HorillaUser
 from horilla_documents.models import Document
 from notifications.signals import notify
+from recruitment.applicant_scoring import extract_words_from_pdf, skill_match_count
 from recruitment.auth import CandidateAuthenticationBackend
 from recruitment.decorators import (
     all_manager_can_enter,
@@ -3259,6 +3260,29 @@ def candidate_self_tracking_rating_option(request):
     return HttpResponse("<script>$('#reloadMessagesButton').click()</script>")
 
 
+@login_required
+@hx_request_required
+@permission_required("recruitment.add_recruitmentgeneralsetting")
+def application_acknowledgment_setting(request):
+    """Enable or disable automatic thank-you email after public application."""
+    selected_company = request.session.get("selected_company")
+    company_id = (
+        None if not selected_company or selected_company == "all" else selected_company
+    )
+    settings, created = RecruitmentGeneralSetting.objects.get_or_create(
+        company_id_id=company_id
+    )
+    if request.GET.get("application_acknowledgment_email") == "true":
+        settings.application_acknowledgment_email = True
+        message = _("Application acknowledgment email is enabled.")
+    else:
+        settings.application_acknowledgment_email = False
+        message = _("Application acknowledgment email is disabled.")
+    settings.save()
+    messages.success(request, message)
+    return HttpResponse("<script>$('#reloadMessagesButton').click()</script>")
+
+
 def candidate_login(request):
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
@@ -3945,43 +3969,6 @@ def delete_resume_file(request):
 #     return words
 
 
-def extract_words_from_pdf(pdf_file):
-    """
-    This method is used to extract the raw text content from the pdf file.
-    Args:
-        pdf_file: pdf file
-
-    """
-    pdf_document = pymupdf.open(pdf_file.path)
-
-    text_chunks = []
-
-    for page_num in range(len(pdf_document)):
-        page = pdf_document.load_page(page_num)
-        text_chunks.append(page.get_text())
-
-    pdf_document.close()
-
-    return "\n".join(text_chunks).lower()
-
-
-def skill_match_count(text, skills, threshold=85):
-    """
-    This method counts how many of the given skills are present in the resume
-    text, using fuzzy matching so multi-word skills and near-variant spellings
-    (e.g. "Node.js" vs "NodeJS") are still counted as a match.
-
-    Args:
-        text: Full lowercased resume text
-        skills: Iterable of skill title strings
-        threshold: Minimum rapidfuzz partial_ratio score (0-100) to count as a match
-    """
-    if not text:
-        return 0
-    text = text.lower()
-    return sum(fuzz.partial_ratio(skill.lower(), text) >= threshold for skill in skills)
-
-
 @login_required
 @hx_request_required
 @manager_can_enter("recruitment.add_candidate")
@@ -4442,6 +4429,16 @@ def document_reject(request, id):
     )
 
 
+def _stage_note_employee_author(request):
+    """Return the employee linked to the user, or None for candidate-portal users."""
+    if not getattr(request.user, "is_authenticated", False):
+        return None
+    try:
+        return request.user.employee_get
+    except (Employee.DoesNotExist, AttributeError):
+        return None
+
+
 @candidate_login_required
 def candidate_add_notes(request, cand_id):
     """
@@ -4456,12 +4453,9 @@ def candidate_add_notes(request, cand_id):
             request, message=_("No Candidate found matching the query.")
         )
 
-    updated_by = request.user.employee_get if request.user.is_authenticated else None
-    label = (
-        request.user.employee_get.get_full_name()
-        if request.user.is_authenticated
-        else candidate.name
-    )
+    author_employee = _stage_note_employee_author(request)
+    updated_by = author_employee
+    label = author_employee.get_full_name() if author_employee else candidate.name
 
     form = StageNoteForm(initial={"candidate_id": cand_id})
     if request.method == "POST":

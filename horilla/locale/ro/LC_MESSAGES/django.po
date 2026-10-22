@@ -63,7 +63,7 @@ msgid "Default Accessibility"
 msgstr "Accesibilitate implicită"
 
 msgid "Limit default view access to horilla feature"
-msgstr "Limitează accesul implicit de vizualizare la funcționalitățile Horilla"
+msgstr "Limitează accesul implicit de vizualizare la funcționalitățile DSG"
 
 msgid "Actions"
 msgstr "Acțiuni"
@@ -4012,9 +4012,9 @@ msgstr ""
 msgid "Mail Server"
 msgstr "Server de e-mail"
 
-msgid "Configure an outgoing mail server so Horilla can send emails."
+msgid "Configure an outgoing mail server so DSG can send emails."
 msgstr ""
-"Configurați un server de e-mail pentru trimitere, astfel încât Horilla să "
+"Configurați un server de e-mail pentru trimitere, astfel încât DSG să "
 "poată trimite mesaje."
 
 msgid "First Employee"
@@ -4415,7 +4415,7 @@ msgid ""
 "Time at which the horilla will automatically check out the employee "
 "attendance if they forget."
 msgstr ""
-"Ora la care Horilla va ponta automat ieșirea angajatului dacă acesta uită."
+"Ora la care DSG va ponta automat ieșirea angajatului dacă acesta uită."
 
 msgid "Employee Shift Schedule"
 msgstr "Programul de tură al angajatului"
@@ -5454,8 +5454,8 @@ msgstr "Salvează parola"
 msgid "Forgot password"
 msgstr "Ați uitat parola"
 
-msgid "Horilla"
-msgstr "Horilla"
+msgid "DSG"
+msgstr "DSG"
 
 msgid "Assign"
 msgstr "Atribuie"
@@ -7619,8 +7619,8 @@ msgstr "{} nu a fost găsit."
 msgid "%(model__meta_verbose_name)s object does not exist."
 msgstr "Obiectul %(model__meta_verbose_name)s nu există."
 
-msgid "Test mail from Horilla"
-msgstr "E-mail de test de la Horilla"
+msgid "Test mail from DSG"
+msgstr "E-mail de test de la DSG"
 
 msgid "Something went wrong :"
 msgstr "Ceva nu a funcționat:"
@@ -11447,8 +11447,8 @@ msgstr "Dată necunoscută"
 msgid "Yesterday"
 msgstr "Ieri"
 
-msgid "Horilla Bot"
-msgstr "Horilla Bot"
+msgid "DSG Bot"
+msgstr "DSG Bot"
 
 msgid "record created"
 msgstr "înregistrare creată"
@@ -11586,8 +11586,8 @@ msgstr "Configurarea urmăririi auditului a fost actualizată."
 msgid "Tracked fields updated for %(model)s."
 msgstr "Câmpurile urmărite pentru %(model)s au fost actualizate."
 
-msgid "Horilla Auth"
-msgstr "Horilla Auth"
+msgid "DSG Auth"
+msgstr "DSG Auth"
 
 msgid "Users"
 msgstr "Utilizatori"
@@ -12179,12 +12179,12 @@ msgstr "Integrare Google Meet"
 msgid "Enable Google meet"
 msgstr "Activează Google Meet"
 
-msgid "Enable this to integrate Google meet to Horilla."
-msgstr "Activați pentru a integra Google Meet cu Horilla."
+msgid "Enable this to integrate Google meet to DSG."
+msgstr "Activați pentru a integra Google Meet cu DSG."
 
-msgid "Schedule and join Google Meet video calls directly from Horilla."
+msgid "Schedule and join Google Meet video calls directly from DSG."
 msgstr ""
-"Programați și participați la apeluri video Google Meet direct din Horilla."
+"Programați și participați la apeluri video Google Meet direct din DSG."
 
 msgid "Google Cloud Credential not found."
 msgstr "Credențialele Google Cloud nu au fost găsite."
@@ -15142,14 +15142,14 @@ msgstr "Nu au fost găsite setări"
 msgid "Enable Linkedin"
 msgstr "Activează LinkedIn"
 
-msgid "Enable this to integrate linkedin to Horilla."
-msgstr "Activați pentru a integra LinkedIn cu Horilla."
+msgid "Enable this to integrate linkedin to DSG."
+msgstr "Activați pentru a integra LinkedIn cu DSG."
 
 msgid ""
-"Post job openings directly to LinkedIn and manage applicants from Horilla."
+"Post job openings directly to LinkedIn and manage applicants from DSG."
 msgstr ""
 "Publicați posturile disponibile direct pe LinkedIn și gestionați candidații "
-"din Horilla."
+"din DSG."
 
 msgid "Prefix added to every auto-generated employee badge ID (e.g. PEP0001)."
 msgstr "Prefix adăugat fiecărui număr de marcă generat automat (ex. PEP0001)."
@@ -22338,8 +22338,8 @@ msgid "Error occurred while deleting candidate rejection"
 msgstr "A apărut o eroare la ștergerea respingerii candidatului"
 
 #, python-format
-msgid "Horilla report ready: %(name)s"
-msgstr "Raportul Horilla este gata: %(name)s"
+msgid "DSG report ready: %(name)s"
+msgstr "Raportul DSG este gata: %(name)s"
 
 #, python-format
 msgid ""
@@ -22354,8 +22354,8 @@ msgstr ""
 "Format: %(fmt)s"
 
 #, python-format
-msgid "Horilla report export failed: %(name)s"
-msgstr "Exportul raportului Horilla a eșuat: %(name)s"
+msgid "DSG report export failed: %(name)s"
+msgstr "Exportul raportului DSG a eșuat: %(name)s"
 
 #, python-format
 msgid ""
@@ -22411,8 +22411,8 @@ msgstr "Abonament actualizat."
 msgid "Comparison"
 msgstr "Comparație"
 
-msgid "Attached is your scheduled Horilla report:"
-msgstr "Atașat este raportul dvs. programat Horilla:"
+msgid "Attached is your scheduled DSG report:"
+msgstr "Atașat este raportul dvs. programat DSG:"
 
 #, python-format
 msgid "Showing first %(n)s rows."
@@ -22922,7 +22922,7 @@ msgstr "Vechimea expirării documentelor"
 
 msgid "Overdue and upcoming horilla_documents expiry buckets (90-day horizon)."
 msgstr ""
-"Categorii de expirare a documentelor Horilla restante și viitoare (orizont "
+"Categorii de expirare a documentelor DSG restante și viitoare (orizont "
 "de 90 de zile)."
 
 msgid "Headcount Bridge"
@@ -24684,12 +24684,12 @@ msgstr "Secretul aplicației"
 
 msgid ""
 "Meta app secret, used to verify the X-Hub-Signature-256 header on incoming "
-"webhook calls. Without it Horilla cannot tell a real delivery from a forged "
+"webhook calls. Without it DSG cannot tell a real delivery from a forged "
 "one, so unsigned payloads are rejected. Find it under App Settings > Basic "
 "in the Meta developer console."
 msgstr ""
 "Cheia secretă a aplicației Meta, utilizată pentru a verifica antetul X-Hub-"
-"Signature-256 la apelurile webhook primite. Fără aceasta, Horilla nu poate "
+"Signature-256 la apelurile webhook primite. Fără aceasta, DSG nu poate "
 "distinge o livrare reală de una falsificată, astfel încât conținuturile "
 "nesemnate sunt respinse. O găsiți la App Settings > Basic în consola pentru "
 "dezvoltatori Meta."
@@ -24697,8 +24697,8 @@ msgstr ""
 msgid "WhatsApp Integration"
 msgstr "Integrare WhatsApp"
 
-msgid "Enable this to integrate WhatsApp to Horilla."
-msgstr "Activați această opțiune pentru a integra WhatsApp cu Horilla."
+msgid "Enable this to integrate WhatsApp to DSG."
+msgstr "Activați această opțiune pentru a integra WhatsApp cu DSG."
 
 msgid ""
 "Send HR notifications and updates directly through WhatsApp for better "

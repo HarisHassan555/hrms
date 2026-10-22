@@ -1712,7 +1712,7 @@ def employee_view_update(request, obj_id, **kwargs):
         or request.user.has_perm("employee.change_employee")
     ):
         form = EmployeeForm(instance=employee)
-        work_form = EmployeeWorkInformationForm(
+        work_form = EmployeeWorkInformationUpdateForm(
             instance=EmployeeWorkInformation.objects.filter(
                 employee_id=employee
             ).first()

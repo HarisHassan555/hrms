@@ -9,11 +9,11 @@ from horilla_api.schema import OrderedTagSchemaGenerator
 # Create schema view for Swagger and ReDoc
 schema_view = get_schema_view(
     openapi.Info(
-        title="Horilla API",
+        title="DSG API",
         default_version="v1",
-        description="API documentation for DSG HRMSMS. Click the 'Authorize' button at the top to authenticate.",
-        terms_of_service="https://www.horilla.com/terms/",
-        contact=openapi.Contact(email="support@horilla.com"),
+        description="API documentation for DSG HRMS. Click the 'Authorize' button at the top to authenticate.",
+        terms_of_service="https://www.datasphereglobal.com/",
+        contact=openapi.Contact(email="support@datasphereglobal.com"),
         license=openapi.License(name="BSD License"),
     ),
     public=settings.DEBUG,

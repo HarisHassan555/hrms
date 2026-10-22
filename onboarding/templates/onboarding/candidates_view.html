@@ -270,7 +270,7 @@
     </div>
 {% endif %}
 <div
-    class="oh-modal"
+    class="oh-modal vr-modal"
     id="addAttachments"
     role="dialog"
     aria-labelledby="addAttachments"
@@ -290,9 +290,11 @@
         </div>
         <form
             hx-post="{% url 'email-send' %}"
-            hx-target="#addAttachmentsBody"
+            hx-target="#reloadMessages"
             hx-encoding="multipart/form-data"
+            hx-on::after-request="if(event.detail.successful){$('#addAttachments').removeClass('oh-modal--show');$('#applyFilter').click();$('#reloadMessagesButton').click();}"
         >
+            {% csrf_token %}
             <div class="oh-modal__dialog-body" id="addAttachmentsBody">
                 <section>
                     <div id="keyResultsContainer">
@@ -352,13 +354,7 @@
             </div>
             <div class="oh-modal__dialog-footer">
                 <button
-                    onclick="$('.oh-modal#addAttachments').removeClass('oh-modal--show');$(`#messages`).html(
-                                $(`
-                                <div class='oh-alert oh-alert--animated oh-alert--info'>
-                                    Processing...
-                                </div>
-                                `)
-                            )"
+                    type="submit"
                     class="oh-btn oh-btn--secondary oh-btn--shadow"
                     id="trigger-onboarding"
                     title="{% trans 'Send portal link / Trigger Onboarding' %}"
@@ -379,6 +375,57 @@
   <div class="oh-modal__dialog" id="candidateExportModalBody"></div>
 </div>
 <script>
+    (function () {
+        function mountOnboardingPortalModals() {
+            var root = document.getElementById("ohAppModalRoot");
+            if (!root) {
+                return;
+            }
+            var el = document.getElementById("addAttachments");
+            if (el && el.parentElement !== root) {
+                root.appendChild(el);
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", mountOnboardingPortalModals);
+        } else {
+            mountOnboardingPortalModals();
+        }
+    })();
+
+    window.openOnboardingPortalModal = function (candidateId) {
+        var id = String(candidateId);
+        var $form = $("#addAttachments form");
+        $form.find("input.portal-row-id").remove();
+        $form.append(
+            $("<input>", {
+                type: "hidden",
+                class: "portal-row-id",
+                name: "ids",
+                value: id,
+            })
+        );
+        var $select = $("#hired_candidates");
+        if ($select.length) {
+            if (!$select.find('option[value="' + id + '"]').length) {
+                $select.append($("<option>", { value: id, text: id }));
+            }
+            $select.val([id]);
+        }
+        var $modal = $("#addAttachments");
+        if ($modal.length) {
+            $modal.addClass("oh-modal--show").attr("aria-hidden", "false");
+        }
+    };
+
+    $(document).on("click", "[data-onboarding-portal-id]", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var id = $(this).attr("data-onboarding-portal-id");
+        if (id && window.openOnboardingPortalModal) {
+            window.openOnboardingPortalModal(id);
+        }
+    });
 
     var noRowMessages = {
         ar: "لم يتم تحديد أي صفوف.",

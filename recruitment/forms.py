@@ -396,11 +396,16 @@ class StageCreationForm(BaseModelForm):
             ids = self.data.getlist("stage_managers")
             if ids:
                 self.errors.pop("stage_managers", None)
-        if self.cleaned_data.get("recruitment_id") and self.cleaned_data.get("stage"):
-            if Stage.objects.filter(
-                recruitment_id=self.cleaned_data.get("recruitment_id"),
-                stage=self.cleaned_data.get("stage"),
-            ).exists():
+        recruitment_id = self.cleaned_data.get("recruitment_id")
+        stage_name = self.cleaned_data.get("stage")
+        if recruitment_id and stage_name:
+            duplicate_qs = Stage.objects.filter(
+                recruitment_id=recruitment_id,
+                stage=stage_name,
+            )
+            if self.instance.pk:
+                duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
+            if duplicate_qs.exists():
                 raise forms.ValidationError(
                     {"stage": _("This stage already exists for the recruitment.")}
                 )
@@ -812,7 +817,12 @@ class QuestionForm(ModelForm):
     QuestionForm
     """
 
-    cols = {"options": 12, "question": 12}
+    cols = {
+        "options": 12,
+        "question": 12,
+        "preferred_answers": 12,
+        "scoring_weight": 6,
+    }
 
     verbose_name = "Survey Questions"
 
@@ -938,6 +948,8 @@ class QuestionForm(ModelForm):
             "type",
             "sequence",
             "is_mandatory",
+            "preferred_answers",
+            "scoring_weight",
             "template_id",
             "recruitment",
         ]

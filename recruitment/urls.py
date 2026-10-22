@@ -27,6 +27,7 @@ from recruitment.cbv import (
 )
 from recruitment.forms import QuestionForm, RecruitmentCreationForm, StageCreationForm
 from recruitment.models import Candidate, Recruitment, RecruitmentSurvey, Stage
+from recruitment import applicant_scoring_views
 from recruitment.views import actions
 from recruitment.views import dashboard as views_dashboard
 from recruitment.views import linkedin, search, surveys, views
@@ -803,6 +804,11 @@ urlpatterns = [
         name="candidate-self-tracking-rating-option",
     ),
     path(
+        "application-acknowledgment-setting/",
+        views.application_acknowledgment_setting,
+        name="application-acknowledgment-setting",
+    ),
+    path(
         "candidate-self-status-tracking/",
         views.candidate_self_status_tracking,
         name="candidate-self-status-tracking",
@@ -974,6 +980,16 @@ urlpatterns = [
         "matching-resumes/<int:rec_id>/",
         views.matching_resumes,
         name="matching-resumes",
+    ),
+    path(
+        "applicant-scoring/<int:rec_id>/",
+        applicant_scoring_views.applicant_scoring_panel,
+        name="applicant-scoring",
+    ),
+    path(
+        "applicant-scoring/<int:rec_id>/bulk-stage/",
+        applicant_scoring_views.applicant_scoring_bulk_stage,
+        name="applicant-scoring-bulk-stage",
     ),
     path(
         "matching-resume-completion/",

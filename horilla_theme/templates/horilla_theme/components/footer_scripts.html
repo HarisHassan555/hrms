@@ -6,7 +6,8 @@
 <script src="{% static 'htmx/htmx.min.js' %}"></script>
 <script>
     document.body.addEventListener('htmx:configRequest', (event) => {
-      event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}'
+      var csrfFromCookie = typeof getCookie === 'function' ? getCookie('csrftoken') : '';
+      event.detail.headers['X-CSRFToken'] = csrfFromCookie || '{{ csrf_token }}'
       if (event.detail.elt && event.detail.elt.closest && event.detail.elt.closest('[hx-push-url]')) {
         event.detail.headers['HX-Push-Nav'] = 'true'
       }
@@ -53,7 +54,7 @@
       window.history.replaceState({}, document.title, urlWithoutQuery)
     }
 </script>
-<script src="{% static 'horilla_theme/assets/js/footerScripts.js' %}"></script>
+<script src="{% static 'horilla_theme/assets/js/footerScripts.js' %}?v=3"></script>
 
 <!-- Product tour engine (horilla_tour) -->
 {% if request.user.is_authenticated %}

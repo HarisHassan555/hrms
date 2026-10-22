@@ -68,7 +68,7 @@ msgid "Default Accessibility"
 msgstr "Varsayılan Erişilebilirlik"
 
 msgid "Limit default view access to horilla feature"
-msgstr "Horilla özelliğine varsayılan görünüm erişimini sınırla"
+msgstr "DSG özelliğine varsayılan görünüm erişimini sınırla"
 
 msgid "Actions"
 msgstr "Eylemler"
@@ -4009,9 +4009,9 @@ msgstr "İstihdam türlerini ayarlayın — Tam Zamanlı, Yarı Zamanlı, Sözle
 msgid "Mail Server"
 msgstr "E-Posta Sunucusu"
 
-msgid "Configure an outgoing mail server so Horilla can send emails."
+msgid "Configure an outgoing mail server so DSG can send emails."
 msgstr ""
-"Horilla'nın e-posta gönderebilmesi için giden posta sunucusunu yapılandırın."
+"DSG'nın e-posta gönderebilmesi için giden posta sunucusunu yapılandırın."
 
 msgid "First Employee"
 msgstr "İlk Çalışan"
@@ -4408,7 +4408,7 @@ msgid ""
 "Time at which the horilla will automatically check out the employee "
 "attendance if they forget."
 msgstr ""
-"Horilla'nın unuttuğu zaman çalışanların devamını otomatik olarak kontrol "
+"DSG'nın unuttuğu zaman çalışanların devamını otomatik olarak kontrol "
 "edeceği zaman."
 
 msgid "Employee Shift Schedule"
@@ -5440,8 +5440,8 @@ msgstr "Parolayı kaydet"
 msgid "Forgot password"
 msgstr "Parolanızı mı unuttunuz"
 
-msgid "Horilla"
-msgstr "Horilla"
+msgid "DSG"
+msgstr "DSG"
 
 msgid "Assign"
 msgstr "Atama"
@@ -6062,7 +6062,7 @@ msgid "About"
 msgstr "Hakkında"
 
 msgid "DSG HRMS"
-msgstr "Horilla İK"
+msgstr "DSG İK"
 
 msgid "Quote this version when reporting a problem."
 msgstr "Bir sorunu bildirirken bu sürümü belirtin."
@@ -7307,7 +7307,7 @@ msgid "gdrive"
 msgstr "gdrive"
 
 msgid "horilla-theme"
-msgstr "Horilla teması"
+msgstr "DSG teması"
 
 msgid "color-settings"
 msgstr "Renk ayarları"
@@ -7600,8 +7600,8 @@ msgstr "{} bulunamadı."
 msgid "%(model__meta_verbose_name)s object does not exist."
 msgstr "%(model__meta_verbose_name)s nesne mevcut değil."
 
-msgid "Test mail from Horilla"
-msgstr "Horilla'dan test postası"
+msgid "Test mail from DSG"
+msgstr "DSG'dan test postası"
 
 msgid "Something went wrong :"
 msgstr "Bir şeyler ters gitti:"
@@ -11395,8 +11395,8 @@ msgstr "Bilinmeyen tarih"
 msgid "Yesterday"
 msgstr "Dün"
 
-msgid "Horilla Bot"
-msgstr "Horilla Botu"
+msgid "DSG Bot"
+msgstr "DSG Botu"
 
 msgid "record created"
 msgstr "kayıt oluşturuldu"
@@ -11531,8 +11531,8 @@ msgstr "Denetim izleme yapılandırması güncellendi."
 msgid "Tracked fields updated for %(model)s."
 msgstr "%(model)s için izlenen alanlar güncellendi."
 
-msgid "Horilla Auth"
-msgstr "Horilla Auth"
+msgid "DSG Auth"
+msgstr "DSG Auth"
 
 msgid "Users"
 msgstr "Kullanıcılar"
@@ -12121,12 +12121,12 @@ msgstr "Google Meet Entegrasyonu"
 msgid "Enable Google meet"
 msgstr "Google Meet’i Etkinleştir"
 
-msgid "Enable this to integrate Google meet to Horilla."
-msgstr "Bunu etkinleştirerek Google Meet'i Horilla'ya entegre edin."
+msgid "Enable this to integrate Google meet to DSG."
+msgstr "Bunu etkinleştirerek Google Meet'i DSG'ya entegre edin."
 
-msgid "Schedule and join Google Meet video calls directly from Horilla."
+msgid "Schedule and join Google Meet video calls directly from DSG."
 msgstr ""
-"Google Meet görüntülü görüşmelerini doğrudan Horilla'dan planlayın ve "
+"Google Meet görüntülü görüşmelerini doğrudan DSG'dan planlayın ve "
 "katılın."
 
 msgid "Google Cloud Credential not found."
@@ -13648,7 +13648,7 @@ msgid "Main navigation"
 msgstr "Ana gezinme"
 
 msgid "DSG HRMS version"
-msgstr "Horilla İK sürümü"
+msgstr "DSG İK sürümü"
 
 msgid "Version"
 msgstr "Sürüm"
@@ -15074,13 +15074,13 @@ msgstr "Ayar bulunamadı"
 msgid "Enable Linkedin"
 msgstr "LinkedIn'i etkinleştir"
 
-msgid "Enable this to integrate linkedin to Horilla."
-msgstr "Bunu etkinleştirin ve linkedin'i Horilla'ya entegre edin."
+msgid "Enable this to integrate linkedin to DSG."
+msgstr "Bunu etkinleştirin ve linkedin'i DSG'ya entegre edin."
 
 msgid ""
-"Post job openings directly to LinkedIn and manage applicants from Horilla."
+"Post job openings directly to LinkedIn and manage applicants from DSG."
 msgstr ""
-"İş ilanlarını doğrudan LinkedIn'e gönderin ve başvuranları Horilla'dan "
+"İş ilanlarını doğrudan LinkedIn'e gönderin ve başvuranları DSG'dan "
 "yönetin."
 
 msgid "Prefix added to every auto-generated employee badge ID (e.g. PEP0001)."
@@ -22191,8 +22191,8 @@ msgid "Error occurred while deleting candidate rejection"
 msgstr "Aday reddi silinirken hata oluştu"
 
 #, python-format
-msgid "Horilla report ready: %(name)s"
-msgstr "Horilla raporu hazır: %(name)s"
+msgid "DSG report ready: %(name)s"
+msgstr "DSG raporu hazır: %(name)s"
 
 #, python-format
 msgid ""
@@ -22207,8 +22207,8 @@ msgstr ""
 "Biçim: %(fmt)s"
 
 #, python-format
-msgid "Horilla report export failed: %(name)s"
-msgstr "Horilla raporu dışa aktarma başarısız oldu: %(name)s"
+msgid "DSG report export failed: %(name)s"
+msgstr "DSG raporu dışa aktarma başarısız oldu: %(name)s"
 
 #, python-format
 msgid ""
@@ -22264,8 +22264,8 @@ msgstr "Abonelik güncellendi."
 msgid "Comparison"
 msgstr "Karşılaştırma"
 
-msgid "Attached is your scheduled Horilla report:"
-msgstr "Zamanlanmış Horilla raporunuz ekte yer almaktadır:"
+msgid "Attached is your scheduled DSG report:"
+msgstr "Zamanlanmış DSG raporunuz ekte yer almaktadır:"
 
 #, python-format
 msgid "Showing first %(n)s rows."
@@ -24322,7 +24322,7 @@ msgid "Download Error File"
 msgstr "İndir Hata Dosyası"
 
 msgid "DSG HRMSMS"
-msgstr "Horilla İKYS"
+msgstr "DSG İKYS"
 
 msgid "Sign Up"
 msgstr "Kaydol"
@@ -24518,12 +24518,12 @@ msgstr "Uygulama Gizli Anahtarı"
 
 msgid ""
 "Meta app secret, used to verify the X-Hub-Signature-256 header on incoming "
-"webhook calls. Without it Horilla cannot tell a real delivery from a forged "
+"webhook calls. Without it DSG cannot tell a real delivery from a forged "
 "one, so unsigned payloads are rejected. Find it under App Settings > Basic "
 "in the Meta developer console."
 msgstr ""
 "Gelen webhook çağrılarında X-Hub-Signature-256 üstbilgisini doğrulamak için "
-"kullanılan Meta uygulama gizli anahtarı. Bu olmadan Horilla gerçek bir "
+"kullanılan Meta uygulama gizli anahtarı. Bu olmadan DSG gerçek bir "
 "teslimatı sahte olandan ayırt edemez, bu nedenle imzasız veriler reddedilir. "
 "Bunu Meta geliştirici konsolunda Uygulama Ayarları > Temel altında "
 "bulabilirsiniz."
@@ -24531,8 +24531,8 @@ msgstr ""
 msgid "WhatsApp Integration"
 msgstr "WhatsApp Entegrasyonu"
 
-msgid "Enable this to integrate WhatsApp to Horilla."
-msgstr "WhatsApp'ı Horilla'ya entegre etmek için bunu etkinleştirin."
+msgid "Enable this to integrate WhatsApp to DSG."
+msgstr "WhatsApp'ı DSG'ya entegre etmek için bunu etkinleştirin."
 
 msgid ""
 "Send HR notifications and updates directly through WhatsApp for better "

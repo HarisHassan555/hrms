@@ -1,6 +1,7 @@
 {% extends 'index.html' %}
 {% block content %}
     {% load static i18n %}
+    {% include "generic/components.html" %}
     {% load i18n %}
     {% load widget_tweaks %}
     {% load assets_custom_filter %}
@@ -43,18 +44,33 @@
                 {% endif %}
                 <!-- import asset end  -->
                 <div class="oh-btn-group ml-2">
+                    {% if perms.asset.add_asset %}
+                        <div>
+                            <a
+                                href="#"
+                                class="oh-btn oh-btn--secondary oh-btn--shadow"
+                                data-toggle="oh-modal-toggle"
+                                data-target="#genericModal"
+                                hx-get="{% url 'asset-creation-with-category' %}"
+                                hx-target="#genericModalBody"
+                            >
+                                <ion-icon name="cube-outline"></ion-icon>
+                                {% trans "Create asset" %}
+                            </a>
+                        </div>
+                    {% endif %}
                     {% if perms.asset.add_assetcategory %}
                         <div>
                             <a
                                 href="#"
                                 class="oh-btn oh-btn--secondary oh-btn--shadow"
                                 data-toggle="oh-modal-toggle"
-                                data-target="#objectCreateModal"
-                                hx-get="{%url 'asset-category-creation' %}"
-                                hx-target="#objectCreateModalTarget"
+                                data-target="#genericModal"
+                                hx-get="{% url 'asset-category-creation' %}"
+                                hx-target="#genericModalBody"
                             >
                                 <ion-icon name="add-outline"></ion-icon>
-                                {% trans "Create" %}
+                                {% trans "Create category" %}
                             </a>
                         </div>
                     {% endif %}

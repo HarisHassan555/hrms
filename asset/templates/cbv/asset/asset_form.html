@@ -1,3 +1,4 @@
+{% load i18n %}
 <div id="formContainer">
     {% include "generic/horilla_form.html" %}
 </div>
@@ -12,7 +13,41 @@
             $("#id_notify_before_parent_div").hide()
         }
     }
-    $(document).ready(function(){
-        toggleNotify($("#id_expiry_date"))
-    })
+
+    function initAssetCategorySelectInModal() {
+        var $root = $("#formContainer").length ? $("#formContainer") : $("#genericModalBody");
+        var $select = $root.find('select[name="asset_category_id"]');
+        if (!$select.length || $select.is(":hidden")) {
+            return;
+        }
+        try {
+            if ($select.hasClass("select2-hidden-accessible")) {
+                $select.select2("destroy");
+            }
+        } catch (e) { /* ignore */ }
+        var $parent = $("#genericModal");
+        if (!$parent.length) {
+            $parent = $select.closest(".oh-modal");
+        }
+        $select.select2({
+            width: "100%",
+            dropdownParent: $parent.length ? $parent : $(document.body),
+            placeholder: $select.data("placeholder") || "{% trans 'Select category...'|escapejs %}",
+        });
+    }
+
+    $(document).ready(function () {
+        toggleNotify($("#id_expiry_date"));
+        initAssetCategorySelectInModal();
+    });
+
+    document.body.addEventListener("htmx:afterSettle", function (event) {
+        if (
+            event.detail &&
+            event.detail.target &&
+            $(event.detail.target).find('select[name="asset_category_id"]').length
+        ) {
+            initAssetCategorySelectInModal();
+        }
+    });
 </script>

@@ -117,6 +117,18 @@ def payroll_settings_accessibility(request, submenu, user_perms, *args, **kwargs
     return request.user.has_perm("payroll.view_payslipautogenerate")
 
 
+def payroll_configuration_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return any(
+        request.user.has_perm(perm)
+        for perm in (
+            "payroll.view_payrollsettings",
+            "payroll.view_payslipautogenerate",
+            "payroll.view_allowance",
+            "payroll.view_deduction",
+        )
+    )
+
+
 def encashment_settings_accessibility(request, submenu, user_perms, *args, **kwargs):
     return request.user.has_perm("payroll.change_encashmentgeneralsettings")
 
@@ -127,6 +139,30 @@ class PayrollSettings:
     order = 7
     condition = lambda self, request: apps.is_installed("payroll")
     items = [
+        {
+            "label": _("Payroll Configuration"),
+            "url": reverse_lazy("payroll-settings-view"),
+            "accessibility": payroll_configuration_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Payroll Configuration"),
+                    "description": _(
+                        "Salary structures, allowances, deductions, and payslip automation"
+                    ),
+                },
+            ],
+        },
+        {
+            "label": _("Payslip Auto Generation"),
+            "url": reverse_lazy("auto-payslip-settings-view"),
+            "accessibility": payroll_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Payslip Auto Generation"),
+                    "description": _("Rules for generating payslips automatically"),
+                },
+            ],
+        },
         {
             "label": _("Encashment Settings"),
             "url": reverse_lazy("encashment-settings-view"),

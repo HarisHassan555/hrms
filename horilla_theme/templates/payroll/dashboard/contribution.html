@@ -2,7 +2,7 @@
 
 {% if contribution_deductions %}
     <div>
-        <table class="fixed-table w-full">
+        <table class="vr-table fixed-table w-full">
             <thead class="sticky top-0 bg-[white] z-[1]">
                 <tr class="border-b border-[#ececec]">
                     <th class="text-sm font-bold text-left p-3">
@@ -39,7 +39,7 @@
     </div>
 {% else %}
     <div class="flex flex-col items-center justify-center h-full">
-        <img src="/static/horilla_theme/assets/img/no-records.svg" alt="" width="300" class="mb-4">
+        <img src="/static/images/ui/application.png" alt="" width="300" class="mb-4">
         <p class="text-[#666] mb-5">{% trans "No records available at the moment" %}</p>
     </div>
 {% endif %}

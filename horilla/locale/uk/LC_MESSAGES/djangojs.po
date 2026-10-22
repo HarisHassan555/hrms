@@ -167,8 +167,8 @@ msgstr "Послідовність етапів оновлено"
 msgid "Dashboard"
 msgstr "Панель"
 
-msgid "Horilla dashboard section"
-msgstr "Розділ панелі Horilla"
+msgid "DSG dashboard section"
+msgstr "Розділ панелі DSG"
 
 msgid "Mark Attendance"
 msgstr "Відмітити присутність"
@@ -209,8 +209,8 @@ msgstr "Параметри профілю та зміни пароля"
 msgid "Dashboard Tiles"
 msgstr "Плитки панелі"
 
-msgid "Horilla Dashboard Tiles"
-msgstr "Плитки панелі Horilla"
+msgid "DSG Dashboard Tiles"
+msgstr "Плитки панелі DSG"
 
 msgid "Dashboard Actions"
 msgstr "Дії панелі"

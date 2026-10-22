@@ -4,6 +4,9 @@
 {% csrf_token %}
 <div class="oh-inner-sidebar-content__header mt-4">
     <h2 class="oh-inner-sidebar-content__title">{% trans 'Candidate Self Tracking' %}</h2>
+    <p class="text-sm text-gray-500 mt-1">
+        {% trans "Portal access for applicants and automatic emails when they apply on your career site." %}
+    </p>
 </div>
 <div class="row d-flex" >
         <div class="oh-label__info" for="application_tracking">
@@ -24,11 +27,22 @@
             </div>
           </div>
 
+        <div class="oh-label__info" for="application_acknowledgment_email">
+            <label class="oh-label" for="application_acknowledgment_email">{% trans "Application acknowledgment email" %}</label>
+            <span class="oh-info mr-2" title="{% trans "Sends a thank-you email to the candidate immediately after they submit the public application form. Uses your configured email server (Settings → Email). This is separate from Mail Automations." %}">
+            </span>
+            <div class="oh-switch p-3">
+                <input type="checkbox" class="oh-switch__checkbox" name="application_acknowledgment_email" onchange="applicationAcknowledgment($(this))" {% if check_application_acknowledgment_email %} checked {% endif %} />
+            </div>
+        </div>
+
 </div>
 <div class="oh-inner-sidebar-content__footer"></div>
 <button id="selfTrackButton" hx-get="{% url 'candidate-self-tracking' %}" hx-target="#reloadMessages" hidden>
 </button>
 <button id="ratingButton" hx-get="{% url 'candidate-self-tracking-rating-option' %}" hx-target="#reloadMessages" hidden>
+</button>
+<button id="applicationAcknowledgmentButton" hx-get="{% url 'application-acknowledgment-setting' %}" hx-target="#reloadMessages" hidden>
 </button>
 
 <script>
@@ -41,6 +55,11 @@
         var value = $(element).is(':checked')
         $('#ratingButton').attr('hx-vals', `{"candidate_self_tracking":${value}}`);
         $('#ratingButton').click()
+    }
+    function applicationAcknowledgment(element){
+        var value = $(element).is(':checked')
+        $('#applicationAcknowledgmentButton').attr('hx-vals', `{"application_acknowledgment_email":${value}}`);
+        $('#applicationAcknowledgmentButton').click()
     }
 </script>
 {% endblock settings %}

@@ -21,9 +21,9 @@
 	<a
 		hx-get="{% url 'mail-server-test-email' %}?instance_id={{ instance.id }}"
 		onclick="event.stopPropagation()"
-		hx-target="#mailServerModalBody"
+		hx-target="#genericModalBody"
 		data-toggle="oh-modal-toggle"
-		data-target="#mailServerModal"
+		data-target="#genericModal"
 		class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
 		title="{% trans 'Test email' %}"
 		><ion-icon

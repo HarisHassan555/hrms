@@ -1,0 +1,490 @@
+/**
+ * Horilla → TailAdmin component mapping (MIT design tokens)
+ * Targets existing .oh-* / .btn / list-view classes (no template renames).
+ */
+
+/* ── Base button ─────────────────────────────────────────────────── */
+html.tailadmin-theme .oh-btn,
+html.tailadmin-theme .btn,
+html.tailadmin-theme .ta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 38px;
+  padding: 0.5rem 1.25rem;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  border-radius: var(--ta-radius) !important;
+  border: 1px solid transparent;
+  box-shadow: none !important;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+html.tailadmin-theme .oh-btn:hover {
+  background-color: #f6f8fa;
+}
+
+html.tailadmin-theme .oh-btn:focus,
+html.tailadmin-theme .oh-btn:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.18) !important;
+}
+
+html.tailadmin-theme .oh-btn--small {
+  min-height: 32px;
+  padding: 0.35rem 0.85rem;
+  font-size: 13px;
+}
+
+html.tailadmin-theme .oh-btn--x-small {
+  min-height: 28px;
+  padding: 0.25rem 0.65rem;
+  font-size: 12px;
+}
+
+html.tailadmin-theme .oh-btn--sq-sm {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 !important;
+}
+
+/* Primary (Horilla: oh-btn--secondary) */
+html.tailadmin-theme .oh-btn--secondary,
+html.tailadmin-theme .btn.oh-btn--secondary {
+  background-color: var(--ta-primary) !important;
+  border-color: var(--ta-primary) !important;
+  color: #fff !important;
+}
+
+html.tailadmin-theme .oh-btn--secondary:hover,
+html.tailadmin-theme .oh-btn--secondary:focus,
+html.tailadmin-theme .btn.oh-btn--secondary:hover {
+  background-color: var(--ta-primary-dark) !important;
+  border-color: var(--ta-primary-dark) !important;
+  color: #fff !important;
+}
+
+html.tailadmin-theme .oh-btn--secondary-outline,
+html.tailadmin-theme .oh-btn--secondary-link {
+  background: transparent !important;
+  color: var(--ta-primary) !important;
+  border-color: transparent !important;
+}
+
+html.tailadmin-theme .oh-btn--light-bkg {
+  background: var(--ta-panel) !important;
+  color: var(--ta-text) !important;
+  border: 1px solid var(--ta-border) !important;
+}
+
+html.tailadmin-theme .oh-btn--light-bkg:hover {
+  background: #f6f8fa !important;
+  border-color: #d1d5db !important;
+}
+
+html.tailadmin-theme .oh-btn--light-bkg.oh-btn--secondary {
+  color: var(--ta-primary) !important;
+}
+
+html.tailadmin-theme .oh-btn--primary {
+  background: var(--ta-heading) !important;
+  border-color: var(--ta-heading) !important;
+  color: #fff !important;
+}
+
+html.tailadmin-theme .oh-btn--success {
+  background: var(--ta-success) !important;
+  border-color: var(--ta-success) !important;
+  color: #fff !important;
+}
+
+html.tailadmin-theme .oh-btn--danger,
+html.tailadmin-theme .oh-btn--light-danger {
+  background: var(--ta-danger) !important;
+  border-color: var(--ta-danger) !important;
+  color: #fff !important;
+}
+
+html.tailadmin-theme .oh-btn--light-bkg.oh-btn--danger {
+  background: #fff5f5 !important;
+  color: var(--ta-danger) !important;
+  border-color: #fecaca !important;
+}
+
+html.tailadmin-theme .oh-btn--warning {
+  background: var(--ta-warning) !important;
+  border-color: var(--ta-warning) !important;
+  color: #fff !important;
+}
+
+html.tailadmin-theme .oh-btn--info {
+  background: var(--ta-info) !important;
+  border-color: var(--ta-info) !important;
+  color: #fff !important;
+}
+
+html.tailadmin-theme .oh-btn--transparent,
+html.tailadmin-theme .oh-btn--danger-link,
+html.tailadmin-theme .oh-btn--secondary-link {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+html.tailadmin-theme .oh-btn--danger-link {
+  color: var(--ta-danger) !important;
+}
+
+/* ── Forms ───────────────────────────────────────────────────────── */
+html.tailadmin-theme .oh-input,
+html.tailadmin-theme .oh-select,
+html.tailadmin-theme .oh-textarea,
+html.tailadmin-theme .myform input:not([type="checkbox"]):not([type="radio"]),
+html.tailadmin-theme .myform select,
+html.tailadmin-theme .myform textarea,
+html.tailadmin-theme input.form-control,
+html.tailadmin-theme select.form-control,
+html.tailadmin-theme textarea.form-control {
+  min-height: 42px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--ta-radius) !important;
+  border: 1px solid var(--ta-border) !important;
+  background: var(--ta-panel) !important;
+  color: var(--ta-text) !important;
+  font-size: 14px;
+}
+
+html.tailadmin-theme .oh-input:focus,
+html.tailadmin-theme .oh-select:focus,
+html.tailadmin-theme .myform input:focus,
+html.tailadmin-theme .myform select:focus,
+html.tailadmin-theme .myform textarea:focus {
+  border-color: var(--ta-primary) !important;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12) !important;
+}
+
+html.tailadmin-theme input[type="checkbox"],
+html.tailadmin-theme input[type="radio"],
+html.tailadmin-theme .custom-checkbox {
+  accent-color: var(--ta-primary) !important;
+}
+
+html.tailadmin-theme .oh-switch .oh-switch__checkbox:checked {
+  background-color: var(--ta-primary) !important;
+}
+
+/* ── Cards & panels ──────────────────────────────────────────────── */
+html.tailadmin-theme .oh-card,
+html.tailadmin-theme .shadow-card,
+html.tailadmin-theme .hlv-container > .bg-white,
+html.tailadmin-theme .oh-dashboard-card {
+  background: var(--ta-panel) !important;
+  border: 1px solid var(--ta-border) !important;
+  border-radius: var(--ta-radius-lg) !important;
+  box-shadow: var(--ta-shadow-sm) !important;
+}
+
+/* ── Tables (list views) ─────────────────────────────────────────── */
+html.tailadmin-theme .fixed-table thead th,
+html.tailadmin-theme .oh-sticky-table__th {
+  background: #f6f8fa !important;
+  color: var(--ta-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-color: var(--ta-border) !important;
+}
+
+html.tailadmin-theme .fixed-table tbody td,
+html.tailadmin-theme .oh-sticky-table__td {
+  font-size: 14px;
+  color: var(--ta-text);
+  border-color: var(--ta-border-light) !important;
+}
+
+html.tailadmin-theme .fixed-table tbody tr:hover,
+html.tailadmin-theme .oh-sticky-table__tr:hover {
+  background: #f9fafb !important;
+}
+
+html.tailadmin-theme .highlight-selected {
+  background: rgba(67, 97, 238, 0.08) !important;
+}
+
+/* ── Modals ──────────────────────────────────────────────────────── */
+html.tailadmin-theme .oh-modal {
+  background-color: rgba(14, 23, 38, 0.45) !important;
+}
+
+html.tailadmin-theme .oh-modal__dialog {
+  max-width: 560px;
+  border-radius: var(--ta-radius-lg) !important;
+  border: 1px solid var(--ta-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+  background: var(--ta-panel) !important;
+}
+
+html.tailadmin-theme .oh-modal__dialog-header {
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid var(--ta-border-light);
+}
+
+html.tailadmin-theme .oh-modal__dialog-body {
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+html.tailadmin-theme .oh-modal__dialog-footer {
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--ta-border-light);
+}
+
+html.tailadmin-theme .oh-modal__close,
+html.tailadmin-theme .oh-modal__close--custom {
+  color: var(--ta-text-muted);
+  border-radius: var(--ta-radius);
+}
+
+html.tailadmin-theme .oh-modal__close:hover,
+html.tailadmin-theme .oh-modal__close--custom:hover {
+  background: #f6f8fa;
+  color: var(--ta-danger);
+}
+
+/* ── Accordion ───────────────────────────────────────────────────── */
+html.tailadmin-theme .oh-accordion-header,
+html.tailadmin-theme .oh-accordion-meta__header {
+  background: var(--ta-primary-light) !important;
+  color: var(--ta-primary) !important;
+  border-radius: var(--ta-radius) !important;
+  border: 1px solid rgba(67, 97, 238, 0.15) !important;
+}
+
+html.tailadmin-theme .oh-accordion-header:hover,
+html.tailadmin-theme .oh-accordion-meta__header:hover {
+  background: #dce6ff !important;
+}
+
+html.tailadmin-theme .oh-accordion-body {
+  border: 1px solid var(--ta-border-light);
+  border-top: none;
+  border-radius: 0 0 var(--ta-radius) var(--ta-radius);
+}
+
+/* ── Tabs ────────────────────────────────────────────────────────── */
+html.tailadmin-theme .oh-tabs__tab {
+  color: var(--ta-text-muted);
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+}
+
+html.tailadmin-theme .oh-tabs__tab--active {
+  color: var(--ta-primary) !important;
+  border-bottom-color: var(--ta-primary) !important;
+  background: transparent !important;
+}
+
+html.tailadmin-theme .usertablist li button {
+  border-radius: var(--ta-radius);
+  color: var(--ta-text-muted);
+}
+
+html.tailadmin-theme .usertablist li button.active,
+html.tailadmin-theme .usertablist li button:hover {
+  background: var(--ta-primary-light) !important;
+  color: var(--ta-primary) !important;
+  border-color: rgba(67, 97, 238, 0.25) !important;
+}
+
+html.tailadmin-theme .mytab {
+  border-color: var(--ta-primary) !important;
+  border-radius: var(--ta-radius);
+}
+
+html.tailadmin-theme .mytab .tab-button.active {
+  background: var(--ta-primary) !important;
+}
+
+/* ── Pagination (list views) ─────────────────────────────────────── */
+html.tailadmin-theme .hlv-pagination {
+  border-color: var(--ta-border) !important;
+  border-radius: var(--ta-radius) !important;
+  box-shadow: var(--ta-shadow-sm);
+}
+
+html.tailadmin-theme .hlv-pagination button:hover:not(:disabled) {
+  background: var(--ta-primary-light) !important;
+  color: var(--ta-primary) !important;
+}
+
+html.tailadmin-theme .border-primary-500,
+html.tailadmin-theme .border-primary-600 {
+  border-color: var(--ta-border) !important;
+}
+
+html.tailadmin-theme .bg-primary-100 {
+  background-color: var(--ta-primary-light) !important;
+}
+
+html.tailadmin-theme .text-primary-600 {
+  color: var(--ta-primary) !important;
+}
+
+html.tailadmin-theme .bg-primary-600 {
+  background-color: var(--ta-primary) !important;
+}
+
+/* ── Dropdowns ───────────────────────────────────────────────────── */
+html.tailadmin-theme .oh-dropdown__menu,
+html.tailadmin-theme .oh-sticy-dropdown {
+  border: 1px solid var(--ta-border) !important;
+  border-radius: var(--ta-radius-lg) !important;
+  box-shadow: var(--ta-shadow) !important;
+  padding: 6px !important;
+}
+
+html.tailadmin-theme .oh-dropdown__link,
+html.tailadmin-theme .oh-sticy-dropdown-item {
+  border-radius: var(--ta-radius);
+  color: var(--ta-text);
+}
+
+html.tailadmin-theme .oh-dropdown__link:hover,
+html.tailadmin-theme .oh-sticy-dropdown-item:hover {
+  background: #f6f8fa !important;
+  color: var(--ta-primary) !important;
+}
+
+/* ── Alerts & messages ───────────────────────────────────────────── */
+html.tailadmin-theme .oh-alert {
+  border-radius: var(--ta-radius);
+  border: 1px solid var(--ta-border);
+  font-weight: 600;
+}
+
+html.tailadmin-theme .oh-alert--success {
+  background: #ddf5f0 !important;
+  color: var(--ta-success) !important;
+  border-color: #b8ece0 !important;
+}
+
+html.tailadmin-theme .oh-alert--danger {
+  background: #fff5f5 !important;
+  color: var(--ta-danger) !important;
+  border-color: #fecaca !important;
+}
+
+html.tailadmin-theme .oh-alert--warning {
+  background: #fff8eb !important;
+  color: var(--ta-warning) !important;
+}
+
+html.tailadmin-theme .oh-alert--info {
+  background: #e8f4fd !important;
+  color: var(--ta-info) !important;
+}
+
+/* ── SweetAlert2 ─────────────────────────────────────────────────── */
+html.tailadmin-theme .swal2-popup {
+  border-radius: var(--ta-radius-lg) !important;
+  font-family: inherit;
+}
+
+html.tailadmin-theme .swal2-styled.swal2-confirm {
+  background-color: var(--ta-primary) !important;
+  border-radius: var(--ta-radius) !important;
+}
+
+html.tailadmin-theme .swal2-styled.swal2-cancel {
+  background-color: var(--ta-danger) !important;
+  border-radius: var(--ta-radius) !important;
+}
+
+/* ── Select2 ─────────────────────────────────────────────────────── */
+html.tailadmin-theme .select2-container--default .select2-selection--single,
+html.tailadmin-theme .select2-container--default .select2-selection--multiple {
+  border: 1px solid var(--ta-border) !important;
+  border-radius: var(--ta-radius) !important;
+  min-height: 42px;
+}
+
+html.tailadmin-theme .select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background: var(--ta-primary-light) !important;
+  border-color: rgba(67, 97, 238, 0.2) !important;
+  color: var(--ta-primary) !important;
+  border-radius: 4px !important;
+}
+
+html.tailadmin-theme .select2-dropdown {
+  border-color: var(--ta-border) !important;
+  border-radius: var(--ta-radius-lg) !important;
+  box-shadow: var(--ta-shadow-sm) !important;
+}
+
+/* ── Status pills / filters ────────────────────────────────────────── */
+html.tailadmin-theme .oh-row-status-indication {
+  border-radius: 999px !important;
+  font-weight: 600;
+  border: 1px solid var(--ta-border) !important;
+}
+
+html.tailadmin-theme .oh-row-status-indication:focus,
+html.tailadmin-theme .oh-row-status-indication:active {
+  border-color: var(--ta-primary) !important;
+}
+
+/* ── Title bars & tags ───────────────────────────────────────────── */
+html.tailadmin-theme .oh-titlebar__title {
+  color: var(--ta-heading);
+  font-weight: 700;
+}
+
+html.tailadmin-theme .oh-titlebar__tag,
+html.tailadmin-theme .oh-titlebar__tag--custom {
+  background: var(--ta-primary-light) !important;
+  color: var(--ta-primary) !important;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* ── Empty states ────────────────────────────────────────────────── */
+html.tailadmin-theme .oh-empty {
+  color: var(--ta-text-muted);
+}
+
+/* ── Index inline theme hook overrides ───────────────────────────── */
+html.tailadmin-theme .toggle-input:checked + .toggle-switch {
+  background-color: var(--ta-primary) !important;
+}
+
+html.tailadmin-theme .breadcrumb li a:hover,
+html.tailadmin-theme .breadcrumb li.oh-breadcrumb-current,
+html.tailadmin-theme .oh-chrome-breadcrumb__link:hover {
+  color: var(--ta-primary) !important;
+}
+
+/* ── Dark ──────────────────────────────────────────────────────────── */
+html.tailadmin-theme.dark .oh-card,
+html.tailadmin-theme.dark .shadow-card,
+html.tailadmin-theme.dark .hlv-container > .bg-white,
+html.tailadmin-theme.dark .oh-modal__dialog {
+  background: var(--ta-panel) !important;
+  border-color: var(--ta-border) !important;
+}
+
+html.tailadmin-theme.dark .fixed-table thead th,
+html.tailadmin-theme.dark .oh-sticky-table__th {
+  background: #1b2e4b !important;
+}
+
+html.tailadmin-theme.dark .oh-btn--light-bkg {
+  background: #1b2e4b !important;
+  border-color: var(--ta-border) !important;
+  color: var(--ta-text) !important;
+}

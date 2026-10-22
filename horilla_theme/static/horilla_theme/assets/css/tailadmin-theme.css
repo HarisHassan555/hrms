@@ -1,0 +1,138 @@
+/**
+ * TailAdmin theme layer (MIT) — https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template
+ * Maps Horilla chrome tokens to TailAdmin brand palette.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+html.tailadmin-theme {
+  /* TailAdmin brand scale */
+  --ta-primary: #465fff;
+  --ta-primary-dark: #3641f5;
+  --ta-primary-light: #ecf3ff;
+  --ta-success: #12b76a;
+  --ta-danger: #f04438;
+  --ta-warning: #f79009;
+  --ta-info: #0ba5ec;
+
+  /* Surfaces (TailAdmin gray) */
+  --ta-body-bg: #f9fafb;
+  --ta-panel: #ffffff;
+  --ta-border: #e4e7ec;
+  --ta-border-light: #f2f4f7;
+  --ta-text: #475467;
+  --ta-text-muted: #667085;
+  --ta-heading: #101828;
+
+  /* Layout */
+  --ta-sidebar-width: 16.25rem;
+  --ta-radius: 8px;
+  --ta-radius-lg: 12px;
+  --ta-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --ta-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+
+  --chrome-primary: var(--ta-primary);
+  --chrome-primary-hover: var(--ta-primary-dark);
+  --chrome-primary-soft: var(--ta-primary-light);
+  --chrome-surface: var(--ta-panel);
+  --chrome-page-bg: var(--ta-body-bg);
+  --chrome-border: var(--ta-border);
+  --chrome-border-light: var(--ta-border-light);
+  --chrome-text: var(--ta-heading);
+  --chrome-text-secondary: var(--ta-text);
+  --chrome-text-muted: var(--ta-text-muted);
+  --chrome-header-radius: var(--ta-radius-lg);
+  --chrome-radius: var(--ta-radius);
+  --chrome-shadow-header: var(--ta-shadow-sm);
+  --sidebar-width-expanded: var(--ta-sidebar-width);
+
+  --primary-100: #ecf3ff;
+  --primary-200: #dde9ff;
+  --primary-300: #c2d6ff;
+  --primary-500: #7592ff;
+  --primary-600: var(--ta-primary);
+  --primary-700: var(--ta-primary-dark);
+  --primary-800: #252dae;
+  --primary-50: #f2f7ff;
+}
+
+html.tailadmin-theme,
+html.tailadmin-theme body {
+  font-family: "Outfit", ui-sans-serif, system-ui, sans-serif !important;
+  color: var(--ta-text);
+  background-color: var(--ta-body-bg) !important;
+}
+
+html.tailadmin-theme #sidebar,
+html.tailadmin-theme #sidebarFlyout {
+  --sidebar-surface: var(--ta-panel);
+  --sidebar-surface-muted: var(--ta-panel);
+  --sidebar-border: var(--ta-border);
+  --sidebar-text: var(--ta-text-muted);
+  --sidebar-text-strong: var(--ta-heading);
+  --sidebar-hover-bg: var(--ta-border-light);
+  --sidebar-accent: var(--ta-primary);
+  --sidebar-accent-dark: var(--ta-primary-dark);
+  --sidebar-accent-soft: var(--ta-primary-light);
+  --sidebar-radius: var(--ta-radius);
+  --sidebar-rail-shadow: var(--ta-shadow-sm);
+}
+
+html.tailadmin-theme #sidebar .oh-sidebar__inner {
+  background: var(--ta-panel);
+}
+
+html.tailadmin-theme #sidebar .oh-sidebar__company-card {
+  border-color: var(--ta-border);
+  border-radius: var(--ta-radius-lg);
+}
+
+html.tailadmin-theme #sidebar .oh-sidebar__nav-label {
+  color: var(--ta-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+html.tailadmin-theme #sidebar nav .sideboxmain.sidebox-current {
+  background-color: var(--ta-primary-light) !important;
+  color: var(--ta-primary-dark) !important;
+}
+
+html.tailadmin-theme #sidebar nav .sideboxmain.sidebox-current::before {
+  background: var(--ta-primary);
+}
+
+html.tailadmin-theme .oh-app-chrome-header,
+html.tailadmin-theme #ohMainContent.oh-app-shell__main {
+  border-radius: var(--ta-radius-lg);
+  box-shadow: var(--ta-shadow-sm);
+  border: 1px solid var(--ta-border);
+}
+
+html.tailadmin-theme .oh-chrome-icon-btn--menu {
+  background: var(--ta-primary-light);
+  color: var(--ta-primary);
+}
+
+html.tailadmin-theme .oh-chrome-icon-btn--menu:hover {
+  background: var(--ta-primary);
+  color: #fff;
+}
+
+html.tailadmin-theme.dark {
+  --ta-body-bg: #0c111d;
+  --ta-panel: #1a2231;
+  --ta-border: #344054;
+  --ta-border-light: #1d2939;
+  --ta-text: #e4e7ec;
+  --ta-text-muted: #98a2b3;
+  --ta-heading: #f9fafb;
+  --chrome-page-bg: var(--ta-body-bg);
+  --chrome-surface: var(--ta-panel);
+}
+
+html.tailadmin-theme.dark .oh-sticky-table__thead,
+html.tailadmin-theme.dark .oh-sticky-table__th {
+  background: #1d2939 !important;
+}

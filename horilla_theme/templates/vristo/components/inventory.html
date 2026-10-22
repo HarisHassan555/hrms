@@ -1,0 +1,32 @@
+{% comment %}
+Vristo component map (Horilla → Vristo layer)
+────────────────────────────────────────────
+Layout chrome:     index.html + app-chrome.css + vristo-theme.css
+Sidebar / header:  horilla_theme/components/sidebar.html, header.html
+
+Global shells (theme overrides in horilla_theme/templates/generic/):
+  components.html   → .vr-modal, .vr-drawer on modals/sidebars
+  messages.html     → .vr-alert-stack
+
+Reusable partials (vristo/components/):
+  modal_header.html → oh-modal__dialog-header + .vr-modal__title
+  button.html       → .oh-btn + .vr-btn--{variant}
+
+Data views (classes + CSS, logic unchanged):
+  horilla_list_table.html  → .vr-table.fixed-table, .vr-panel, .vr-table-wrap
+  vristo-tables.css        → app-wide Vristo table skin (fixed-table + oh-sticky-table)
+  horilla_card.html        → .vr-panel on .oh-card / list shell
+  quick_actions.html       → .vr-toolbar, .vr-toolbar-btn, .vr-pagination
+  form.html                → modal_header include, .vr-form-panel
+  delete_confirmation.html → modal_header include
+
+Licensed vendor (ThemeForest zip, not on PyPI):
+  horilla_vristo/vendor/ — see README.txt; check with: python manage.py vristo_status
+
+Still styled via vristo-components.css only (no template swap yet):
+  horilla_nav.html, horilla_tabs.html, group_by_table.html, nested_group_by_*,
+  export_fields_modal.html, filter_tags.html, modern_filter_panel.html,
+  inline_nav.html, horilla_detailed_view.html, horilla_profile_view.html, …
+
+Horilla class hooks preserved for JS/HTMX: .oh-modal, .oh-btn, .hlv-container, .fixed-table
+{% endcomment %}

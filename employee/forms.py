@@ -28,7 +28,7 @@ from typing import Any
 
 from django import forms
 from django.db.models import Q
-from django.forms import DateInput, TextInput
+from django.forms import DateInput, TextInput, inlineformset_factory
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
@@ -47,6 +47,7 @@ from employee.models import (
     NoteFiles,
     Policy,
     PolicyMultipleFile,
+    PolicySlide,
 )
 from horilla import horilla_middlewares
 from horilla_audit.models import AccountBlockUnblock
@@ -344,6 +345,102 @@ class EmployeeForm(ModelForm):
         return badge_id
 
 
+class CreateOptionSelect(forms.Select):
+    """
+    Select widget that appends a trailing "Create New …" option (value
+    ``create``) used by the employee work-info tab to open the inline
+    create modal for the related model.
+    """
+
+    def __init__(self, attrs=None, choices=(), create_label=""):
+        super().__init__(attrs, choices)
+        self.create_label = create_label
+
+    def optgroups(self, name, value, attrs=None):
+        groups = super().optgroups(name, value, attrs)
+        index = len(groups)
+        option = self.create_option(
+            name, "create", self.create_label, False, index, attrs=attrs
+        )
+        groups.append((None, [option], index))
+        return groups
+
+
+class CreatableModelChoiceField(forms.ModelChoiceField):
+    """
+    ModelChoiceField whose label comes from a configurable attribute and
+    which treats the sentinel value ``create`` as "nothing selected", so a
+    form submitted while the create option is still highlighted does not
+    fail validation with an invalid-choice error.
+    """
+
+    def __init__(self, *args, label_attr=None, **kwargs):
+        self.label_attr = label_attr
+        super().__init__(*args, **kwargs)
+
+    def label_from_instance(self, obj):
+        if self.label_attr and hasattr(obj, self.label_attr):
+            return str(getattr(obj, self.label_attr))
+        return super().label_from_instance(obj)
+
+    def to_python(self, value):
+        if value == "create":
+            value = None
+        return super().to_python(value)
+
+
+def configure_work_information_dynamic_selects(form):
+    """
+    Give the org-structure foreign-key fields on the employee work-info form
+    an inline "Create New …" option plus the onchange hook that opens the
+    matching dynamic-create modal. Fields stay ModelChoiceFields so the
+    ModelForm still saves model instances correctly.
+    """
+    field_names = {
+        "Department": "department",
+        "Job Position": "job_position",
+        "Job Role": "job_role",
+        "Work Type": "work_type",
+        "Employee Type": "employee_type",
+        "Shift": "employee_shift",
+    }
+    urls = {
+        "Department": "#dynamicDept",
+        "Job Position": "#dynamicJobPosition",
+        "Job Role": "#dynamicJobRole",
+        "Work Type": "#dynamicWorkType",
+        "Employee Type": "#dynamicEmployeeType",
+        "Shift": "#dynamicShift",
+    }
+
+    for field_name, field in list(form.fields.items()):
+        if not isinstance(field, forms.ModelChoiceField):
+            continue
+        if field.label not in field_names:
+            continue
+        lookup = field_names.get(field.label)
+        if field.queryset.model == Employee or not lookup:
+            continue
+        translated_label = _(field.label)
+        form.fields[field_name] = CreatableModelChoiceField(
+            queryset=field.queryset,
+            required=field.required,
+            label=translated_label,
+            initial=field.initial,
+            empty_label=_("---Choose {label}---").format(label=translated_label),
+            label_attr=lookup,
+            widget=CreateOptionSelect(
+                attrs={
+                    "class": "oh-select",
+                    "onchange": (
+                        f'onDynamicCreate(this.value,"{urls.get(field.label)}", this);'
+                    ),
+                },
+                create_label=_("Create New {} ").format(translated_label),
+            ),
+        )
+
+
 class EmployeeWorkInformationForm(ModelForm):
     """
     Form for EmployeeWorkInformation model
@@ -367,58 +464,11 @@ class EmployeeWorkInformationForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["email"].widget.attrs["autocomplete"] = "email"
 
-        self.fields["job_position_id"].widget.attrs.update(
-            {
-                "onchange": "jobChange($(this))",
-            }
-        )
-
         for field in self.fields:
             self.fields[field].widget.attrs["placeholder"] = self.fields[field].label
             if disable:
                 self.fields[field].disabled = True
-        field_names = {
-            "Department": "department",
-            "Job Position": "job_position",
-            "Job Role": "job_role",
-            "Work Type": "work_type",
-            "Employee Type": "employee_type",
-            "Shift": "employee_shift",
-        }
-        urls = {
-            "Department": "#dynamicDept",
-            "Job Position": "#dynamicJobPosition",
-            "Job Role": "#dynamicJobRole",
-            "Work Type": "#dynamicWorkType",
-            "Employee Type": "#dynamicEmployeeType",
-            "Shift": "#dynamicShift",
-        }
-
-        for label, field in self.fields.items():
-            if isinstance(field, forms.ModelChoiceField) and field.label in field_names:
-                if field.label is not None:
-                    field_name = field_names.get(field.label)
-                    if field.queryset.model != Employee and field_name:
-                        translated_label = _(field.label)
-                        empty_label = _("---Choose {label}---").format(
-                            label=translated_label
-                        )
-                        self.fields[label] = forms.ChoiceField(
-                            choices=[("", empty_label)]
-                            + list(field.queryset.values_list("id", f"{field_name}")),
-                            required=field.required,
-                            label=translated_label,
-                            initial=field.initial,
-                            widget=forms.Select(
-                                attrs={
-                                    "class": "oh-select",
-                                    "onchange": f'onDynamicCreate(this.value,"{urls.get(field.label)}");',
-                                }
-                            ),
-                        )
-                        self.fields[label].choices += [
-                            ("create", _("Create New {} ").format(translated_label))
-                        ]
+        configure_work_information_dynamic_selects(self)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -470,24 +520,7 @@ class EmployeeWorkInformationUpdateForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["department_id"].widget.attrs.update(
-            {
-                "hx-target": "#id_job_position_id_parent_div",
-                "hx-include": "#id_job_position_id",
-                "hx-trigger": "change,load",
-                "hx-swap": "innerHTML",
-                "hx-get": "/employee/get-job-positions-hx",
-            }
-        )
-        self.fields["job_position_id"].widget.attrs.update(
-            {
-                "hx-target": "#id_job_role_id_parent_div",
-                "hx-include": "#id_job_role_id",
-                "hx-trigger": "change,load",
-                "hx-swap": "innerHTML",
-                "hx-get": "/employee/get-job-roles-hx",
-            }
-        )
+        configure_work_information_dynamic_selects(self)
 
     def as_p(self, *args, **kwargs):
         context = {"form": self}
@@ -740,7 +773,6 @@ class PolicyForm(ModelForm):
 
     cols = {
         "title": 12,
-        "body": 12,
         "employees": 12,
         "department": 12,
         "job_position": 12,
@@ -751,12 +783,13 @@ class PolicyForm(ModelForm):
     class Meta:
         model = Policy
         fields = "__all__"
-        exclude = ["attachments", "is_active", "filtered_employees"]
-        widgets = {
-            "body": forms.Textarea(
-                attrs={"data-summernote": "", "style": "display:none;"}
-            ),
-        }
+        exclude = [
+            "attachments",
+            "is_active",
+            "filtered_employees",
+            "body",
+            "body_format",
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -782,6 +815,55 @@ class PolicyForm(ModelForm):
         if commit:
             instance.attachments.add(*multiple_attachment_ids)
         return instance, attachemnts
+
+
+class PolicySlideForm(ModelForm):
+    """Single slideshow page for a policy."""
+
+    class Meta:
+        model = PolicySlide
+        fields = ["sort_order", "title", "body", "image"]
+        widgets = {
+            "body": forms.Textarea(
+                attrs={
+                    "data-summernote": "",
+                    "rows": 4,
+                    "class": "policy-page-body-field",
+                    "style": "display:none;",
+                }
+            ),
+            "sort_order": forms.HiddenInput(),
+            "title": forms.TextInput(attrs={"placeholder": _("Page title (optional)")}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["sort_order"].required = False
+        self.fields["image"].required = False
+
+
+def build_policy_slide_formset(instance=None, data=None, files=None):
+    """One blank page when creating; only existing pages when editing."""
+    extra = 0
+    if not instance or not instance.pk or not instance.slides.exists():
+        extra = 1
+    formset_factory = inlineformset_factory(
+        Policy,
+        PolicySlide,
+        form=PolicySlideForm,
+        extra=extra,
+        can_delete=True,
+        min_num=0,
+        validate_min=False,
+        max_num=30,
+    )
+    if data is not None:
+        return formset_factory(data, files, instance=instance)
+    return formset_factory(instance=instance)
+
+
+# Backwards compatibility for imports
+PolicySlideFormSet = build_policy_slide_formset
 
 
 class BonusPointAddForm(ModelForm):

@@ -1,0 +1,13 @@
+{% load i18n %}
+{# Vristo button — variant: primary|secondary|outline|ghost|danger; size: sm|md; type defaults to button #}
+<button
+    type="{{ type|default:'button' }}"
+    class="oh-btn vr-btn vr-btn--{{ variant|default:'primary' }}{% if size %} vr-btn--{{ size }}{% endif %} {{ extra_class|default:'' }}"
+    {% if id %}id="{{ id }}"{% endif %}
+    {% if name %}name="{{ name }}"{% endif %}
+    {% if disabled %}disabled{% endif %}
+    {{ attrs|default:''|safe }}
+>
+    {% if icon %}<ion-icon name="{{ icon }}"></ion-icon>{% endif %}
+    {{ label }}
+</button>

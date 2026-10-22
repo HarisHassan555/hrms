@@ -390,6 +390,22 @@ def check_candidate_self_tracking_rating(request):
     return {"check_candidate_self_tracking_rating": SimpleLazyObject(_resolve)}
 
 
+def check_application_acknowledgment_email(request):
+    """Whether thank-you emails are sent after public job applications."""
+
+    def _resolve():
+        if not apps.is_installed("recruitment"):
+            return True
+        first = check_candidate_recruitment_setting(request)
+        if first is None:
+            return True
+        return bool(first.application_acknowledgment_email)
+
+    return {
+        "check_application_acknowledgment_email": SimpleLazyObject(_resolve),
+    }
+
+
 def get_initial_prefix(request):
     """
     This method is used to get the initial prefix

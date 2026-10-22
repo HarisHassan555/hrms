@@ -8,21 +8,8 @@
     }
 </style>
 
-<div class="oh-modal__dialog-header">
-    <span class="text-md font-semibold" id="deleteConfirmationLabel">{% trans "Delete Confirmation" %}</span>
-    <button
-        class="oh-modal__close--custom"
-        onclick="$(this).closest('.oh-modal--show').removeClass('oh-modal--show')"
-        aria-label="{% trans 'Close' %}"
-    >
-        <ion-icon
-            name="close-outline"
-            role="img"
-            class="md hydrated"
-            aria-label="{% trans 'close outline' %}"
-        ></ion-icon>
-    </button>
-</div>
+{% trans "Delete Confirmation" as vristo_delete_title %}
+{% include "vristo/components/modal_header.html" with title=vristo_delete_title title_id="deleteConfirmationLabel" %}
 
 <div class="oh-modal__dialog-body oh-modal__dialog-relative rounded-lg shadow-card">
     <div class="bg-white w-full transition-all duration-300">

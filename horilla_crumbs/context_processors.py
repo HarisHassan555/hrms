@@ -694,21 +694,42 @@ def build_breadcrumbs(request):
     return trail
 
 
+def _strip_company_root_crumb(trail):
+    """Drop the company home crumb; company identity is shown in the sidebar."""
+    if not trail:
+        return trail
+    first = trail[0]
+    url = first.get("url") or ""
+    if "breadcrumb_nav=true" in url:
+        return trail[1:]
+    parsed = urlparse(url)
+    if parsed.path in ("", "/"):
+        return trail[1:] if len(trail) > 1 else []
+    return trail
+
+
+def _breadcrumbs_for_template(trail):
+    return _strip_company_root_crumb(trail)
+
+
 def breadcrumbs(request):
     """
     Active breadcrumbs context processor.
     """
     try:
         if is_asset_request(request):
-            return {"breadcrumbs": request.session.get("breadcrumbs", [])}
+            return {
+                "breadcrumbs": _breadcrumbs_for_template(
+                    request.session.get("breadcrumbs", [])
+                )
+            }
 
         existing = request.session.get("breadcrumbs")
         has_existing = isinstance(existing, list) and existing
 
         if request.GET.get("breadcrumb_nav") == "true":
-            return {
-                "breadcrumbs": existing if has_existing else build_breadcrumbs(request)
-            }
+            trail = existing if has_existing else build_breadcrumbs(request)
+            return {"breadcrumbs": _breadcrumbs_for_template(trail)}
 
         local_trail = build_breadcrumbs(request)
         is_htmx = "HTTP_HX_REQUEST" in request.META
@@ -717,7 +738,7 @@ def breadcrumbs(request):
 
         if is_htmx and not is_sidebar_nav and not is_push_nav:
             trail = existing if has_existing else local_trail
-            return {"breadcrumbs": trail}
+            return {"breadcrumbs": _breadcrumbs_for_template(trail)}
 
         referer_path = urlparse(request.META.get("HTTP_REFERER") or "").path
 
@@ -736,7 +757,7 @@ def breadcrumbs(request):
                 trail = trail + [leaf]
 
         request.session["breadcrumbs"] = trail
-        return {"breadcrumbs": trail}
+        return {"breadcrumbs": _breadcrumbs_for_template(trail)}
     except Exception:
         logger.exception("Failed building breadcrumbs for %s", request.path)
         base_url = request.build_absolute_uri("/")
@@ -745,7 +766,7 @@ def breadcrumbs(request):
             {"url": base_url, "name": company, "found": True, "clickable": True}
         ]
         request.session["breadcrumbs"] = fallback
-        return {"breadcrumbs": fallback}
+        return {"breadcrumbs": _breadcrumbs_for_template(fallback)}
 
 
 def _section_redirect(url_name):

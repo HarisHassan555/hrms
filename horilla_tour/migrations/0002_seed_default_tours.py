@@ -68,7 +68,7 @@ GETTING_STARTED = {
 DASHBOARD_OVERVIEW = {
     "slug": "dashboard-overview",
     "title": "Dashboard Overview",
-    "description": "A quick look at your Horilla home dashboard.",
+    "description": "A quick look at your DSG home dashboard.",
     "page_match": "dashboard",
     "match_type": "url_name",
     "audience": "all",
@@ -79,7 +79,7 @@ DASHBOARD_OVERVIEW = {
         {
             "title": "Your dashboard",
             "description": "This is your home base. KPIs, charts and quick actions "
-            "update automatically as your team uses Horilla.",
+            "update automatically as your team uses DSG.",
             "element_selector": "",
             "side": "over",
         },

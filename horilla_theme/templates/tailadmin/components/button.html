@@ -1,0 +1,13 @@
+{% load i18n %}
+{# TailAdmin button — variant: primary|secondary|outline|ghost|danger #}
+<button
+    type="{{ type|default:'button' }}"
+    class="oh-btn ta-btn ta-btn--{{ variant|default:'primary' }}{% if size %} ta-btn--{{ size }}{% endif %} {{ extra_class|default:'' }}"
+    {% if id %}id="{{ id }}"{% endif %}
+    {% if name %}name="{{ name }}"{% endif %}
+    {% if disabled %}disabled{% endif %}
+    {{ attrs|default:''|safe }}
+>
+    {% if icon %}<ion-icon name="{{ icon }}"></ion-icon>{% endif %}
+    {{ label }}
+</button>

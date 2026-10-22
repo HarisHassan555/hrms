@@ -1,0 +1,4 @@
+# Licensed Vristo files must be added locally; never commit ThemeForest assets.
+*
+!README.txt
+!.gitignore

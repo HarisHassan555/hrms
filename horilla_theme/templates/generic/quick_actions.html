@@ -10,12 +10,12 @@
     </script>
 {% endif %}
 
-<div class="flex flex-wrap justify-between items-center gap-2 mb-1.5 {{ margin_class|default:'ml-2 mr-2' }} {{ extra_class|default:'' }}">
+<div class="vr-toolbar flex flex-wrap justify-between items-center gap-2 mb-1.5 {{ margin_class|default:'ml-2 mr-2' }} {{ extra_class|default:'' }}">
     {% if bulk_select_option %}
     <div class="flex flex-nowrap gap-1 items-center flex-shrink-0">
         <button
             type="button"
-            class="d-none quick-bulk-action px-4 py-2 bg-transparent border border-primary-600 text-primary-600 rounded-md text-xs hover:bg-primary-600 hover:text-white transition duration-300"
+            class="d-none quick-bulk-action vr-toolbar-btn vr-toolbar-btn--outline"
             id="unselect_{{ view_id }}"
             onclick="clearSelection('{{ selected_instances_key_id }}');
         selectSelected('#{{ root_view_id|default:view_id|safe }}','{{ selected_instances_key_id }}');
@@ -37,7 +37,7 @@
                 data-total-count="{{ queryset.paginator.count }}"
                 data-select-ids="{{ select_all_ids }}"
                 data-store-key="{{ selected_instances_key_id }}"
-                class="quick-bulk-action px-4 py-2 bg-transparent border border-primary-600 text-primary-600 rounded-md text-xs hover:bg-primary-600 hover:text-white transition duration-300"
+                class="quick-bulk-action vr-toolbar-btn vr-toolbar-btn--outline"
                 onclick="hlvSelectAllRecords(this, '#{{ root_view_id|default:view_id|safe }}', '{{ selected_instances_key_id }}')"
             >
                 <span class="label">{% trans 'Select' %}</span>
@@ -50,7 +50,7 @@
                 data-total-count="{{ queryset.paginator.count }}"
                 data-select-ids="{{ select_all_ids|default:'[]' }}"
                 data-store-key="{{ selected_instances_key_id }}"
-                class="quick-bulk-action px-4 py-2 bg-transparent border border-primary-600 text-primary-600 rounded-md text-xs hover:bg-primary-600 hover:text-white transition duration-300"
+                class="quick-bulk-action vr-toolbar-btn vr-toolbar-btn--outline"
                 onclick="hlvSelectAllRecords(this, '#{{ root_view_id|default:view_id|safe }}', '{{ selected_instances_key_id }}')"
             >
                 <span class="label">{% trans 'Select' %}</span>
@@ -72,7 +72,7 @@
         {% if bulk_path and bulk_update %}
             <button
                 id="bulk_udate_{{ view_id }}"
-                class="d-none quick-bulk-action px-4 py-2 bg-transparent border border-success text-success rounded-md text-xs hover:bg-success hover:text-white transition duration-300"
+                class="d-none quick-bulk-action vr-toolbar-btn vr-toolbar-btn--outline-success"
                 data-toggle="oh-modal-toggle"
                 data-target="#bulkUpdateModal{{ view_id|safe }}"
                 onclick="ids = $('#{{ selected_instances_key_id }}').attr('data-ids')
@@ -128,7 +128,7 @@
                 <div class="relative flex-shrink-0" x-data="{ open: false }">
                     <button
                         @click="open = !open"
-                        class="px-4 py-2 bg-white border border-primary-500 hover:border-primary-600 rounded-md text-xs flex gap-1 items-center whitespace-nowrap transition duration-300"
+                        class="vr-toolbar-btn vr-toolbar-btn--white flex gap-1 items-center"
                     >
                         <ion-icon name="funnel-outline"></ion-icon>
                         {% blocktrans with counter=stored_filters|length %}Filter ({{ counter }}){% endblocktrans %}
@@ -137,7 +137,7 @@
                     <div
                         x-show="open"
                         @click.outside="open = false"
-                        class="absolute right-0 mt-1 z-20 bg-white border border-[#e6e6e6] rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[200px] max-h-64 overflow-y-auto"
+                        class="vr-dropdown-menu absolute right-0 mt-1 z-20 flex flex-col gap-1 max-h-64 overflow-y-auto"
                     >
                         {% for filter in stored_filters %}
                             {% include "generic/_saved_filter_chip.html" with filter=filter %}
@@ -158,7 +158,7 @@
         </div>
     {% endif %}
         {% if queryset.has_previous or queryset.has_next %}
-            <div class="hlv-pagination inline-flex items-center h-8 gap-0.5 bg-white border border-primary-500 rounded-md px-1 flex-shrink-0">
+            <div class="hlv-pagination vr-pagination inline-flex items-center h-8 gap-0.5 bg-white border border-primary-500 rounded-md px-1 flex-shrink-0">
                 <button
                     type="button"
                     class="w-7 h-7 flex items-center justify-center rounded text-xs leading-none transition duration-300 {% if queryset.has_previous %}text-[#666] hover:bg-[#f5f5f5]{% else %}text-[#ccc] cursor-not-allowed{% endif %}"

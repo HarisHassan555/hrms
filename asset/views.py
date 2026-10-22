@@ -654,13 +654,11 @@ def asset_category_view(request):
         None
     """
 
+    context = filter_pagination_asset_category(request)
+    context["dashboard"] = request.GET.get("dashboard")
     if not AssetCategory.objects.exists():
-        return render(request, "category/asset_empty.html")
-    return render(
-        request,
-        "category/asset_category_view.html",
-        {"dashboard": request.GET.get("dashboard")},
-    )
+        return render(request, "category/asset_empty.html", context)
+    return render(request, "category/asset_category_view.html", context)
 
 
 @login_required

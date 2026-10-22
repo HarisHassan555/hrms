@@ -794,6 +794,7 @@ def email_send(request):
     template_attachment_ids = request.POST.getlist("template_attachment_ids")
 
     email_backend = ConfiguredEmailBackend()
+    email_backend.apply_configuration(email_backend.configuration)
     display_email_name = email_backend.dynamic_from_email_with_display_name
 
     if not candidates:
@@ -887,7 +888,7 @@ def email_send(request):
             if company and company.icon and os.path.exists(company.icon.path):
                 image_path = company.icon.path
             else:
-                image_path = finders.find("images/ui/horilla-sticker-round.png")
+                image_path = finders.find("images/ui/dsglogo.png")
 
             if image_path:
                 with open(image_path, "rb") as f:
@@ -1172,6 +1173,13 @@ def user_save(form, onboarding_portal, request, token):
     """
     user = form.save(commit=False)
     user.username = onboarding_portal.candidate_id.email
+    user.email = onboarding_portal.candidate_id.email
+    # Persist the account now. `portal_user` is a process-local dict, so under
+    # gunicorn with several workers the next step (employee_creation) usually
+    # lands on a worker that never saw this user and bounced the candidate back
+    # to step 1. employee_creation already falls back to looking the user up by
+    # username, so saving here makes the hand-off worker-independent.
+    user.save()
     session_key = request.session.session_key
     portal_user[session_key] = user
     onboarding_portal.count = 1
@@ -1258,7 +1266,7 @@ def employee_creation(request, token):
     user_email = getattr(user, "email", None) or candidate.email
     if Employee.objects.filter(email=user_email).exists():
         messages.success(request, _("Employee with email id already exists."))
-        return redirect("login/")
+        return redirect("login")
     employee_qs = (
         Employee.objects.filter(employee_user_id=user)
         if getattr(user, "pk", None)
@@ -1268,7 +1276,7 @@ def employee_creation(request, token):
         employee = employee_qs.first()
         if employee.employee_bank_details:
             messages.success(request, _("Employee already exists.."))
-            return redirect("login/")
+            return redirect("login")
         initial = employee.__dict__
 
     form = EmployeeCreationForm(

@@ -1616,8 +1616,8 @@ class HorillaDetailedView(DetailView):
     title = _("Detailed View")
     template_name = "generic/horilla_detailed_view.html"
     header: dict = {
-        "title": "Horilla",
-        "subtitle": "Horilla Detailed View",
+        "title": "DSG",
+        "subtitle": "Detailed View",
         "avatar": "",
     }
     body: list = []
@@ -2386,6 +2386,9 @@ class HorillaNavView(TemplateView):
     empty_inputs: list = []
     view_types: list = []
     create_attrs: str = """"""
+    create_button_label: str = ""
+    secondary_create_attrs: str = """"""
+    secondary_create_button_label: str = ""
     apply_first_filter = True
     default_group_by: str = ""
     # Opt-in redesign of the Filter dropdown's accordion sections (see horilla_nav.html's .oh-filter-modern styles).
@@ -2528,6 +2531,11 @@ class HorillaNavView(TemplateView):
         # Filled in below once the request-bound filterset exists; which rows are applied depends on this request's GET data.
         context["custom_filter_rows"] = []
         context["create_attrs"] = self.create_attrs
+        context["create_button_label"] = self.create_button_label or _("Create")
+        context["secondary_create_attrs"] = self.secondary_create_attrs
+        context["secondary_create_button_label"] = (
+            self.secondary_create_button_label or _("Create")
+        )
         context["search_in"] = self.search_in
         context["apply_first_filter"] = self.apply_first_filter
         context["default_group_by"] = self.default_group_by

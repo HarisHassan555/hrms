@@ -4015,9 +4015,9 @@ msgstr "Defina os tipos de contratação — Integral, Meio Período, Contrato."
 msgid "Mail Server"
 msgstr "Servidor de email"
 
-msgid "Configure an outgoing mail server so Horilla can send emails."
+msgid "Configure an outgoing mail server so DSG can send emails."
 msgstr ""
-"Configure um servidor de e-mail de saída para o Horilla enviar mensagens."
+"Configure um servidor de e-mail de saída para o DSG enviar mensagens."
 
 msgid "First Employee"
 msgstr "Primeiro funcionário"
@@ -5454,8 +5454,8 @@ msgstr "Salvar senha"
 msgid "Forgot password"
 msgstr "Esqueceu a senha"
 
-msgid "Horilla"
-msgstr "Horilla"
+msgid "DSG"
+msgstr "DSG"
 
 msgid "Assign"
 msgstr "Atribuir"
@@ -7617,8 +7617,8 @@ msgstr "{} não encontrado."
 msgid "%(model__meta_verbose_name)s object does not exist."
 msgstr "%(model__meta_verbose_name)s objeto não existe."
 
-msgid "Test mail from Horilla"
-msgstr "Email de teste da Horilla"
+msgid "Test mail from DSG"
+msgstr "Email de teste da DSG"
 
 msgid "Something went wrong :"
 msgstr "Algo deu errado:"
@@ -11443,7 +11443,7 @@ msgstr "Data desconhecida"
 msgid "Yesterday"
 msgstr "ontem"
 
-msgid "Horilla Bot"
+msgid "DSG Bot"
 msgstr "Horila Bot"
 
 msgid "record created"
@@ -11582,8 +11582,8 @@ msgstr "Configuração de rastreamento de auditoria atualizada."
 msgid "Tracked fields updated for %(model)s."
 msgstr "Campos rastreados atualizados para %(model)s."
 
-msgid "Horilla Auth"
-msgstr "Autenticação Horilla"
+msgid "DSG Auth"
+msgstr "Autenticação DSG"
 
 msgid "Users"
 msgstr "Usuários"
@@ -12173,12 +12173,12 @@ msgstr "Integração com Google Meet"
 msgid "Enable Google meet"
 msgstr "Ative o Google Meet"
 
-msgid "Enable this to integrate Google meet to Horilla."
-msgstr "Ative isso para integrar o Google Meet ao Horilla."
+msgid "Enable this to integrate Google meet to DSG."
+msgstr "Ative isso para integrar o Google Meet ao DSG."
 
-msgid "Schedule and join Google Meet video calls directly from Horilla."
+msgid "Schedule and join Google Meet video calls directly from DSG."
 msgstr ""
-"Agende e participe de videochamadas do Google Meet diretamente do Horilla."
+"Agende e participe de videochamadas do Google Meet diretamente do DSG."
 
 msgid "Google Cloud Credential not found."
 msgstr "Credencial do Google Cloud não encontrada."
@@ -15144,14 +15144,14 @@ msgstr "Nenhuma configuração encontrada"
 msgid "Enable Linkedin"
 msgstr "Habilitar LinkedIn"
 
-msgid "Enable this to integrate linkedin to Horilla."
-msgstr "Ative isso para integrar o LinkedIn ao Horilla."
+msgid "Enable this to integrate linkedin to DSG."
+msgstr "Ative isso para integrar o LinkedIn ao DSG."
 
 msgid ""
-"Post job openings directly to LinkedIn and manage applicants from Horilla."
+"Post job openings directly to LinkedIn and manage applicants from DSG."
 msgstr ""
 "Publique vagas diretamente no LinkedIn e gerencie candidatos a partir do "
-"Horilla."
+"DSG."
 
 msgid "Prefix added to every auto-generated employee badge ID (e.g. PEP0001)."
 msgstr ""
@@ -22324,8 +22324,8 @@ msgid "Error occurred while deleting candidate rejection"
 msgstr "Ocorreu um erro ao excluir a rejeição do candidato"
 
 #, python-format
-msgid "Horilla report ready: %(name)s"
-msgstr "Relatório do Horilla pronto: %(name)s"
+msgid "DSG report ready: %(name)s"
+msgstr "Relatório do DSG pronto: %(name)s"
 
 #, python-format
 msgid ""
@@ -22340,8 +22340,8 @@ msgstr ""
 "Formato: %(fmt)s"
 
 #, python-format
-msgid "Horilla report export failed: %(name)s"
-msgstr "Falha ao exportar o relatório do Horilla: %(name)s"
+msgid "DSG report export failed: %(name)s"
+msgstr "Falha ao exportar o relatório do DSG: %(name)s"
 
 #, python-format
 msgid ""
@@ -22397,8 +22397,8 @@ msgstr "Assinatura atualizada."
 msgid "Comparison"
 msgstr "Comparação"
 
-msgid "Attached is your scheduled Horilla report:"
-msgstr "Em anexo está o seu relatório agendado do Horilla:"
+msgid "Attached is your scheduled DSG report:"
+msgstr "Em anexo está o seu relatório agendado do DSG:"
 
 #, python-format
 msgid "Showing first %(n)s rows."
@@ -24661,12 +24661,12 @@ msgstr "Segredo do aplicativo"
 
 msgid ""
 "Meta app secret, used to verify the X-Hub-Signature-256 header on incoming "
-"webhook calls. Without it Horilla cannot tell a real delivery from a forged "
+"webhook calls. Without it DSG cannot tell a real delivery from a forged "
 "one, so unsigned payloads are rejected. Find it under App Settings > Basic "
 "in the Meta developer console."
 msgstr ""
 "Segredo do aplicativo Meta, usado para verificar o cabeçalho X-Hub-"
-"Signature-256 nas chamadas de webhook recebidas. Sem ele, o Horilla não "
+"Signature-256 nas chamadas de webhook recebidas. Sem ele, o DSG não "
 "consegue distinguir uma entrega real de uma falsificada, portanto payloads "
 "não assinados são rejeitados. Encontre-o em App Settings > Basic no console "
 "de desenvolvedores da Meta."
@@ -24674,8 +24674,8 @@ msgstr ""
 msgid "WhatsApp Integration"
 msgstr "Integração com WhatsApp"
 
-msgid "Enable this to integrate WhatsApp to Horilla."
-msgstr "Ative isso para integrar o WhatsApp ao Horilla."
+msgid "Enable this to integrate WhatsApp to DSG."
+msgstr "Ative isso para integrar o WhatsApp ao DSG."
 
 msgid ""
 "Send HR notifications and updates directly through WhatsApp for better "

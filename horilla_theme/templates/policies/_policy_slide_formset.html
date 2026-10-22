@@ -1,0 +1,13 @@
+{% load i18n %}
+{{ slide_formset.management_form }}
+<div id="policySlideForms" class="flex flex-col gap-3" data-policy-pages>
+    {% for slide_form in slide_formset %}
+        {% include "policies/_policy_page_form.html" with slide_form=slide_form page_index=forloop.counter %}
+    {% endfor %}
+</div>
+
+<template id="policyPageEmptyForm">
+    {% with slide_form=slide_formset.empty_form %}
+        {% include "policies/_policy_page_form.html" with slide_form=slide_form page_index="__prefix__" %}
+    {% endwith %}
+</template>

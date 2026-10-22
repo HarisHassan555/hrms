@@ -138,12 +138,10 @@
                                     </button>
                                 {% endif %}
                                 {% if not candidate.converted_employee_id %}
-                                    <a href="#" class="oh-btn w-100" style="background-color: yellowgreen;color: white;"
+                                    <button type="button" class="oh-btn w-100" style="background-color: yellowgreen;color: white;"
                                         title="{% trans 'Send Portal / Start Onboarding' %}"
-                                        onclick="$('select[name=ids]').val('{{candidate.id}}');" data-target="#addAttachments"
-                                        data-toggle="oh-modal-toggle"
-                                        href="{% url 'email-send' %}?ids={{candidate.id}}"><ion-icon
-                                            name="link-outline"></ion-icon></a>
+                                        data-onboarding-portal-id="{{ candidate.id }}"><ion-icon
+                                            name="link-outline"></ion-icon></button>
                                 {% else %}
                                     <a href="#" class="oh-btn oh-btn--light-bkg w-100"
                                         title="{% trans 'Send Portal / Start onboarding' %}" data-toggle="oh-modal-toggle"

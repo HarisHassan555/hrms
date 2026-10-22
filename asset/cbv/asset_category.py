@@ -2,15 +2,19 @@
 Asset category forms
 """
 
+import json
 from typing import Any
+from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 
+from asset.category_queryset import asset_categories_for_asset_form
 from asset.cbv.asset_batch_no import DynamicCreateBatchNo
 from asset.filters import AssetFilter
 from asset.forms import AssetCategoryForm, AssetForm, AssetReportForm
@@ -27,6 +31,68 @@ from horilla_views.generic.cbv.views import (
     HorillaNavView,
 )
 from horilla_views.views import HorillaDeleteConfirmationView
+
+
+def _assign_category_company_if_missing(category):
+    """Attach the active company so HorillaCompanyManager does not hide new rows."""
+    from horilla.horilla_middlewares import get_selected_company
+
+    company_id = get_selected_company()
+    if not company_id or company_id == "all":
+        return
+    if category.company_id.exists():
+        return
+    category.company_id.add(company_id)
+
+
+def _list_reload_query_string(request) -> str:
+    if not request:
+        return ""
+    hx_url = request.META.get("HTTP_HX_CURRENT_URL") or request.META.get(
+        "HTTP_REFERER", ""
+    )
+    query = urlparse(hx_url).query
+    if query:
+        return query
+    return request.GET.urlencode()
+
+
+def _asset_category_list_reload_script(request=None) -> str:
+    """
+    Refresh the asset category page list after modal saves.
+
+    The themed asset-category-view uses AssetCategoryNav + grouped
+    AssetCategoryListView (asset-category-list). Reloading
+    asset-category-view-search-filter there swaps in the legacy accordion
+    layout instead of the grouped table below the nav.
+    """
+    grouped_list_url = reverse("asset-category-list")
+    legacy_list_url = reverse("asset-category-view-search-filter")
+    main_url = reverse("asset-category-view")
+    query = _list_reload_query_string(request)
+    if query:
+        grouped_list_url = f"{grouped_list_url}?{query}"
+        legacy_list_url = f"{legacy_list_url}?{query}"
+
+    grouped_list_url_json = json.dumps(grouped_list_url)
+    legacy_list_url_json = json.dumps(legacy_list_url)
+    main_url_json = json.dumps(main_url)
+
+    return (
+        "<script>"
+        "$('#genericModal,#objectCreateModal').removeClass('oh-modal--show');"
+        "$('#reloadMessagesButton').click();"
+        "if ($('#assetCategoryList').length) {"
+        f"var groupedListUrl = {grouped_list_url_json};"
+        f"var legacyListUrl = {legacy_list_url_json};"
+        "if ($('#assetCategoryNavBar').length || $('#asset-category-grouped-list').length) {"
+        'htmx.ajax("GET", groupedListUrl, {target: "#assetCategoryList", swap: "innerHTML"});'
+        "} else {"
+        'htmx.ajax("GET", legacyListUrl, {target: "#assetCategoryList", swap: "innerHTML"});'
+        "}"
+        f"}} else {{ window.location.href = {main_url_json}; }}"
+        "</script>"
+    )
 
 
 @method_decorator(login_required, name="dispatch")
@@ -53,11 +119,10 @@ class AssetCategoryFormView(HorillaFormView):
                 message = _("Asset category updated successfully")
             else:
                 message = _("Asset category created successfully")
-            form.save()
+            instance = form.save()
+            _assign_category_company_if_missing(instance)
             messages.success(self.request, _(message))
-            return HttpResponse(
-                "<script>$('#genericModal').removeClass('oh-modal--show');$('.filterButton').click();</script>"
-            )
+            return HttpResponse(_asset_category_list_reload_script(self.request))
         return super().form_valid(form)
 
 
@@ -74,15 +139,34 @@ class AssetFormView(HorillaFormView):
     dynamic_create_fields = [("asset_lot_number_id", DynamicCreateBatchNo)]
     template_name = "cbv/asset/asset_form.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
         asset_category_id = self.kwargs.get("asset_category_id")
-        self.form.fields["asset_category_id"].initial = asset_category_id
-        if self.form.instance.pk:
+        category_field = form.fields.get("asset_category_id")
+        if not category_field:
+            return form
+
+        if form.instance.pk:
             self.form_class.verbose_name = _("Asset Update")
+        elif asset_category_id:
+            category_field.initial = asset_category_id
+            category_field.widget = forms.HiddenInput()
         else:
-            self.form.fields["asset_category_id"].widget = forms.HiddenInput()
-        return context
+            # Assign queryset after any widget change. ModelChoiceField copies
+            # options onto widget.choices in _set_queryset; replacing the
+            # widget afterwards leaves an empty <select> even when the
+            # queryset is populated.
+            category_field.required = True
+            category_field.empty_label = _("---Choose category---")
+            category_field.widget.attrs.update(
+                {
+                    "id": "id_asset_category_id",
+                    "data-placeholder": force_str(_("Select category...")),
+                }
+            )
+            category_field.queryset = asset_categories_for_asset_form()
+        self.form = form
+        return form
 
     def form_valid(self, form: AssetForm) -> HttpResponse:
         if form.is_valid():
@@ -92,9 +176,7 @@ class AssetFormView(HorillaFormView):
                 message = _("Asset created successfully")
             form.save()
             messages.success(self.request, _(message))
-            return HttpResponse(
-                "<script>$('#genericModal').removeClass('oh-modal--show');$('.filterButton').click();</script>"
-            )
+            return HttpResponse(_asset_category_list_reload_script(self.request))
         return super().form_valid(form)
 
 
@@ -128,11 +210,10 @@ class AssetCategoryDuplicateFormView(HorillaFormView):
     def form_valid(self, form: AssetCategoryForm) -> HttpResponse:
         if form.is_valid():
             message = _("Asset category created successfully")
-            form.save()
+            instance = form.save()
+            _assign_category_company_if_missing(instance)
             messages.success(self.request, _(message))
-            return HttpResponse(
-                "<script>$('#genericModal').removeClass('oh-modal--show');$('.filterButton').click();</script>"
-            )
+            return HttpResponse(_asset_category_list_reload_script(self.request))
         return super().form_valid(form)
 
 
@@ -172,9 +253,7 @@ class AssetDuplicateFormView(HorillaFormView):
                 message = _("Asset created successfully")
             form.save()
             messages.success(self.request, _(message))
-            return HttpResponse(
-                "<script>$('#genericModal').removeClass('oh-modal--show');$('.filterButton').click();</script>"
-            )
+            return HttpResponse(_asset_category_list_reload_script(self.request))
         return super().form_valid(form)
 
 
@@ -331,13 +410,30 @@ class AssetCategoryNav(HorillaNavView):
         super().__init__(**kwargs)
         self.search_url = reverse("asset-category-list")
         self.actions = []
-        if self.request.user.has_perm("asset.add_assetcategory"):
-            self.create_attrs = f"""
+        self.create_attrs = ""
+        self.secondary_create_attrs = ""
+        modal_attrs = """
                             data-toggle="oh-modal-toggle"
                             data-target="#genericModal"
-                            hx-get="{reverse('asset-category-creation')}"
                             hx-target="#genericModalBody"
                             """
+        if self.request.user.has_perm("asset.add_asset"):
+            self.create_button_label = _("Create asset")
+            self.create_attrs = f"""
+                            {modal_attrs}
+                            hx-get="{reverse('asset-creation-with-category')}"
+                            """
+        if self.request.user.has_perm("asset.add_assetcategory"):
+            category_create_attrs = f"""
+                            {modal_attrs}
+                            hx-get="{reverse('asset-category-creation')}"
+                            """
+            if self.create_attrs:
+                self.secondary_create_button_label = _("Create category")
+                self.secondary_create_attrs = category_create_attrs
+            else:
+                self.create_button_label = _("Create category")
+                self.create_attrs = category_create_attrs
         if self.request.user.has_perm("asset.add_assetcategory"):
             self.actions.append(
                 {

@@ -75,9 +75,9 @@
                                                     class="oh-dropdown__link asset-create"
                                                     data-toggle="oh-modal-toggle"
                                                     onclick="event.stopPropagation()"
-                                                    data-target="#objectCreateModal"
+                                                    data-target="#genericModal"
                                                     hx-get="{% url 'asset-creation' asset_category_id=asset_category.id %}?{{pg}}"
-                                                    hx-target="#objectCreateModalTarget"
+                                                    hx-target="#genericModalBody"
                                                     data-category-id="{{asset_category.id}}"
                                                 >
                                                     {% trans "Create" %}</a>
@@ -90,9 +90,9 @@
                                                     class="oh-dropdown__link"
                                                     data-toggle="oh-modal-toggle"
                                                     onclick="event.stopPropagation()"
-                                                    data-target="#objectCreateModal"
+                                                    data-target="#genericModal"
                                                     hx-get="{% url 'asset-category-duplicate' obj_id=asset_category.id %}?{{pg}}"
-                                                    hx-target="#objectCreateModalTarget"
+                                                    hx-target="#genericModalBody"
                                                 >{% trans "Duplicate" %}</a>
                                             </li>
                                         {% endif %}
@@ -103,9 +103,9 @@
                                                     class="oh-dropdown__link"
                                                     data-toggle="oh-modal-toggle"
                                                     onclick="event.stopPropagation()"
-                                                    data-target="#objectUpdateModal"
+                                                    data-target="#genericModal"
                                                     hx-get="{% url 'asset-category-update' pk=asset_category.id %}?{{pg}}"
-                                                    hx-target="#objectUpdateModalTarget"
+                                                    hx-target="#genericModalBody"
                                                 >{% trans "Edit" %}</a>
                                             </li>
                                         {% endif %}
@@ -138,6 +138,12 @@
                         id="assetList{{asset_category.id}}">
                     </div>
                     {% endcomment %}
+                </div>
+            {% empty %}
+                <div class="oh-empty py-5">
+                    <p class="oh-empty__subtitle mb-0">
+                        {% trans "No asset categories match your filters." %}
+                    </p>
                 </div>
             {% endfor %}
 

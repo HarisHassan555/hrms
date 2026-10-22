@@ -249,6 +249,11 @@ _HRMS_GROUP_MIGRATE_APPS = {
 # actions: add / view / change / delete / export, or "__all__" for every permission
 # (CRUD + custom Meta permissions such as approve_ / cancel_)
 _DEFAULT_HRMS_GROUPS = {
+    "Boss": {
+        # Tenant owner / full control: every permission in the database.
+        "grant_all_permissions": True,
+        "permission_sync": "replace",
+    },
     "Admin": {
         "apps": "__all__",
         "actions": "__all__",
@@ -299,6 +304,32 @@ _DEFAULT_HRMS_GROUPS = {
         "actions": ("add", "view", "change", "delete"),
         "app_actions": {
             "employee": ("view", "add", "change"),
+        },
+    },
+    # Recruitment hiring managers: run pipelines and drives, not HR backoffice.
+    "Manager": {
+        "permission_sync": "replace",
+        "model_permissions": {
+            "recruitment": {
+                "recruitment": ("add", "view", "change", "export"),
+                "candidate": ("add", "view", "change", "export"),
+                "candidatedocument": ("add", "view", "change"),
+                "candidatedocumentrequest": ("add", "view", "change"),
+                "candidaterating": ("add", "view", "change"),
+                "interviewschedule": ("add", "view", "change", "delete"),
+                "recruitmentsurvey": ("add", "view", "change"),
+                "recruitmentsurveyanswer": ("view",),
+                "rejectedcandidate": ("add", "view", "change"),
+                "stage": ("view", "change"),
+                "stagenote": ("add", "view", "change"),
+                "stagefiles": ("add", "view", "change"),
+                "skillzone": ("add", "view", "change"),
+                "skillzonecandidate": ("add", "view", "change"),
+                "resume": ("view",),
+            },
+            "employee": {
+                "employee": ("view",),
+            },
         },
     },
     "Asset Manager": {
@@ -363,6 +394,46 @@ def _is_app_available(label):
         return False
 
 
+def _permission_codenames_for_model(model_name, actions):
+    """Map standard CRUD/export action names to Django permission codenames."""
+    codenames = []
+    for action in actions:
+        if action in ("add", "view", "change", "delete", "export"):
+            codenames.append(f"{action}_{model_name}")
+    return codenames
+
+
+def _resolve_model_permissions(model_permissions):
+    """
+    Resolve explicit per-model permission rules::
+
+        {"recruitment": {"candidate": ("view", "change"), ...}, ...}
+    """
+    from django.contrib.auth.models import Permission
+    from django.contrib.contenttypes.models import ContentType
+
+    permission_ids = []
+    for app_label, models_map in model_permissions.items():
+        if not _is_app_available(app_label):
+            continue
+        for model_name, actions in models_map.items():
+            content_type = ContentType.objects.filter(
+                app_label=app_label, model=model_name
+            ).first()
+            if not content_type:
+                continue
+            codenames = _permission_codenames_for_model(model_name, tuple(actions))
+            if not codenames:
+                continue
+            permission_ids.extend(
+                Permission.objects.filter(
+                    content_type=content_type,
+                    codename__in=codenames,
+                ).values_list("id", flat=True)
+            )
+    return Permission.objects.filter(id__in=set(permission_ids))
+
+
 def _resolve_group_permissions(config):
     """
     Build a Permission queryset for a default group config from currently
@@ -370,6 +441,10 @@ def _resolve_group_permissions(config):
     """
     from django.contrib.auth.models import Permission
     from django.contrib.contenttypes.models import ContentType
+
+    model_permissions = config.get("model_permissions")
+    if model_permissions:
+        return _resolve_model_permissions(model_permissions)
 
     app_labels = config.get("apps", ())
     if app_labels == "__all__":
@@ -463,12 +538,20 @@ def _sync_default_hrms_groups():
     """
     from django.contrib.auth.models import Group
 
+    from django.contrib.auth.models import Permission
+
     for name, config in _DEFAULT_HRMS_GROUPS.items():
         group, _created = Group.objects.get_or_create(name=name)
-        permissions = _resolve_group_permissions(config)
+        if config.get("grant_all_permissions"):
+            permissions = Permission.objects.all()
+        else:
+            permissions = _resolve_group_permissions(config)
         if permissions.exists():
-            # Additive only — never strip permissions an admin may have customized
-            group.permissions.add(*permissions)
+            if config.get("permission_sync") == "replace":
+                group.permissions.set(permissions)
+            else:
+                # Additive only — never strip permissions an admin may have customized
+                group.permissions.add(*permissions)
 
 
 @receiver(post_migrate)

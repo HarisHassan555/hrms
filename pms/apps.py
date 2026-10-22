@@ -26,6 +26,7 @@ class PmsConfig(AppConfig):
         urlpatterns.append(
             path("pms/", include("pms.urls")),
         )
+        from pms import sidebar  # noqa: F401 — after URLs; registers settings menu
 
         from horilla_views.related_link_registry import register_detail_view
         from pms.models import QuestionTemplate

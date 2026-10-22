@@ -1,0 +1,56 @@
+{% load i18n widget_tweaks %}
+<div class="policy-page-form border border-secondary-200 rounded-lg p-3 bg-white" data-page-form>
+    {% if slide_form.non_field_errors %}
+        <div class="text-danger text-xs mb-2">{{ slide_form.non_field_errors }}</div>
+    {% endif %}
+    {% for hidden in slide_form.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
+    <div class="flex justify-between items-center gap-2 mb-3">
+        <span
+            class="text-xs font-semibold text-[#475569] policy-page-index"
+            data-page-label-prefix="{% trans 'Page' %}"
+        >
+            {% trans "Page" %} {{ page_index }}
+        </span>
+        <div class="flex items-center gap-2">
+            {% if slide_form.DELETE %}
+                <label class="policy-page-remove text-xs text-[#64748B] flex items-center gap-1 cursor-pointer hover:text-danger">
+                    <span class="policy-page-remove-checkbox">{{ slide_form.DELETE }}</span>
+                    <ion-icon name="trash-outline" class="text-base"></ion-icon>
+                    <span class="sr-only">{% trans "Remove page" %}</span>
+                </label>
+            {% endif %}
+        </div>
+    </div>
+    <div class="grid gap-3">
+        <div>
+            <label class="text-xs font-medium text-[#334155] block mb-1">
+                {% trans "Title" %}
+            </label>
+            {{ slide_form.title|add_class:"form-control" }}
+            {{ slide_form.title.errors }}
+        </div>
+        <div>
+            <label class="text-xs font-medium text-[#334155] block mb-1">
+                {% trans "Body" %}
+            </label>
+            {{ slide_form.body }}
+            {{ slide_form.body.errors }}
+        </div>
+        <div>
+            <label class="text-xs font-medium text-[#334155] block mb-1">
+                {% trans "Image" %}
+            </label>
+            {{ slide_form.image|add_class:"form-control" }}
+            {{ slide_form.image.errors }}
+            {% if slide_form.instance.pk and slide_form.instance.image %}
+                <img
+                    src="{{ slide_form.instance.image.url }}"
+                    alt=""
+                    class="mt-2 max-h-24 rounded border border-secondary-200"
+                />
+            {% endif %}
+        </div>
+    </div>
+</div>

@@ -170,8 +170,8 @@ msgstr "Secvența etapelor a fost actualizată"
 msgid "Dashboard"
 msgstr "Tablou de bord"
 
-msgid "Horilla dashboard section"
-msgstr "Secțiune tablou de bord Horilla"
+msgid "DSG dashboard section"
+msgstr "Secțiune tablou de bord DSG"
 
 msgid "Mark Attendance"
 msgstr "Marchează prezența"
@@ -212,8 +212,8 @@ msgstr "Opțiuni de profil și schimbare a parolei"
 msgid "Dashboard Tiles"
 msgstr "Plăci tablou de bord"
 
-msgid "Horilla Dashboard Tiles"
-msgstr "Plăci ale tabloului de bord Horilla"
+msgid "DSG Dashboard Tiles"
+msgstr "Plăci ale tabloului de bord DSG"
 
 msgid "Dashboard Actions"
 msgstr "Acțiuni tablou de bord"

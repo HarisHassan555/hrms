@@ -47,6 +47,7 @@ from recruitment.models import (
     Stage,
     SurveyTemplate,
 )
+from recruitment.application_acknowledgment import send_application_acknowledgment_email
 from recruitment.pipeline_grouper import group_by_queryset
 from recruitment.views.paginator_qry import paginator_qry
 
@@ -604,6 +605,7 @@ def application_form(request):
                 candidate_obj.stage_id = stages.order_by("sequence").first()
             messages.success(request, _("Application saved."))
             candidate_obj.save()  # 945
+            send_application_acknowledgment_email(candidate_obj, request=request)
             request.session["candidate"] = serializers.serialize(
                 "json", [candidate_obj]
             )

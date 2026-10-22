@@ -7,7 +7,7 @@ import logging
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.db.models.query import QuerySet
 
 from horilla.horilla_middlewares import _thread_locals, get_selected_company
@@ -134,6 +134,28 @@ class HorillaCompanyManager(models.Manager):
 
         return None
 
+    def _is_direct_m2m_company_id(self, filter_path: str) -> bool:
+        if filter_path != "company_id":
+            return False
+        try:
+            field = self.model._meta.get_field("company_id")
+        except FieldDoesNotExist:
+            return False
+        return isinstance(field, models.ManyToManyField)
+
+    def _apply_company_scope(self, qs, filter_path: str, scoped_q: Q):
+        """
+        Apply company visibility. FK null means "all companies"; M2M with
+        zero linked companies is treated the same (see AssetCategory).
+        """
+        if self._is_direct_m2m_company_id(filter_path):
+            count_alias = f"_hcm_{self.model._meta.model_name}_co_links"
+            qs = qs.annotate(**{count_alias: Count("company_id", distinct=True)})
+            return qs.filter(scoped_q | Q(**{f"{count_alias}": 0})).distinct()
+        return qs.filter(
+            scoped_q | Q(**{f"{filter_path}__isnull": True})
+        ).distinct()
+
     def get_queryset(self):
         qs = super().get_queryset()
         company = get_selected_company()
@@ -157,10 +179,8 @@ class HorillaCompanyManager(models.Manager):
             if not filter_ids:
                 return qs.none()
             try:
-                return qs.filter(
-                    Q(**{f"{filter_path}__in": list(filter_ids)})
-                    | Q(**{f"{filter_path}__isnull": True})
-                ).distinct()
+                scoped_q = Q(**{f"{filter_path}__in": list(filter_ids)})
+                return self._apply_company_scope(qs, filter_path, scoped_q)
             except Exception as e:
                 logger.exception(
                     f"Company filter (all-my-companies) failed for model "
@@ -169,9 +189,8 @@ class HorillaCompanyManager(models.Manager):
                 return qs.none()
 
         try:
-            return qs.filter(
-                Q(**{filter_path: company}) | Q(**{f"{filter_path}__isnull": True})
-            ).distinct()
+            scoped_q = Q(**{filter_path: company})
+            return self._apply_company_scope(qs, filter_path, scoped_q)
         except Exception as e:
             logger.exception(
                 f"Company filter failed for model {self.model.__name__} "

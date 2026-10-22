@@ -20,4 +20,6 @@ class HelpdeskConfig(AppConfig):
         urlpatterns.append(
             path("helpdesk/", include("helpdesk.urls")),
         )
+        from helpdesk import sidebar  # noqa: F401 — after URLs; registers settings menu
+
         super().ready()

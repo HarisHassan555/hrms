@@ -111,8 +111,7 @@ class SanitizeHtmlTests(TestCase):
         Verified against bleach 6.4.0: `color: expression(alert(1))` passes its
         own filter untouched, because `color` is allowed. Restricting the
         property list does not help -- the payload rides on whichever property
-        is permitted -- so _StrictCSSSanitizer drops any value containing a
-        function call. This is the test that catches its removal.
+        is permitted -- so _StrictCSSSanitizer drops url()/expression() values.
         """
         for css in (
             "color:expression(alert(1))",
@@ -124,3 +123,31 @@ class SanitizeHtmlTests(TestCase):
                 self.assertNotIn("expression(", out)
                 self.assertNotIn("javascript:", out)
                 self.assertNotIn("url(", out)
+
+    def test_rgb_and_layout_css_survive(self):
+        out = sanitize_html(
+            '<div style="display:flex;gap:16px;padding:20px;color:rgb(15,23,42)">'
+            "card</div>"
+        )
+        compact = out.replace(" ", "")
+        self.assertIn("display:flex", compact)
+        self.assertIn("gap:16px", compact)
+        self.assertIn("padding:20px", compact)
+        self.assertIn("rgb(15,23,42)", compact)
+
+    def test_style_tag_is_scoped(self):
+        out = sanitize_html(
+            "<style>.card{display:flex;padding:12px}</style><div class='card'>Hi</div>"
+        )
+        self.assertIn("<style>", out)
+        self.assertIn(".oh-richtext .card", out)
+        self.assertIn("display:flex", out.replace(" ", ""))
+        self.assertIn('class="card"', out)
+
+    def test_style_tag_cannot_target_app_chrome(self):
+        out = sanitize_html(
+            "<style>body{display:none}.oh-modal{display:none}</style><p>x</p>"
+        )
+        self.assertIn(".oh-richtext {", out.replace("body", ""))
+        self.assertIn(".oh-richtext .oh-modal", out)
+        self.assertNotRegex(out, r"(?m)^body\s*\{")

@@ -16061,7 +16061,7 @@ msgid "{} not found."
 msgstr ""
 
 #: base/views.py:1586
-msgid "Test mail from Horilla"
+msgid "Test mail from DSG"
 msgstr ""
 
 #: base/views.py:1642
@@ -20874,7 +20874,7 @@ msgid "Why this change?"
 msgstr ""
 
 #: horilla_auth/apps.py:8
-msgid "Horilla Auth"
+msgid "DSG Auth"
 msgstr ""
 
 #: horilla_auth/models.py:12
@@ -21027,7 +21027,7 @@ msgid "Enable Google meet"
 msgstr ""
 
 #: horilla_meet/templates/gmeet_credentials/gmeet_credential_section_view.html:15
-msgid "Enable this to integrate Google meet to Horilla."
+msgid "Enable this to integrate Google meet to DSG."
 msgstr ""
 
 #: horilla_theme/apps.py:14 horilla_theme/templates/settings.html:597
@@ -24328,7 +24328,7 @@ msgid "Enable Linkedin"
 msgstr ""
 
 #: horilla_theme/templates/settings/linkedin/linkedin_setting_section.html:19
-msgid "Enable this to integrate linkedin to Horilla."
+msgid "Enable this to integrate linkedin to DSG."
 msgstr ""
 
 #: horilla_theme/templates/skill_zone/skill_zone_list.html:67
@@ -31651,7 +31651,7 @@ msgid "Enable Whatsapp"
 msgstr ""
 
 #: whatsapp/templates/whatsapp/credentials_view.html:16
-msgid "Enable this to integrate Whatsapp to Horilla."
+msgid "Enable this to integrate Whatsapp to DSG."
 msgstr ""
 
 #: whatsapp/templates/whatsapp/option_buttons.html:9

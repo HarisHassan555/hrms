@@ -107,10 +107,35 @@
   </div>
 </div>
 <script>
-  function onDynamicCreate(value, id) {
+  function openEmployeeDynamicCreate(triggerSelector) {
+    var trigger = document.querySelector(triggerSelector);
+    if (!trigger) return;
+    var modalSelector = trigger.getAttribute("data-target");
+    var modal = modalSelector ? document.querySelector(modalSelector) : null;
+    var targetSelector = trigger.getAttribute("hx-target");
+    var url = trigger.getAttribute("hx-get");
+    if (modal) modal.classList.add("oh-modal--show");
+    if (typeof htmx !== "undefined" && url && targetSelector) {
+      htmx.ajax("GET", url, { target: targetSelector, swap: "innerHTML" });
+    } else {
+      trigger.click();
+    }
+  }
+
+  function onDynamicCreate(value, id, selectEl) {
     if (value === "create") {
-      $(id).click();
+      if (selectEl) {
+        var previous = selectEl.getAttribute("data-dynamic-prev") || "";
+        openEmployeeDynamicCreate(id);
+        selectEl.value = previous;
+        if (window.jQuery) jQuery(selectEl).trigger("change.select2");
+      } else {
+        openEmployeeDynamicCreate(id);
+      }
       return;
+    }
+    if (selectEl) {
+      selectEl.setAttribute("data-dynamic-prev", value || "");
     }
 
     let url, dropdownId, createText, emptyText;

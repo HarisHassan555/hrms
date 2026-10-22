@@ -2,8 +2,11 @@
 helpdesk/sidebar.py
 """
 
+from django.apps import apps
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+
+from horilla.menu import settings_menu
 
 MENU = _("Tickets")
 IMG_SRC = "images/ui/headset-solid.svg"
@@ -43,3 +46,57 @@ def helpdesk_settings_accessibility(request, submenu, user_perms, *args, **kwarg
         or request.user.has_perm("helpdesk.view_tickettype")
         or request.user.has_perm("base.view_tags")
     )
+
+
+def department_manager_settings_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return request.user.has_perm("helpdesk.view_departmentmanager")
+
+
+def ticket_type_settings_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return request.user.has_perm("helpdesk.view_tickettype")
+
+
+def helpdesk_tag_settings_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return request.user.has_perm("base.view_tags")
+
+
+@settings_menu.register
+class HelpdeskSettings:
+    title = _("Helpdesk")
+    order = 12
+    condition = lambda self, request: apps.is_installed("helpdesk")
+    items = [
+        {
+            "label": _("Department Managers"),
+            "url": reverse_lazy("department-manager-view"),
+            "accessibility": department_manager_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Department Managers"),
+                    "description": _("Assign helpdesk managers per department"),
+                },
+            ],
+        },
+        {
+            "label": _("Ticket Types"),
+            "url": reverse_lazy("ticket-type-view"),
+            "accessibility": ticket_type_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Ticket Types"),
+                    "description": _("Categories for helpdesk tickets"),
+                },
+            ],
+        },
+        {
+            "label": _("Helpdesk Tags"),
+            "url": reverse_lazy("helpdesk-tag-view"),
+            "accessibility": helpdesk_tag_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Helpdesk Tags"),
+                    "description": _("Tags used to organise helpdesk tickets"),
+                },
+            ],
+        },
+    ]

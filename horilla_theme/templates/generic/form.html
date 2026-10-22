@@ -7,25 +7,7 @@
 </style>
 
 {% if form.verbose_name %}
-    <div class="oh-modal__dialog-header">
-        <h2 class="text-md font-semibold" id="createTitle">
-            {{ form.verbose_name }}
-        </h2>
-        <button
-            type="button"
-            class="oh-modal__close--custom"
-            onclick="$(this).closest('.oh-modal--show').removeClass('oh-modal--show')"
-            aria-label="{% trans 'Close' %}"
-            {{form.close_button_attrs|safe}}
-        >
-            <ion-icon
-                name="close-outline"
-                role="img"
-                class="md hydrated"
-                aria-label="{% trans 'close outline' %}"
-            ></ion-icon>
-        </button>
-    </div>
+    {% include "vristo/components/modal_header.html" with title=form.verbose_name title_tag="h2" title_id="createTitle" close_attrs=form.close_button_attrs %}
 {% endif %}
 
 <div class="oh-modal__dialog-body oh-modal__dialog-relative">
@@ -52,7 +34,7 @@
     {% endif %}
 
     <div
-        class="oh-general__tab-target oh-profile-section bg-[white] rounded-md border border-dark-50 p-[20px] w-full"
+        class="oh-general__tab-target oh-profile-section vr-form-panel w-full"
         id="{{form.container_id}}"
     >
         <div class="oh-profile-section__card">

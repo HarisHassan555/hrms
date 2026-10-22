@@ -1,0 +1,447 @@
+{% load widget_tweaks %}
+{% load i18n generic_template_filters %}
+
+<div id="{{ view_id }}">
+    {% for field_tuple in dynamic_create_fields %}
+        <div class="oh-modal" id="dynamicModal{{ field_tuple.0 }}" role="dialog"
+            aria-labelledby="dynamicModal{{ field_tuple.0 }}" aria-hidden="true">
+            <div class="oh-modal__dialog" id="dynamicModal{{ field_tuple.0 }}Body"></div>
+        </div>
+    {% endfor %}
+</div>
+<form id="{{ view_id }}Form" hx-post="{{ request.path }}?{{ request.GET.urlencode }}" {% if request.META.HTTP_HX_TARGET %}hx-target="#{{request.META.HTTP_HX_TARGET}}"{% endif %}
+    hx-swap="{% if hx_target == 'this' %}outerHTML{% else %}innerHTML{% endif %}" hx-encoding="multipart/form-data"
+    {% if hx_confirm %} hx-confirm="{{ hx_confirm }}" {% endif %}
+    novalidate>
+    {% csrf_token %}
+
+{% if form.verbose_name %}
+    <div class="oh-modal__dialog-header">
+        <h2 class="oh-modal__dialog-title" id="createTitle">
+            {{ form.verbose_name }}
+        </h2>
+        <button
+            type="button"
+            class="oh-modal__close--custom"
+            onclick="$(this).closest('.oh-modal--show').removeClass('oh-modal--show')"
+            aria-label="{% trans 'Close' %}"
+            {{ form.close_button_attrs|safe }}
+        >
+            <ion-icon name="close-outline" role="img" class="md hydrated" aria-label="{% trans 'close outline' %}"></ion-icon>
+        </button>
+    </div>
+{% endif %}
+
+<div class="oh-modal__dialog-body oh-modal__dialog-relative">
+    <div class="oh-general__tab-target oh-profile-section" id="{{ form.container_id }}">
+        <div class="oh-profile-section__card row">
+            <div class="row" style="padding-right: 0">
+                <div class="col-12" style="padding-right: 0">{{ form.non_field_errors }}</div>
+
+                {% for field in form.visible_fields %}
+                    {% if field.name == "body_format" or field.name == "body" %}
+                    {% else %}
+                        <div
+                            class="col-12 col-md-{{ field|col }}"
+                            id="id_{{ field.name }}_parent_div"
+                            style="padding-right: 0"
+                        >
+                            <div class="oh-label__info" for="{{ field.id_for_label }}">
+                                <label
+                                    class="oh-label {% if field.field.required %} required-star{% endif %}"
+                                    for="{{ field.id_for_label }}"
+                                >{% trans field.label %}</label>
+                                {% if field.help_text != '' %}
+                                    <span class="oh-info mr-2" title="{{ field.help_text }}"></span>
+                                {% endif %}
+                            </div>
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                                <div class="oh-switch" style="width: 30px">
+                                    {{ field|add_class:'oh-switch__checkbox' }}
+                                </div>
+                            {% else %}
+                                <div id="dynamic_field_{{ field.name }}">
+                                    {{ field|add_class:'form-control' }}
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <div class="col-12" id="id_policy_body_section" style="padding-right: 0">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <div class="oh-label__info">
+                            <label class="oh-label required-star">
+                                {% trans "Policy body" %}
+                            </label>
+                            <span
+                                class="oh-info mr-2"
+                                title="{% trans 'Each section is one page. Use + to add more pages; employees see a slideshow when there is more than one page.' %}"
+                            ></span>
+                        </div>
+                        <button
+                            type="button"
+                            id="policyAddPageBtn"
+                            class="oh-btn oh-btn--light oh-btn--sq-sm flex items-center justify-center"
+                            title="{% trans 'Add page' %}"
+                            aria-label="{% trans 'Add page' %}"
+                        >
+                            <ion-icon name="add-outline" class="text-lg"></ion-icon>
+                        </button>
+                    </div>
+                    <p class="text-xs text-[#64748B] mb-3">
+                        {% trans "Add text and optional images per page. Multiple pages are shown as a slideshow when viewing the policy." %}
+                    </p>
+                    {% include "policies/_policy_slide_formset.html" %}
+                    {% if slide_formset.non_form_errors %}
+                        <div class="text-danger text-xs mt-2">{{ slide_formset.non_form_errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% for field in form.hidden_fields %}
+                {{ field }}
+            {% endfor %}
+
+            <div class="d-flex flex-row-reverse">
+                <button
+                    type="submit"
+                    class="oh-btn oh-btn--secondary mt-2 mr-0 pl-4 pr-5 oh-btn--w-100-resp"
+                    {{ form.submit_button_attrs|safe }}
+                >
+                    {% trans 'Save' %}
+                </button>
+                {% if not form.instance.pk %}
+                    <button
+                        type="submit"
+                        name="save_and_add_another"
+                        value="true"
+                        class="oh-btn mt-2 mr-2 pl-4 pr-5 oh-btn--w-100-resp"
+                        style="background-color: var(--btn-add-another, #f97066); color: #ffffff; border: 1px solid var(--btn-add-another, #f97066);"
+                        hx-swap="none"
+                        {{ form.submit_button_attrs|safe }}
+                    >
+                        {% trans 'Save And Add Another' %}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+{% for field_tuple in dynamic_create_fields %}
+    <div>
+        {% with initial_value=form.initial|get_item:field_tuple.0 %}
+        {% if initial_value %}
+        <script class="dynamic_{{ field_tuple.0 }}_scripts">
+            $("#{{ view_id }}Form [name='{{ field_tuple.0|escapejs }}']").val({{ initial_value|safe }}).change()
+        </script>
+        {% endif %}
+        {% endwith %}
+        <form hidden id="modalButton{{ field_tuple.0 }}Form"
+            hx-get="/dynamic-path-{{ field_tuple.0 }}-{{ request.session.session_key }}?dynamic_field={{ field_tuple.0 }}"
+            hx-target="#dynamicModal{{ field_tuple.0 }}Body">
+            <input type="text" name="dynamic_initial" data-dynamic-field="{{ field_tuple.0 }}">
+            <input type="text" name="view_id" value="{{ view_id }}">
+            {% for field in field_tuple.2 %}
+                <input type="text" name="{{ field }}">
+            {% endfor %}
+            <button type="submit" id="modalButton{{ field_tuple.0 }}"
+                onclick="$('#dynamicModal{{ field_tuple.0 }}').addClass('oh-modal--show');">
+                {{ field_tuple.0 }}
+            </button>
+        </form>
+        <form hidden id="reload-field{{ field_tuple.0 }}{{ view_id }}"
+            hx-get="{% url 'reload-field' %}?form_class_path={{ form_class_path }}&dynamic_field={{ field_tuple.0 }}"
+            hx-target="#dynamic_field_{{ field_tuple.0 }}">
+            <input type="text" name="dynamic_initial" data-dynamic-field="{{ field_tuple.0 }}">
+            <input type="text" name="view_id" value="{{ view_id }}">
+            <button class="reload-field" data-target="{{ field_tuple.0 }}">
+                {{ field_tuple.0 }}
+            </button>
+        </form>
+        <script class="dynamic_{{ field_tuple.0 }}_scripts">
+            $("#{{ view_id }}Form [name='{{ field_tuple.0|escapejs }}']").change(function (e) {
+                values = $(this).val();
+                if (!values) { values = "" }
+                if (values == "dynamic_create") {
+                    $("#modalButton{{ field_tuple.0 }}").click()
+                    $(this).val("")
+                } else if (values.includes("dynamic_create")) {
+                    let index = values.indexOf("dynamic_create");
+                    values.splice(index, 1);
+                    $(this).val(values).change();
+                    $("#modalButton{{ field_tuple.0 }}").parent().find('input[name=dynamic_initial]').val(values)
+                    $("#reload-field{{ field_tuple.0 }}{{ view_id }}").find('input[name=dynamic_initial]').val(values)
+                    $("#modalButton{{ field_tuple.0 }}").click()
+                } else if (values) {
+                    $("#modalButton{{ field_tuple.0 }}").parent().find('input[name=dynamic_initial]').val(values)
+                    $("#reload-field{{ field_tuple.0 }}{{ view_id }}").find('input[name=dynamic_initial]').val(values)
+                }
+            });
+            $("#reload-field{{ field_tuple.0 }}{{ view_id }}").submit(function (e) {
+                e.preventDefault();
+                $(this).find("[name=dynamic_initial]").val();
+            });
+        </script>
+    </div>
+{% endfor %}
+
+{% if legacy_policy_body %}
+    {{ legacy_policy_body|json_script:"legacy-policy-body" }}
+{% endif %}
+
+<style>
+    #{{ view_id }}Form .policy-page-remove-checkbox input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 0;
+        height: 0;
+    }
+    #{{ view_id }}Form .policy-page-form.policy-page-deleted {
+        display: none !important;
+    }
+    .oh-modal:has(#{{ view_id }}Form) .oh-modal__dialog,
+    .oh-modal:has(#{{ view_id }}Form) .oh-modal__dialog-body {
+        overflow: visible;
+    }
+    #{{ view_id }}Form .note-editor .note-toolbar .dropdown-menu,
+    #{{ view_id }}Form .note-popover,
+    #{{ view_id }}Form .note-modal {
+        z-index: 1200;
+    }
+</style>
+
+<script>
+    (function () {
+        var form = document.getElementById("{{ view_id }}Form");
+        if (!form) return;
+
+        var pagesRoot = form.querySelector("[data-policy-pages]");
+        var emptyTemplate = document.getElementById("policyPageEmptyForm");
+        var addBtn = document.getElementById("policyAddPageBtn");
+        var totalInput = form.querySelector('input[name$="-TOTAL_FORMS"]');
+        var bodyIdCounter = 0;
+
+        function formsetPrefix() {
+            if (!totalInput || !totalInput.name) return "";
+            return totalInput.name.replace(/-TOTAL_FORMS$/, "");
+        }
+
+        function escapeRegex(value) {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        function cleanupSummernoteModals() {
+            document.querySelectorAll(".note-modal-backdrop").forEach(function (node) {
+                node.remove();
+            });
+            document.querySelectorAll(".note-modal.open").forEach(function (node) {
+                node.classList.remove("open");
+                node.setAttribute("aria-hidden", "true");
+            });
+        }
+
+        function initPolicySummernote(textarea) {
+            if (!window.jQuery || !textarea) return;
+            var $el = jQuery(textarea);
+            if ($el.next(".note-editor").length) return;
+            if (typeof $el.summernote !== "function") return;
+
+            textarea.removeAttribute("required");
+            if (!textarea.id) {
+                bodyIdCounter += 1;
+                textarea.id = "policy-slide-body-" + bodyIdCounter;
+            }
+
+            $el.summernote({
+                height: 200,
+                codeviewFilter: false,
+                codeviewIframeFilter: false,
+                dialogsInBody: true,
+                callbacks: {
+                    onChange: function (contents) {
+                        $el.val(contents);
+                    },
+                },
+            });
+        }
+
+        function initSummernoteIn(root) {
+            if (!root) return;
+            root.querySelectorAll("textarea[data-summernote]").forEach(function (textarea) {
+                initPolicySummernote(textarea);
+            });
+        }
+
+        function destroySummernoteIn(root) {
+            if (!root || !window.jQuery) return;
+            jQuery(root).find("textarea[data-summernote]").each(function () {
+                var $el = jQuery(this);
+                if ($el.next(".note-editor").length) {
+                    $el.summernote("destroy");
+                }
+            });
+            cleanupSummernoteModals();
+        }
+
+        function syncSummernoteToTextareas() {
+            if (!pagesRoot || !window.jQuery) return;
+            jQuery(pagesRoot).find("textarea[data-summernote]").each(function () {
+                var $el = jQuery(this);
+                if ($el.next(".note-editor").length) {
+                    $el.val($el.summernote("code"));
+                }
+            });
+        }
+
+        function visiblePageRows() {
+            if (!pagesRoot) return [];
+            return Array.prototype.filter.call(
+                pagesRoot.querySelectorAll("[data-page-form]"),
+                function (row) {
+                    return !row.classList.contains("policy-page-deleted");
+                }
+            );
+        }
+
+        function reindexFormsetFields() {
+            if (!pagesRoot || !totalInput) return;
+            var prefix = formsetPrefix();
+            if (!prefix) return;
+            var prefixPattern = new RegExp("^" + escapeRegex(prefix) + "-\\d+-");
+            var idPrefixPattern = new RegExp("^id_" + escapeRegex(prefix) + "-\\d+-");
+            var rows = pagesRoot.querySelectorAll("[data-page-form]");
+            rows.forEach(function (row, index) {
+                row.querySelectorAll("[name]").forEach(function (field) {
+                    field.name = field.name.replace(prefixPattern, prefix + "-" + index + "-");
+                });
+                row.querySelectorAll("[id]").forEach(function (field) {
+                    if (field.id) {
+                        field.id = field.id.replace(idPrefixPattern, "id_" + prefix + "-" + index + "-");
+                    }
+                });
+                row.querySelectorAll("label[for]").forEach(function (label) {
+                    var target = label.getAttribute("for");
+                    if (target) {
+                        label.setAttribute(
+                            "for",
+                            target.replace(idPrefixPattern, "id_" + prefix + "-" + index + "-")
+                        );
+                    }
+                });
+            });
+            totalInput.value = String(rows.length);
+        }
+
+        function renumberPages() {
+            if (!pagesRoot) return;
+            var rows = visiblePageRows();
+            rows.forEach(function (row, index) {
+                var label = row.querySelector(".policy-page-index");
+                if (label) {
+                    var labelPrefix = label.getAttribute("data-page-label-prefix") || "Page";
+                    label.textContent = labelPrefix + " " + (index + 1);
+                }
+                var orderInput = row.querySelector("input[name$='-sort_order']");
+                if (orderInput) {
+                    orderInput.value = String(index);
+                }
+                var remove = row.querySelector(".policy-page-remove");
+                if (remove) {
+                    remove.classList.toggle("hidden", rows.length <= 1);
+                }
+            });
+        }
+
+        function removePageRow(row) {
+            if (!row) return;
+            var idInput = row.querySelector('input[name$="-id"]');
+            var isPersisted = idInput && idInput.value;
+
+            destroySummernoteIn(row);
+
+            if (isPersisted) {
+                var deleteInput = row.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                }
+                row.classList.add("policy-page-deleted");
+            } else {
+                row.remove();
+                reindexFormsetFields();
+            }
+            renumberPages();
+        }
+
+        function addPage() {
+            if (!pagesRoot || !emptyTemplate || !totalInput) return;
+            var index = parseInt(totalInput.value, 10) || 0;
+            var html = emptyTemplate.innerHTML.replace(/__prefix__/g, String(index));
+            var wrapper = document.createElement("div");
+            wrapper.innerHTML = html.trim();
+            var row = wrapper.firstElementChild;
+            if (!row) return;
+            pagesRoot.appendChild(row);
+            totalInput.value = String(index + 1);
+            initSummernoteIn(row);
+            renumberPages();
+        }
+
+        if (addBtn) {
+            addBtn.addEventListener("click", addPage);
+        }
+
+        if (pagesRoot) {
+            pagesRoot.addEventListener("change", function (event) {
+                if (
+                    !event.target ||
+                    !event.target.name ||
+                    event.target.name.indexOf("-DELETE") === -1
+                ) {
+                    return;
+                }
+                var row = event.target.closest("[data-page-form]");
+                if (!row) return;
+
+                if (!event.target.checked) {
+                    row.classList.remove("policy-page-deleted");
+                    initSummernoteIn(row);
+                    renumberPages();
+                    return;
+                }
+
+                if (visiblePageRows().length <= 1) {
+                    event.target.checked = false;
+                    return;
+                }
+
+                removePageRow(row);
+            });
+        }
+
+        form.addEventListener("htmx:configRequest", syncSummernoteToTextareas);
+        form.addEventListener("submit", syncSummernoteToTextareas);
+
+        var legacyNode = document.getElementById("legacy-policy-body");
+        if (legacyNode && pagesRoot) {
+            var legacyHtml = JSON.parse(legacyNode.textContent);
+            var firstBody = pagesRoot.querySelector("textarea[name$='-body']");
+            if (firstBody && !firstBody.value) {
+                firstBody.value = legacyHtml;
+            }
+        }
+
+        initSummernoteIn(pagesRoot);
+        if (legacyNode && pagesRoot && window.jQuery) {
+            var firstBody = pagesRoot.querySelector("textarea[name$='-body']");
+            if (firstBody && jQuery(firstBody).next(".note-editor").length) {
+                jQuery(firstBody).summernote("code", JSON.parse(legacyNode.textContent));
+            }
+        }
+        renumberPages();
+    })();
+</script>

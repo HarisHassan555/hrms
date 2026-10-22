@@ -1,10 +1,9 @@
-﻿{% extends "index.html" %}
+{% extends "index.html" %}
 {% load static i18n %}
 
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
-
 
     <div class="md-dashboard">
         <!-- Header -->
@@ -596,7 +595,7 @@
                 recruitment: {% if perms.recruitment.view_recruitment or request.user.is_superuser %}true{% else %}false{% endif %},
             };
 
-            const emptyHtml = (msg) => `<div class="md-empty"><img src="/static/images/ui/no_records.svg" alt="">${msg}</div>`;
+            const emptyHtml = (msg) => `<div class="md-empty"><img src="/static/images/ui/application.png" alt="">${msg}</div>`;
             const hideCard  = id => document.querySelector(`[data-chart-id="${id}"]`)?.classList.add('md-chart-card--hidden');
             const kpiCard   = (href, perm, colorClass, svg, label, value, sub, extra = '') => {
                 const body = `<div class="md-kpi-card__icon ${colorClass}">${svg}</div><div class="md-kpi-card__label">${label}</div><div class="md-kpi-card__value">${value}</div>`;

@@ -14,7 +14,7 @@ from django.apps import apps
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
-from base.platform_admin import is_platform_superuser
+from base.platform_admin import is_platform_superuser, platform_settings_accessibility
 from horilla.menu import settings_menu
 
 # ---------------------------------------------------------------------------
@@ -140,7 +140,8 @@ def company_leaves_settings_accessibility(
 
 
 def color_theme_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.has_perm("horilla_theme.view_horillacolortheme")
+    # Color Theme presets are not applied to the live Vristo chrome.
+    return False
 
 
 def gdrive_accessibility(request, submenu, user_perms, *args, **kwargs):
@@ -330,6 +331,19 @@ class GeneralSettings:
                     "text": _("Tracked Models"),
                     "description": _(
                         "Model paths whose changes are tracked in audit history"
+                    ),
+                },
+            ],
+        },
+        {
+            "label": _("Demo Data Seeder"),
+            "url": reverse_lazy("demo-data-seeder"),
+            "accessibility": platform_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Demo Data Seeder"),
+                    "description": _(
+                        "Load or refresh enterprise demo data by module (platform operators only)"
                     ),
                 },
             ],
@@ -563,7 +577,7 @@ class MailSettings:
 class ThemeManagerSettings:
     title = _("Appearance")
     order = 10
-    condition = lambda self, request: apps.is_installed("horilla_theme")
+    condition = lambda self, request: False
     items = [
         {
             "label": _("Color Theme"),

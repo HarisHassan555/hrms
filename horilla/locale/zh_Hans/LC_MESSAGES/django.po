@@ -5,11 +5,11 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Horilla\n"
+"Project-Id-Version: DSG\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-09-14 15:26+0530\n"
 "PO-Revision-Date: 2026-08-04 09:08+0000\n"
-"Last-Translator: Horilla Localization Team\n"
+"Last-Translator: DSG Localization Team\n"
 "Language-Team: Simplified Chinese\n"
 "Language: zh_Hans\n"
 "MIME-Version: 1.0\n"
@@ -68,7 +68,7 @@ msgid "Default Accessibility"
 msgstr "預設可訪問性"
 
 msgid "Limit default view access to horilla feature"
-msgstr "限制預設檢視存取至 Horilla 功能"
+msgstr "限制預設檢視存取至 DSG 功能"
 
 msgid "Actions"
 msgstr "操作"
@@ -4506,8 +4506,8 @@ msgstr ""
 msgid "Mail Server"
 msgstr "邮件服务器"
 
-msgid "Configure an outgoing mail server so Horilla can send emails."
-msgstr "配置外发邮件服务器，以便 Horilla 可以发送电子邮件。"
+msgid "Configure an outgoing mail server so DSG can send emails."
+msgstr "配置外发邮件服务器，以便 DSG 可以发送电子邮件。"
 
 msgid "First Employee"
 msgstr "首位员工"
@@ -4911,7 +4911,7 @@ msgstr "启用此功能以触发自动签退。"
 msgid ""
 "Time at which the horilla will automatically check out the employee "
 "attendance if they forget."
-msgstr "如果员工忘记签退，Horilla 将在此时间自动签退其考勤。"
+msgstr "如果员工忘记签退，DSG 将在此时间自动签退其考勤。"
 
 msgid "Employee Shift Schedule"
 msgstr "员工轮班安排"
@@ -5952,8 +5952,8 @@ msgid "Forgot password"
 msgstr "忘记密码"
 
 #, fuzzy
-#| msgid "Horilla Bot"
-msgid "Horilla"
+#| msgid "DSG Bot"
+msgid "DSG"
 msgstr "霍里拉机器人"
 
 msgid "Assign"
@@ -6644,7 +6644,7 @@ msgid "About"
 msgstr "关于"
 
 #, fuzzy
-#| msgid "Horilla Bot"
+#| msgid "DSG Bot"
 msgid "DSG HRMS"
 msgstr "霍里拉机器人"
 
@@ -8275,8 +8275,8 @@ msgstr "未找到 {}。"
 msgid "%(model__meta_verbose_name)s object does not exist."
 msgstr "%(model__meta_verbose_name)s 对象不存在。"
 
-msgid "Test mail from Horilla"
-msgstr "来自 Horilla 的测试邮件"
+msgid "Test mail from DSG"
+msgstr "来自 DSG 的测试邮件"
 
 msgid "Something went wrong :"
 msgstr "出现错误："
@@ -12602,7 +12602,7 @@ msgstr "未知"
 msgid "Yesterday"
 msgstr "昨天"
 
-msgid "Horilla Bot"
+msgid "DSG Bot"
 msgstr "霍里拉机器人"
 
 #, fuzzy
@@ -12758,8 +12758,8 @@ msgid "Tracked fields updated for %(model)s."
 msgstr ""
 
 #, fuzzy
-#| msgid "Horilla Bot"
-msgid "Horilla Auth"
+#| msgid "DSG Bot"
+msgid "DSG Auth"
 msgstr "霍里拉机器人"
 
 msgid "Users"
@@ -13397,10 +13397,10 @@ msgstr "银行信息"
 msgid "Enable Google meet"
 msgstr "启用 Google Meet"
 
-msgid "Enable this to integrate Google meet to Horilla."
+msgid "Enable this to integrate Google meet to DSG."
 msgstr ""
 
-msgid "Schedule and join Google Meet video calls directly from Horilla."
+msgid "Schedule and join Google Meet video calls directly from DSG."
 msgstr ""
 
 msgid "Google Cloud Credential not found."
@@ -15168,7 +15168,7 @@ msgid "Main navigation"
 msgstr "电子邮件配置"
 
 #, fuzzy
-#| msgid "Horilla Bot"
+#| msgid "DSG Bot"
 msgid "DSG HRMS version"
 msgstr "霍里拉机器人"
 
@@ -16906,11 +16906,11 @@ msgstr "未找到处罚记录。"
 msgid "Enable Linkedin"
 msgstr "启用人脸识别"
 
-msgid "Enable this to integrate linkedin to Horilla."
+msgid "Enable this to integrate linkedin to DSG."
 msgstr ""
 
 msgid ""
-"Post job openings directly to LinkedIn and manage applicants from Horilla."
+"Post job openings directly to LinkedIn and manage applicants from DSG."
 msgstr ""
 
 msgid "Prefix added to every auto-generated employee badge ID (e.g. PEP0001)."
@@ -24915,7 +24915,7 @@ msgid "Error occurred while deleting candidate rejection"
 msgstr "删除拒绝的候选人时发生错误"
 
 #, python-format
-msgid "Horilla report ready: %(name)s"
+msgid "DSG report ready: %(name)s"
 msgstr ""
 
 #, python-format
@@ -24927,7 +24927,7 @@ msgid ""
 msgstr ""
 
 #, python-format
-msgid "Horilla report export failed: %(name)s"
+msgid "DSG report export failed: %(name)s"
 msgstr ""
 
 #, python-format
@@ -25002,7 +25002,7 @@ msgstr "扣款已更新。"
 msgid "Comparison"
 msgstr "公司"
 
-msgid "Attached is your scheduled Horilla report:"
+msgid "Attached is your scheduled DSG report:"
 msgstr ""
 
 #, python-format
@@ -27778,7 +27778,7 @@ msgid "Download Error File"
 msgstr "下载错误文件"
 
 #, fuzzy
-#| msgid "Horilla Bot"
+#| msgid "DSG Bot"
 msgid "DSG HRMSMS"
 msgstr "霍里拉机器人"
 
@@ -28011,7 +28011,7 @@ msgstr "API密钥"
 
 msgid ""
 "Meta app secret, used to verify the X-Hub-Signature-256 header on incoming "
-"webhook calls. Without it Horilla cannot tell a real delivery from a forged "
+"webhook calls. Without it DSG cannot tell a real delivery from a forged "
 "one, so unsigned payloads are rejected. Find it under App Settings > Basic "
 "in the Meta developer console."
 msgstr ""
@@ -28019,7 +28019,7 @@ msgstr ""
 msgid "WhatsApp Integration"
 msgstr "WhatsApp 集成"
 
-msgid "Enable this to integrate WhatsApp to Horilla."
+msgid "Enable this to integrate WhatsApp to DSG."
 msgstr ""
 
 msgid ""

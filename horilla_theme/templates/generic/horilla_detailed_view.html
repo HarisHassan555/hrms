@@ -1,7 +1,7 @@
 {% load static i18n %}
 {% load generic_template_filters %}
-<div class="modal-box px-5 bg-white w-full max-w-md md:min-w-[700px] rounded-lg shadow-card p-0 transition-all duration-300 opacity-100 scale-100 max-h-[85vh] flex flex-col">
-    <div class="p-5 flex flex-col min-h-0" id="detailViewContainer">
+<div class="modal-box vr-modal-panel px-5 bg-white w-full max-w-[min(900px,calc(100vw-2rem))] rounded-lg shadow-card p-0 transition-all duration-300 opacity-100 scale-100 max-h-[min(85vh,calc(100vh-3rem))] flex flex-col overflow-hidden">
+    <div class="p-5 pb-6 flex flex-col min-h-0 flex-1 overflow-y-auto" id="detailViewContainer">
         <div class="flex justify-between items-center mb-2">
             <h2 class="text-md font-semibold">{{ title }}</h2>
             {% if instance_ids %}
@@ -103,7 +103,7 @@
         {% endfor %} {% endcomment %}
 
         <div class="m-3" id="enlargeattachmentContainer"></div>
-        <div class="flex flex-wrap justify-between gap-2 md:gap-1">
+        <div class="flex flex-wrap justify-between gap-2 md:gap-1 pt-2 pb-1 shrink-0">
             {% if actions or action_method %}
                 <div class="flex gap-1">
                     {% if actions and not action_method %}

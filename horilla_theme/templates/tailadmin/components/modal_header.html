@@ -1,0 +1,23 @@
+{% load i18n %}
+{# TailAdmin modal header — pass title (required), optional close_attrs #}
+<div class="oh-modal__dialog-header ta-modal__header">
+    {% if title_tag == "h2" %}
+        <h2 class="ta-modal__title" id="{{ title_id|default:'tailadminModalTitle' }}">{{ title }}</h2>
+    {% else %}
+        <span class="ta-modal__title" id="{{ title_id|default:'tailadminModalTitle' }}">{{ title }}</span>
+    {% endif %}
+    <button
+        type="button"
+        class="oh-modal__close--custom ta-modal__close"
+        onclick="$(this).closest('.oh-modal--show').removeClass('oh-modal--show')"
+        aria-label="{% trans 'Close' %}"
+        {{ close_attrs|default:''|safe }}
+    >
+        <ion-icon
+            name="close-outline"
+            role="img"
+            class="md hydrated"
+            aria-label="{% trans 'close outline' %}"
+        ></ion-icon>
+    </button>
+</div>

@@ -6,7 +6,7 @@ To set Horilla sidebar for onboarding
 
 from django.apps import apps
 from django.contrib.auth.context_processors import PermWrapper
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 from horilla.menu import settings_menu
@@ -23,11 +23,11 @@ IMG_SRC = "images/ui/recruitment.svg"
 SUBMENUS = [
     {
         "menu": _("Dashboard"),
-        "redirect": reverse("recruitment-dashboard"),
+        "redirect": reverse_lazy("recruitment-dashboard"),
     },
     {
         "menu": _("Recruitment Pipeline"),
-        "redirect": reverse("cbv-pipeline"),
+        "redirect": reverse_lazy("cbv-pipeline"),
         "accessibility": "recruitment.sidebar.pipeline_accessibility",
         # recruitment-pipeline-shell/<rec_id>/ is a sibling URL (not a sub-path
         # of cbv-pipeline/), so it needs an explicit prefix for the sidebar's
@@ -36,7 +36,7 @@ SUBMENUS = [
     },
     {
         "menu": _("Open Recruitments"),
-        "redirect": reverse("open-recruitments"),
+        "redirect": reverse_lazy("open-recruitments"),
         "accessibility": "recruitment.sidebar.recruitment_accessibility",
         # recruitment-details/<id>/ is a sibling URL (not a sub-path of
         # open-recruitments/), so it needs an explicit prefix for the sidebar's
@@ -45,7 +45,7 @@ SUBMENUS = [
     },
     {
         "menu": _("Candidates"),
-        "redirect": reverse("candidate-view"),
+        "redirect": reverse_lazy("candidate-view"),
         "accessibility": "recruitment.sidebar.candidates_accessibility",
         # The candidate edit page (candidate-update/<id>/) is a sibling URL, not a
         # sub-path of candidate-view/, so it needs an explicit prefix here for the
@@ -54,7 +54,7 @@ SUBMENUS = [
     },
     {
         "menu": _("Interviews"),
-        "redirect": reverse("interview-view"),
+        "redirect": reverse_lazy("interview-view"),
         "accessibility": "recruitment.sidebar.interview_accessibility",
         # interview-detail-view/<pk>/ is a sibling URL (not a sub-path of
         # interview-view/), so it needs an explicit prefix for the sidebar's
@@ -63,7 +63,7 @@ SUBMENUS = [
     },
     {
         "menu": _("Job Openings"),
-        "redirect": reverse("recruitment-view"),
+        "redirect": reverse_lazy("recruitment-view"),
         "accessibility": "recruitment.sidebar.recruitment_accessibility",
         # recruitment-detail-view/<pk>/ is a sibling URL (not a sub-path of
         # recruitment-view/), so it needs an explicit prefix for the sidebar's
@@ -72,17 +72,17 @@ SUBMENUS = [
     },
     {
         "menu": _("Recruitment Survey"),
-        "redirect": reverse("recruitment-survey-question-template-view"),
+        "redirect": reverse_lazy("recruitment-survey-question-template-view"),
         "accessibility": "recruitment.sidebar.survey_accessibility",
     },
     {
         "menu": _("Talent Pool"),
-        "redirect": reverse("skill-zone-view"),
+        "redirect": reverse_lazy("skill-zone-view"),
         "accessibility": "recruitment.sidebar.skill_zone_accessibility",
     },
     {
         "menu": _("Configuration"),
-        "redirect": reverse("recruitment-settings-view"),
+        "redirect": reverse_lazy("recruitment-settings-view"),
         "accessibility": "recruitment.sidebar.recruitment_settings_accessibility",
     },
 ]
@@ -147,10 +147,16 @@ def skill_zone_accessibility(
 def recruitment_settings_accessibility(
     request, _submenu: dict = {}, user_perms: PermWrapper = [], *args, **kwargs
 ) -> bool:
-    return (
-        request.user.has_perm("recruitment.view_rejectreason")
-        or request.user.has_perm("recruitment.view_recruitment")
-        or request.user.has_perm("recruitment.view_stage")
+    return any(
+        request.user.has_perm(perm)
+        for perm in (
+            "recruitment.view_rejectreason",
+            "recruitment.view_stage",
+            "recruitment.view_skill",
+            "recruitment.change_recruitmentgeneralsetting",
+            "recruitment.view_surveytemplate",
+            "recruitment.view_linkedinaccount",
+        )
     )
 
 
@@ -164,7 +170,15 @@ def dashboard_accessibility(request, submenu, user_perms, *args, **kwargs):
 
 
 def self_tracking_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.has_perm("recruitment.view_recruitment")
+    return request.user.has_perm("recruitment.change_recruitmentgeneralsetting")
+
+
+def reject_reason_settings_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return request.user.has_perm("recruitment.view_rejectreason")
+
+
+def skills_settings_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return request.user.has_perm("recruitment.add_recruitment")
 
 
 @settings_menu.register
@@ -189,6 +203,34 @@ class RecruitmentSettings:
                     "description": _(
                         "Allow candidates to view their recruitment rating"
                     ),
+                },
+                {
+                    "text": _("Application acknowledgment email"),
+                    "description": _(
+                        "Thank-you email after candidates submit the public application form"
+                    ),
+                },
+            ],
+        },
+        {
+            "label": _("Candidate Rejection Reasons"),
+            "url": reverse_lazy("candidate-reject-reasons"),
+            "accessibility": reject_reason_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Candidate Rejection Reasons"),
+                    "description": _("Standard reasons when rejecting candidates"),
+                },
+            ],
+        },
+        {
+            "label": _("Skills"),
+            "url": reverse_lazy("skills-view"),
+            "accessibility": skills_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Skills"),
+                    "description": _("Skill catalog used in recruitment and job matching"),
                 },
             ],
         },

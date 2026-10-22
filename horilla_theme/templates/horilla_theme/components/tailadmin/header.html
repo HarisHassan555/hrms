@@ -1,0 +1,206 @@
+{% load i18n %}
+{% load static i18n horillafilters notifications_tags %}
+{% load basefilters %}
+{% show_section as show_section %}
+{% get_company as theme_obj %}
+
+<header
+  class="ta-header sticky top-0 z-99999 flex w-full flex-col border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+  role="banner"
+>
+  {# Row 1 — TailAdmin toolbar: menu, search, utilities #}
+  <div class="flex grow flex-col items-center justify-between xl:flex-row xl:px-6">
+    <div
+      class="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 sm:gap-4 lg:py-4 xl:justify-normal xl:border-b-0 xl:px-0 dark:border-gray-800"
+    >
+      <button
+        type="button"
+        id="topbarSidebarToggle"
+        :class="sidebarToggle ? 'xl:bg-transparent dark:xl:bg-transparent bg-gray-100 dark:bg-gray-800' : ''"
+        class="ta-header-icon-btn z-99999 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 xl:h-11 xl:w-11 dark:border-gray-800 dark:text-gray-400"
+        @click.stop="sidebarToggle = !sidebarToggle"
+        aria-controls="sidebar"
+        :aria-expanded="sidebarToggle ? 'true' : 'false'"
+        title="{% trans 'Toggle navigation' %}"
+        aria-label="{% trans 'Toggle navigation' %}"
+      >
+        <svg class="hidden fill-current xl:block" width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M0.583252 1C0.583252 0.585788 0.919038 0.25 1.33325 0.25H14.6666C15.0808 0.25 15.4166 0.585786 15.4166 1C15.4166 1.41421 15.0808 1.75 14.6666 1.75L1.33325 1.75C0.919038 1.75 0.583252 1.41422 0.583252 1ZM0.583252 11C0.583252 10.5858 0.919038 10.25 1.33325 10.25L14.6666 10.25C15.0808 10.25 15.4166 10.5858 15.4166 11C15.4166 11.4142 15.0808 11.75 14.6666 11.75L1.33325 11.75C0.919038 11.75 0.583252 11.4142 0.583252 11ZM1.33325 5.25C0.919038 5.25 0.583252 5.58579 0.583252 6C0.583252 6.41421 0.919038 6.75 1.33325 6.75L7.99992 6.75C8.41413 6.75 8.74992 6.41421 8.74992 6C8.74992 5.58579 8.41413 5.25 7.99992 5.25L1.33325 5.25Z" fill="currentColor"/>
+        </svg>
+        <svg :class="sidebarToggle ? 'hidden' : 'block xl:hidden'" class="fill-current xl:hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 6C3.25 5.58579 3.58579 5.25 4 5.25L20 5.25C20.4142 5.25 20.75 5.58579 20.75 6C20.75 6.41421 20.4142 6.75 20 6.75L4 6.75C3.58579 6.75 3.25 6.41422 3.25 6ZM3.25 18C3.25 17.5858 3.58579 17.25 4 17.25L20 17.25C20.4142 17.25 20.75 17.5858 20.75 18C20.75 18.4142 20.4142 18.75 20 18.75L4 18.75C3.58579 18.75 3.25 18.4142 3.25 18ZM4 11.25C3.58579 11.25 3.25 11.5858 3.25 12C3.25 12.4142 3.58579 12.75 4 12.75L12 12.75C12.4142 12.75 12.75 12.4142 12.75 12C12.75 11.5858 12.4142 11.25 12 11.25L4 11.25Z" fill="currentColor"/>
+        </svg>
+        <svg :class="sidebarToggle ? 'block xl:hidden' : 'hidden'" class="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M6.21967 7.28131C5.92678 6.98841 5.92678 6.51354 6.21967 6.22065C6.51256 5.92775 6.98744 5.92775 7.28033 6.22065L11.999 10.9393L16.7176 6.22078C17.0105 5.92789 17.4854 5.92788 17.7782 6.22078C18.0711 6.51367 18.0711 6.98855 17.7782 7.28144L13.0597 12L17.7782 16.7186C18.0711 17.0115 18.0711 17.4863 17.7782 17.7792C17.4854 18.0721 17.0105 18.0721 16.7176 17.7792L11.999 13.0607L7.28033 17.7794C6.98744 18.0722 6.51256 18.0722 6.21967 17.7794C5.92678 17.4865 5.92678 17.0116 6.21967 16.7187L10.9384 12L6.21967 7.28131Z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <div class="hidden min-w-0 flex-1 xl:block xl:max-w-[430px]">
+        <div class="relative">
+          <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+            <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
+          </span>
+          <input
+            type="search"
+            class="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pr-4 pl-11 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30"
+            placeholder="{% trans 'Search modules…' %}"
+            disabled
+            aria-label="{% trans 'Search' %}"
+          />
+        </div>
+      </div>
+
+      <div class="flex min-w-0 flex-1 items-center justify-end gap-2 xl:flex-none xl:gap-3">
+        {% if "attendance"|app_installed %}
+          <div id="attendance-activity-container" class="ta-header-attendance shrink-0">
+            {% include "attendance/components/in_out_component.html" %}
+          </div>
+        {% endif %}
+
+        <button
+          id="themeToggleButton"
+          type="button"
+          class="ta-header-icon-btn ta-header-icon-btn--round hidden sm:inline-flex"
+          aria-label="{% trans 'Toggle theme' %}"
+        >
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-lightbulb hidden dark:inline" aria-hidden="true"></i>
+        </button>
+
+        {% if show_section %}
+          <a
+            href="{% url 'system-preferences-view' %}"
+            hx-get="{% url 'system-preferences-view' %}"
+            hx-headers='{"HX-Sidebar-Nav": "true"}'
+            hx-target="#ohMainContent"
+            hx-select="#ohMainContent > *"
+            hx-swap="innerHTML show:window:top"
+            hx-push-url="true"
+            class="ta-header-icon-btn ta-header-icon-btn--round hidden md:inline-flex"
+            aria-label="{% trans 'Settings' %}"
+          >
+            <i class="fas fa-cog" aria-hidden="true"></i>
+          </a>
+        {% endif %}
+
+        {% if tour_launcher_enabled %}
+          <button
+            id="tourLauncherBtn"
+            type="button"
+            title="{% trans 'Take a tour' %}"
+            onclick="if(window.horillaTour){window.horillaTour.toggle();}"
+            class="ta-header-icon-btn ta-header-icon-btn--round relative hidden md:inline-flex"
+          >
+            <i class="fas fa-circle-question" aria-hidden="true"></i>
+            {% if tour_has_pending %}
+              <span class="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-900"></span>
+            {% endif %}
+          </button>
+        {% endif %}
+
+        <div class="relative dropdown-wrapper">
+          <button
+            type="button"
+            class="ta-header-icon-btn ta-header-icon-btn--round relative"
+            hx-get="{% url 'notifications' %}"
+            hx-target="#notificationContainer"
+            hx-trigger="load"
+            aria-label="{% trans 'Notifications' %}"
+          >
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            {% notifications_unread as unread_count %}
+            <span
+              id="notifyBadgeCircle"
+              class="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white{% if not unread_count %} hidden{% endif %}"
+              style="background-color: #465fff"
+            >
+              {% live_notify_badge %}
+            </span>
+          </button>
+          {% include "notification/notification.html" %}
+        </div>
+
+        {% if show_language_switcher %}
+          <div class="relative dropdown-wrapper hidden lg:block">
+            <button type="button" class="ta-header-icon-btn ta-header-icon-btn--round" aria-label="{% trans 'Language' %}">
+              <i class="fas fa-globe" aria-hidden="true"></i>
+            </button>
+            {% include "base/navbar_components/language_settings.html" %}
+          </div>
+        {% endif %}
+
+        {% if show_company_switcher %}
+          <div class="relative dropdown-wrapper hidden lg:block">
+            <button type="button" class="ta-header-icon-btn ta-header-icon-btn--round" aria-label="{% trans 'Company' %}">
+              <i class="fa-solid fa-building" aria-hidden="true"></i>
+            </button>
+            {% include "base/navbar_components/company_selection.html" %}
+          </div>
+        {% endif %}
+
+        <div class="ta-header-profile relative dropdown-wrapper ml-1">
+          {% include "base/navbar_components/profile_section.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Row 2 — breadcrumbs (Horilla), TailAdmin-style strip #}
+  {% if breadcrumbs %}
+    <div
+      id="breadcrumbs-container"
+      class="ta-header-breadcrumb-bar border-t border-gray-100 bg-gray-50 px-4 py-2.5 xl:px-6 dark:border-gray-800 dark:bg-gray-900/50"
+    >
+      {% include "base/navbar_components/breadcrumbs_view.html" %}
+    </div>
+  {% endif %}
+</header>
+
+<script>
+  (function () {
+    function syncNotifyBadge() {
+      var circle = document.getElementById("notifyBadgeCircle");
+      if (!circle) return;
+      var badge = circle.querySelector(".live_notify_badge");
+      var count = badge ? parseInt((badge.textContent || "").trim(), 10) : 0;
+      circle.classList.toggle("hidden", !count);
+    }
+    function initNotifyBadgeSync() {
+      var circle = document.getElementById("notifyBadgeCircle");
+      if (!circle) return;
+      syncNotifyBadge();
+      var badge = circle.querySelector(".live_notify_badge");
+      if (badge) {
+        new MutationObserver(syncNotifyBadge).observe(badge, {
+          childList: true,
+          characterData: true,
+          subtree: true,
+        });
+      }
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initNotifyBadgeSync);
+    } else {
+      initNotifyBadgeSync();
+    }
+  })();
+</script>
+
+<div class="sidebarModal overflow-hidden overflow-y-auto" id="sidebarModal3">
+  <div class="mb-4 flex items-center justify-between">
+    <h3 class="flex items-center gap-2 font-semibold">
+      <button class="closebtn closeSidemenu cursor-pointer text-xs" data-sidebar="sidebarModal3" type="button">
+        <i class="fa-solid fa-angle-right"></i>
+      </button>
+      {% trans "All Notifications" %}
+    </h3>
+    <button
+      class="text-xs font-semibold text-brand-500 hover:text-brand-600"
+      hx-post="{% url 'delete-all-notifications' %}"
+      hx-target="#sidebarModalBody"
+    >
+      {% trans "Clear All" %}
+    </button>
+  </div>
+  <div id="sidebarModalBody"></div>
+</div>

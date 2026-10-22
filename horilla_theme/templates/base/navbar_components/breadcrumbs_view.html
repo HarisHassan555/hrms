@@ -1,14 +1,18 @@
 {% load static i18n basefilters %}
-<ul class="breadcrumb ms-4">
-    {% for breadcrumb in breadcrumbs|unique_breadcrumbs %}
-        <li {% if request.path in breadcrumb.url %} class="oh-breadcrumb-current"{% endif %} >
+<nav class="oh-chrome-breadcrumb" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="oh-chrome-breadcrumb__list">
+        {% for breadcrumb in breadcrumbs|unique_breadcrumbs %}
+            <li
+                class="oh-chrome-breadcrumb__item{% if request.path in breadcrumb.url %} oh-chrome-breadcrumb__item--current oh-breadcrumb-current{% endif %}"
+            >
                 {% if breadcrumb.clickable and breadcrumb.found %}
-                    <a href="{{breadcrumb.url}}">{% trans breadcrumb.name %}</a>
+                    <a href="{{ breadcrumb.url }}" class="oh-chrome-breadcrumb__link">{% trans breadcrumb.name %}</a>
                 {% elif not breadcrumb.clickable %}
-                    <span>{% trans breadcrumb.name %}</span>
+                    <span class="oh-chrome-breadcrumb__text">{% trans breadcrumb.name %}</span>
                 {% else %}
-                    <a href="#">{% trans breadcrumb.name %}</a>
+                    <a href="#" class="oh-chrome-breadcrumb__link">{% trans breadcrumb.name %}</a>
                 {% endif %}
-        </li>
-    {% endfor %}
-</ul>
+            </li>
+        {% endfor %}
+    </ol>
+</nav>

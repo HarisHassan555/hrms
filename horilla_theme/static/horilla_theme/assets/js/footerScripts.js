@@ -738,6 +738,36 @@ document.querySelectorAll('.accordion-btn').forEach((btn) => {
     });
 });
 
+function stripVristoHorizontalStickyColumns(root) {
+    if (!document.documentElement.classList.contains("vristo-theme")) {
+        return;
+    }
+    const $scope = root ? $(root) : $(document);
+    $scope
+        .find(".stickyleft, .stickyleft-second, .stickyright")
+        .removeClass("stickyleft stickyleft-second stickyright");
+}
+
+function closeEmptyOpenModals() {
+    document.querySelectorAll(".oh-modal.oh-modal--show").forEach(function (modal) {
+        var dialog =
+            modal.querySelector(
+                ".oh-modal__dialog, [id$='ModalTarget'], [id$='ModalBody']"
+            ) || modal;
+        var hasContent = dialog.querySelector(
+            "form, input, button, img, iframe, table, .oh-modal__dialog-header, .modal-box"
+        );
+        if (!hasContent && !(dialog.textContent || "").trim()) {
+            modal.classList.remove("oh-modal--show");
+        }
+    });
+}
+
+$(function () {
+    stripVristoHorizontalStickyColumns();
+    closeEmptyOpenModals();
+});
+
 $(document).on("htmx:afterSettle", function (event) {
     // $(".dropdown-toggle").on("click", function () {
     //     const dropdownMenu = $(this).next(".dropdown-menu");
@@ -762,23 +792,28 @@ $(document).on("htmx:afterSettle", function (event) {
     const $fixedTable = $scope.find('.fixed-table').addBack('.fixed-table');
     if ($fixedTable.length === 0) return;
 
-    const bulk_select_option = $fixedTable.data('bulk-select-option');
-    if (bulk_select_option) {
-        $scope.find('tr').each(function () {
-            const $cells = $(this).find('th, td');
-            if ($cells.length > 0) {
-                $cells.eq(0).addClass('stickyleft');
-                $cells.eq(1).addClass('stickyleft-second');
-            }
-        });
+    // Vristo layout: scroll the full table width; do not pin first/last columns.
+    if (document.documentElement.classList.contains("vristo-theme")) {
+        stripVristoHorizontalStickyColumns(event.target);
     } else {
-        $scope.find('tr').each(function () {
-            const $cells = $(this).find('th, td');
-            if ($cells.length > 0) {
-                $cells.eq(0).addClass('stickyleft');
-            }
-        });
-    };
+        const bulk_select_option = $fixedTable.data('bulk-select-option');
+        if (bulk_select_option) {
+            $scope.find('tr').each(function () {
+                const $cells = $(this).find('th, td');
+                if ($cells.length > 0) {
+                    $cells.eq(0).addClass('stickyleft');
+                    $cells.eq(1).addClass('stickyleft-second');
+                }
+            });
+        } else {
+            $scope.find('tr').each(function () {
+                const $cells = $(this).find('th, td');
+                if ($cells.length > 0) {
+                    $cells.eq(0).addClass('stickyleft');
+                }
+            });
+        }
+    }
 
     const $toggles = $scope.find(".oh-permission-table--toggle");
     if ($toggles.length > 0) {

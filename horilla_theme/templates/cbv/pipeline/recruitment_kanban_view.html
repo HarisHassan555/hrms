@@ -1,0 +1,194 @@
+{% load i18n static generic_template_filters horillafilters %}
+
+<div id="{{ view_id|safe }}" class="hlv-container recruitment-pipeline-kanban">
+    <div
+        class="oh-modal"
+        id="bulkUpdateModal{{view_id|safe}}"
+        role="dialog"
+        aria-labelledby="bulkUpdateModal{{view_id|safe}}"
+        aria-hidden="true"
+    >
+        <div class="oh-modal__dialog" id="bulkUpdateModalBody{{view_id|safe}}"></div>
+    </div>
+    <script>
+        if (!$(".HTV").length) {
+            reloadMessage(null);
+        }
+    </script>
+    <button
+        class="reload-record"
+        id="{{view_id|safe}}Reload"
+        hidden
+        hx-get="{{request.path}}?{{request.GET.urlencode}}"
+        hx-target="#{{view_id|safe}}"
+        hx-swap="outerHTML"
+        hx-on:click="htmxLoadIndicator(this);"
+    ></button>
+
+    {% if show_filter_tags %}{% include "generic/filter_tags.html" %}{% endif %}
+
+    {% if card_status_indications %}
+        <div class="flex flex-wrap gap-2 items-center justify-end mb-1">
+            {% for indication in card_status_indications %}
+                <button
+                    class="oh-row-status-indication px-3 py-1.5 bg-[white] border border-primary-500 rounded-md text-[10px] flex gap-2 items-center flex-shrink-0 whitespace-nowrap"
+                    {{ indication.2|safe }}
+                >
+                    <span class="h-2.5 w-2.5 rounded-full flex {{ indication.0 }}"></span>{{ indication.1 }}
+                </button>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div
+        id="helperContainer"
+        class="hidden"
+        data-model="{{ model_name }}"
+        data-kanban-url="{{ request.get_full_path }}"
+        data-pre-move-check-url="{{ view.pre_move_check_url }}"
+    >{% csrf_token %}</div>
+
+    <div class="flex gap-2 flex-nowrap overflow-x-auto overflow-y-hidden groupContainer recruitment-pipeline-kanban__board">
+        {% if not grouped_items %}
+            <div class="oh-wrapper" align="center" style="margin-top: 5vh; margin-bottom: 5vh; width: 100%;">
+                <div align="center">
+                    <img src='{% static "images/ui/search.svg" %}' class="oh-404__image" alt="">
+                    <h1 class="oh-404__title">{% blocktrans with label=empty_group_label|default:_("groups") %}No {{ label }} found{% endblocktrans %}</h1>
+                    <p class="oh-404__subtitle">
+                        {% blocktrans with label=empty_group_label|default:_("groups") %}There are no {{ label }} to display.{% endblocktrans %}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+        {% for key, group in grouped_items.items %}
+        <div
+            class="kanban-block recruitment-pipeline-kanban__column relative px-1.5 pt-0 pb-1 bg-[#e9edf0] rounded-lg overflow-hidden w-[252px] flex-shrink-0 flex flex-col oh-kanban__section pipeline_item {% if key in view.folded_groups %}folded{% endif %}"
+            id="kanban{{ key }}"
+            data-group-id="{{ key }}"
+            data-group-instance="{{ group.label }}"
+        >
+            <div class="oh-kanban__section-head flex-shrink-0 z-[9]">
+                <div
+                    class="kanban-head flex items-center justify-between bg-[#e9edf090] backdrop-blur-sm py-0.5 cursor-move column-drag-handle oh-tabs__movable-header"
+                    data-tab-id="{{ tab_id }}"
+                    data-group-id="{{ key }}"
+                    data-group-sequence="{{ group.sequence|default:forloop.counter0 }}"
+                >
+                    <div class="flex gap-1 items-center min-w-0">
+                        <span
+                            class="fold-icon-animation flex-shrink-0"
+                            role="button"
+                            onclick="event.stopPropagation();toggleFold($(this));"
+                        >
+                            <i class="fa-solid fa-angles-left text-[11px]"></i>
+                        </span>
+                        <div class="relative kanban-title min-w-0">
+                            <h5
+                                class="text-center px-1.5 py-0.5 rounded-2xl text-[10px] font-semibold text-white bg-primary-600 flex items-center gap-1 ps-1 truncate m-0"
+                                title="{{ group.label }}"
+                            >
+                                <span
+                                    class="w-4 h-4 bg-white rounded-full text-primary-600 flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                                    data-rec-stage-badge="{{ tab_id }}"
+                                    id="groupCount{{ key }}"
+                                >
+                                    {{ group.page_obj.paginator.count|default:group.page_obj.object_list.count }}
+                                </span>
+                                <span class="truncate">{{ group.label }}</span>
+                            </h5>
+                        </div>
+                    </div>
+                    <div class="flex items-center oh-kanban__button-contaner">
+                        {% if view.group_actions %}
+                            <div class="inline-block dropdown-wrapper" role="button" title="{% trans 'Actions' %}">
+                                <button class="cursor-pointer dropdown-toggle w-[10px]">
+                                    <i class="fa-solid fa-ellipsis-vertical text-black text-[10px]"></i>
+                                </button>
+                                <div class="dropdown-menu absolute right-0 min-w-[100px] bg-white rounded-lg shadow-card py-2 hidden z-50">
+                                    <ul class="text-xs text-dark-600">
+                                        {% for action in view.group_actions %}
+                                            {% if action.accessibility|accessibility:group.instance %}
+                                                <li>
+                                                    <a
+                                                        {{ action.attrs|format:group.instance|safe }}
+                                                        class="block w-full text-left px-3 py-1 text-dark-600 hover:text-primary-600 cursor-pointer"
+                                                    >
+                                                        {{ group.instance|getattribute:action.action|default:action.action }}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div
+                class="oh-kanban__section-body ui-sortable candidate-container flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+                id="kanbanCandidates{{ key }}"
+                data-group-id="{{ key }}"
+            >
+                {% include "cbv/pipeline/recruitment_kanban_items.html" %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script type="text/template" id="sweetAlertTemplate">{{ sweet_alert_message }}</script>
+<script src="{% static 'js/genericKanban.js' %}"></script>
+
+{% if not is_choice_group %}
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            initializeSortable();
+        }, 50);
+    });
+</script>
+{% endif %}
+
+<script>
+	$(document).on("htmx:afterSettle", function (event) {
+		var kanbanRoot = $("#{{ view_id|safe }}");
+		var closeNamespace = "click.dropdown-{{ view_id|safe }}";
+		var kanbanToggles = kanbanRoot.find(".dropdown-toggle");
+
+		kanbanToggles.off("click.dropdown");
+		$(document).off(closeNamespace);
+
+		var kanbanMenus = function () {
+			return kanbanRoot.find(".dropdown-toggle").next(".dropdown-menu");
+		};
+
+		kanbanToggles.on("click.dropdown", function (event) {
+			event.stopPropagation();
+			const dropdownMenu = $(this).next(".dropdown-menu");
+			const isVisible = !dropdownMenu.hasClass("hidden");
+			kanbanMenus().addClass("hidden");
+			if (!isVisible) {
+				dropdownMenu.removeClass("hidden");
+			}
+		});
+
+		$(document).on(closeNamespace, function () {
+			kanbanMenus().addClass("hidden");
+		});
+	});
+
+    var tabId = $("#{{view_id}}").closest(".oh-tabs__content:visible").attr("id");
+    var badge = $(`#badge-${tabId}`);
+    var count = "{{grouped_items.items|length}}";
+    var label = badge.attr("data-badge-label") || "";
+    badge.html(count);
+    badge.attr("title", count + " " + label);
+
+	var toggleFold = (el) => {
+		el.closest(".kanban-block").toggleClass("folded");
+	};
+
+    {% if not view.show_kanban_confirmation %}
+        sessionStorage.setItem("showKanban{{model_name}}Confirmation", "false");
+    {% endif %}
+</script>

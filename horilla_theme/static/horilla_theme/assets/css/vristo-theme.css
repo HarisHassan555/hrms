@@ -1,0 +1,189 @@
+/**
+ * Vristo-inspired personal theme layer (https://html.vristo.sbthemes.com/)
+ * Loaded last in index.html — overrides chrome + legacy Horilla surfaces.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
+
+html.vristo-theme {
+  /* Brand (Vristo default primary) */
+  --vristo-primary: #4361ee;
+  --vristo-primary-dark: #3a4ecc;
+  --vristo-primary-light: #eaf1ff;
+  --vristo-success: #00ab55;
+  --vristo-danger: #e7515a;
+  --vristo-warning: #e2a03f;
+  --vristo-info: #2196f3;
+
+  /* Surfaces */
+  --vristo-body-bg: #ebedf2;
+  --vristo-panel: #ffffff;
+  --vristo-border: #e0e6ed;
+  --vristo-border-light: #f1f2f3;
+  --vristo-text: #3b3f5c;
+  --vristo-text-muted: #888ea8;
+  --vristo-heading: #0e1726;
+
+  /* Layout */
+  --vristo-sidebar-width: 16.25rem;
+  --vristo-radius: 6px;
+  --vristo-radius-lg: 10px;
+  --vristo-shadow: 0 0 40px 0 rgba(94, 92, 154, 0.06);
+  --vristo-shadow-sm: 0 2px 4px rgba(126, 142, 177, 0.12);
+
+  /* Map shared chrome tokens */
+  --chrome-primary: var(--vristo-primary);
+  --chrome-primary-hover: var(--vristo-primary-dark);
+  --chrome-primary-soft: var(--vristo-primary-light);
+  --chrome-surface: var(--vristo-panel);
+  --chrome-page-bg: var(--vristo-body-bg);
+  --chrome-border: var(--vristo-border);
+  --chrome-border-light: var(--vristo-border-light);
+  --chrome-text: var(--vristo-heading);
+  --chrome-text-secondary: var(--vristo-text);
+  --chrome-text-muted: var(--vristo-text-muted);
+  --chrome-header-radius: var(--vristo-radius-lg);
+  --chrome-radius: var(--vristo-radius);
+  --chrome-shadow-header: var(--vristo-shadow-sm);
+  --sidebar-width-expanded: var(--vristo-sidebar-width);
+
+  /* Map Django inline theme utilities */
+  --primary-100: #eaf1ff;
+  --primary-200: #d9e5ff;
+  --primary-300: #c4d7ff;
+  --primary-500: #6b8cff;
+  --primary-600: var(--vristo-primary);
+  --primary-700: var(--vristo-primary-dark);
+  --primary-800: #2f3eb8;
+  --primary-50: #f5f7fb;
+}
+
+html.vristo-theme,
+html.vristo-theme body {
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif !important;
+  color: var(--vristo-text);
+  background-color: var(--vristo-body-bg) !important;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+html.vristo-theme #sidebar,
+html.vristo-theme #sidebarFlyout {
+  --sidebar-surface: var(--vristo-panel);
+  --sidebar-surface-muted: var(--vristo-panel);
+  --sidebar-border: var(--vristo-border);
+  --sidebar-text: var(--vristo-text-muted);
+  --sidebar-text-strong: var(--vristo-heading);
+  --sidebar-hover-bg: #f6f8fa;
+  --sidebar-accent: var(--vristo-primary);
+  --sidebar-accent-dark: var(--vristo-primary-dark);
+  --sidebar-accent-soft: var(--vristo-primary-light);
+  --sidebar-radius: var(--vristo-radius);
+  --sidebar-rail-shadow: var(--vristo-shadow-sm);
+}
+
+html.vristo-theme #sidebar .oh-sidebar__inner {
+  background: var(--vristo-panel);
+}
+
+html.vristo-theme #sidebar .oh-sidebar__company-card {
+  border-color: var(--vristo-border);
+  border-radius: var(--vristo-radius-lg);
+}
+
+html.vristo-theme #sidebar .oh-sidebar__nav-label {
+  color: var(--vristo-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+html.vristo-theme #sidebar nav .sideboxmain.sidebox-current {
+  background-color: var(--vristo-primary-light) !important;
+  color: var(--vristo-primary) !important;
+}
+
+html.vristo-theme #sidebar nav .sideboxmain.sidebox-current::before {
+  background: var(--vristo-primary);
+}
+
+/* ── Header & shell ──────────────────────────────────────────────── */
+html.vristo-theme .oh-app-chrome-header,
+html.vristo-theme #ohMainContent.oh-app-shell__main {
+  border-radius: var(--vristo-radius-lg);
+  box-shadow: var(--vristo-shadow-sm);
+}
+
+html.vristo-theme .oh-chrome-icon-btn--menu {
+  background: var(--vristo-primary-light);
+  color: var(--vristo-primary);
+}
+
+html.vristo-theme .oh-chrome-icon-btn--menu:hover {
+  background: var(--vristo-primary);
+  color: #fff;
+}
+
+/* Component visuals: vristo-components.css (loaded after this file) */
+
+/* ── Dark mode (Vristo-style) ────────────────────────────────────── */
+html.vristo-theme.dark {
+  --vristo-body-bg: #060818;
+  --vristo-panel: #0e1726;
+  --vristo-border: #191e3a;
+  --vristo-border-light: #1b2e4b;
+  --vristo-text: #e0e6ed;
+  --vristo-text-muted: #888ea8;
+  --vristo-heading: #e0e6ed;
+  --chrome-page-bg: var(--vristo-body-bg);
+  --chrome-surface: var(--vristo-panel);
+}
+
+html.vristo-theme.dark .oh-sticky-table__thead,
+html.vristo-theme.dark .oh-sticky-table__th {
+  background: #1b2e4b !important;
+}
+
+/* Compiled tailwind.css uses rgb(var(--color-primary-*)); pin Vristo RGB. */
+html.vristo-theme {
+  --color-primary-50: 245 247 251;
+  --color-primary-100: 234 241 255;
+  --color-primary-200: 217 229 255;
+  --color-primary-300: 196 215 255;
+  --color-primary-400: 168 192 255;
+  --color-primary-500: 107 140 255;
+  --color-primary-600: 67 97 238;
+  --color-primary-700: 58 78 204;
+  --color-primary-800: 47 62 184;
+  --color-primary-900: 30 42 128;
+}
+
+/* Neutralize Color Theme peach/amber fills (Coral #FFF5F1, Amber #fffbeb). */
+html.vristo-theme .bg-primary-50,
+html.vristo-theme .hover\:bg-primary-50:hover {
+  background-color: var(--vristo-body-bg) !important;
+}
+
+html.vristo-theme .bg-primary-100,
+html.vristo-theme .hover\:bg-primary-100:hover {
+  background-color: var(--vristo-primary-light) !important;
+}
+
+html.vristo-theme .bg-primary-200,
+html.vristo-theme .hover\:bg-primary-200:hover,
+html.vristo-theme .group:hover .group-hover\:bg-primary-200 {
+  background-color: #d9e5ff !important;
+}
+
+html.vristo-theme .bg-primary-300 {
+  background-color: #c4d7ff !important;
+}
+
+html.vristo-theme .oh-accordion-header {
+  background-color: var(--vristo-primary-light) !important;
+  color: var(--vristo-primary) !important;
+}
+
+html.vristo-theme .oh-accordion-header:hover,
+html.vristo-theme .oh-tabs__movable-header,
+html.vristo-theme .oh-tabs__movable:hover {
+  background-color: var(--vristo-primary-light) !important;
+}

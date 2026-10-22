@@ -1,0 +1,108 @@
+{% load i18n %}
+{% load basefilters %}
+{% if slides %}
+    <div
+        class="policy-slideshow mt-4 border border-secondary-200 rounded-lg overflow-hidden bg-white"
+        data-policy-slideshow
+    >
+        <div class="policy-slideshow__track relative min-h-[280px]">
+            {% for slide in slides %}
+                <section
+                    class="policy-slideshow__slide {% if not forloop.first %}hidden{% endif %} p-5"
+                    data-slide-index="{{ forloop.counter0 }}"
+                    aria-hidden="{% if forloop.first %}false{% else %}true{% endif %}"
+                >
+                    {% if slide.title %}
+                        <h3 class="text-base font-semibold text-[#0F172A] mb-2">
+                            {{ slide.title }}
+                        </h3>
+                    {% endif %}
+                    {% if slide.body %}
+                        <div class="oh-richtext leading-relaxed mb-3">
+                            {{ slide.body|sanitize_html }}
+                        </div>
+                    {% endif %}
+                    {% if slide.image %}
+                        <img
+                            src="{{ slide.image.url }}"
+                            alt="{{ slide.title|default:policy.title }}"
+                            class="max-w-full rounded-md border border-secondary-200 mx-auto"
+                            loading="lazy"
+                        />
+                    {% endif %}
+                </section>
+            {% endfor %}
+        </div>
+        <div class="flex items-center justify-between gap-3 px-4 py-3 border-t border-secondary-200 bg-[#F8FAFC]">
+            <button
+                type="button"
+                class="oh-btn oh-btn--light oh-btn--sm policy-slideshow__prev"
+                aria-label="{% trans 'Previous slide' %}"
+            >
+                {% trans "Previous" %}
+            </button>
+            <div class="flex items-center gap-2 policy-slideshow__dots" role="tablist" aria-label="{% trans 'Slides' %}">
+                {% for slide in slides %}
+                    <button
+                        type="button"
+                        class="w-2 h-2 rounded-full border-0 p-0 {% if forloop.first %}bg-primary-600{% else %}bg-secondary-300{% endif %}"
+                        data-dot-index="{{ forloop.counter0 }}"
+                        aria-label="{% blocktrans with num=forloop.counter %}Slide {{ num }}{% endblocktrans %}"
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                    ></button>
+                {% endfor %}
+            </div>
+            <span class="text-xs text-[#64748B] policy-slideshow__counter shrink-0">
+                <span class="policy-slideshow__current">1</span> / {{ slides|length }}
+            </span>
+            <button
+                type="button"
+                class="oh-btn oh-btn--secondary oh-btn--sm policy-slideshow__next"
+                aria-label="{% trans 'Next slide' %}"
+            >
+                {% trans "Next" %}
+            </button>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var root = document.currentScript && document.currentScript.previousElementSibling;
+            if (!root || !root.getAttribute || !root.hasAttribute("data-policy-slideshow")) {
+                return;
+            }
+            var slides = root.querySelectorAll(".policy-slideshow__slide");
+            var dots = root.querySelectorAll("[data-dot-index]");
+            var currentEl = root.querySelector(".policy-slideshow__current");
+            var index = 0;
+
+            function show(i) {
+                if (!slides.length) return;
+                index = (i + slides.length) % slides.length;
+                slides.forEach(function (slide, n) {
+                    var active = n === index;
+                    slide.classList.toggle("hidden", !active);
+                    slide.setAttribute("aria-hidden", active ? "false" : "true");
+                });
+                dots.forEach(function (dot, n) {
+                    var active = n === index;
+                    dot.classList.toggle("bg-primary-600", active);
+                    dot.classList.toggle("bg-secondary-300", !active);
+                    dot.setAttribute("aria-selected", active ? "true" : "false");
+                });
+                if (currentEl) currentEl.textContent = String(index + 1);
+            }
+
+            root.querySelector(".policy-slideshow__prev")?.addEventListener("click", function () {
+                show(index - 1);
+            });
+            root.querySelector(".policy-slideshow__next")?.addEventListener("click", function () {
+                show(index + 1);
+            });
+            dots.forEach(function (dot) {
+                dot.addEventListener("click", function () {
+                    show(parseInt(dot.getAttribute("data-dot-index"), 10) || 0);
+                });
+            });
+        })();
+    </script>
+{% endif %}

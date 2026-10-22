@@ -2,10 +2,12 @@
 pms/sidebar.py
 """
 
+from django.apps import apps
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 from base.templatetags.basefilters import is_reportingmanager
+from horilla.menu import settings_menu
 
 MENU = _("Performance")
 IMG_SRC = "images/ui/pms.svg"
@@ -105,3 +107,27 @@ def performance_settings_accessibility(request, submenu, user_perms, *args, **kw
         or request.user.has_perm("pms.view_period")
         or is_reportingmanager(request.user)
     )
+
+
+def bonus_point_settings_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return request.user.has_perm("pms.add_bonuspointsetting")
+
+
+@settings_menu.register
+class PerformanceSettings:
+    title = _("Performance")
+    order = 6
+    condition = lambda self, request: apps.is_installed("pms")
+    items = [
+        {
+            "label": _("Bonus Point Settings"),
+            "url": reverse_lazy("bonus-point-setting"),
+            "accessibility": bonus_point_settings_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Bonus Point Settings"),
+                    "description": _("Configure bonus points for performance rewards"),
+                },
+            ],
+        },
+    ]

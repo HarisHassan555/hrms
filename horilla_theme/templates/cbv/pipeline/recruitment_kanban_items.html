@@ -1,0 +1,103 @@
+{% load static i18n horillafilters recruitmentfilters generic_template_filters %}
+{% get_company as theme_obj %}
+{% for instance in group.page_obj %}
+    <div
+        class="task-card recruitment-pipeline-card"
+        data-instance-id="{{ instance.id }}"
+        data-group="{{ key }}"
+        {{ view.kanban_attrs|format:instance|safe }}
+    >
+        <div class="recruitment-pipeline-card__inner rounded-md bg-white shadow-sm hover:shadow-md transition-shadow mb-1 relative">
+            {% if actions or view.action_method %}
+            <div
+                x-data="{ open: false }"
+                class="absolute right-1.5 top-1.5 dropdown-wrapper z-10"
+                @click.outside="open = false"
+                title="{% trans 'Actions' %}"
+                onclick="event.stopPropagation()"
+            >
+                <button class="cursor-pointer dropdown-toggle w-[10px]" @click="open = !open">
+                    <i class="fa-solid fa-ellipsis-vertical text-black text-[10px]"></i>
+                </button>
+                <div
+                    x-show="open"
+                    x-transition
+                    class="dropdown-menu absolute right-0 bg-white border border-[#E2E8F0] rounded-lg shadow-md py-1 z-50 min-w-[160px]"
+                    style="cursor:pointer;"
+                >
+                    <ul class="text-xs">
+                        {% if view.action_method %}
+                            {{ instance|getattribute:view.action_method|safe }}
+                        {% else %}
+                            {% for action in actions %}
+                                {% if action.accessibility|accessibility:instance %}
+                                    <li>
+                                        <a
+                                            class="block w-full text-left px-3 py-1.5 hover:bg-[#F8FAFC] text-[#334155]"
+                                            {{ action.attrs|format:instance|safe }}
+                                        >{{ instance|getattribute:action.action|default:action.action }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="recruitment-pipeline-card__head flex items-center gap-2 min-w-0 border-b border-[#F1F5F9]">
+                {% if details.image_src %}
+                    <img
+                        src="{{ details.image_src|format:instance|selected_format:request.user.employee_get.employee_work_info.company_id|safe }}"
+                        class="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                        alt=""
+                    />
+                {% endif %}
+                {% if details.title %}
+                <div class="min-w-0 flex-1 pr-4">
+                    <h5 class="text-xs font-semibold text-[#0F172A] truncate m-0" title="{{ details.title|format:instance }}">
+                        {{ details.title|format:instance }}
+                    </h5>
+                    <input name="group_id" hidden />
+                </div>
+                {% endif %}
+            </div>
+
+            {% for key, value in details.items %}
+                {% if key != "image_src" and key != "title" %}
+                <p class="recruitment-pipeline-card__meta text-[11px] text-[#64748B] truncate m-0">
+                    <span class="font-medium">{{ key|title }}:</span>
+                    <span class="text-[#334155] font-medium" title="{{ value|format:instance|selected_format:request.user.employee_get.employee_work_info.company_id|cell_tooltip }}">
+                        {{ value|format:instance|selected_format:request.user.employee_get.employee_work_info.company_id|safe }}
+                    </span>
+                </p>
+                {% endif %}
+            {% endfor %}
+
+            {% if view.custom_card_content_template %}
+                <div class="mt-1">{% include view.custom_card_content_template %}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if forloop.last and group.page_obj.has_next %}
+        <div id="pagination-container-{{ instance.stage_id.id }}">
+            <div
+                class="htmx-sentinel"
+                hx-get="{{ request.path }}?{{ request.GET.urlencode }}&page_{{ key }}={{ group.page_obj.next_page_number }}"
+                hx-trigger="intersect once"
+                hx-swap="outerHTML"
+                hx-target="#pagination-container-{{ instance.stage_id.id }}"
+                hx-select="#kanbanCandidates{{ key }}"
+                hx-indicator=".htmx-indicator"
+                id="load-more-{{ instance.stage_id.id }}"
+            >
+                <div class="htmx-indicator">
+                    <div class="flex justify-center items-center p-2">
+                        <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2" style="border-color: {{ theme_obj.primary_600|default:'#4F46E5' }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}

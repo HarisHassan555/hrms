@@ -1,7 +1,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Horilla\n"
+"Project-Id-Version: DSG\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-09-14 15:26+0530\n"
 "PO-Revision-Date: 2026-08-14 12:00+0300\n"
@@ -63,7 +63,7 @@ msgid "Default Accessibility"
 msgstr "Доступність за замовчуванням"
 
 msgid "Limit default view access to horilla feature"
-msgstr "Обмежити доступ до функції Horilla за замовчуванням"
+msgstr "Обмежити доступ до функції DSG за замовчуванням"
 
 msgid "Actions"
 msgstr "Дії"
@@ -4009,8 +4009,8 @@ msgstr "Визначте типи зайнятості — повна, част�
 msgid "Mail Server"
 msgstr "Поштовий сервер"
 
-msgid "Configure an outgoing mail server so Horilla can send emails."
-msgstr "Налаштуйте вихідний поштовий сервер, щоб Horilla міг надсилати листи."
+msgid "Configure an outgoing mail server so DSG can send emails."
+msgstr "Налаштуйте вихідний поштовий сервер, щоб DSG міг надсилати листи."
 
 msgid "First Employee"
 msgstr "Перший працівник"
@@ -4410,7 +4410,7 @@ msgid ""
 "Time at which the horilla will automatically check out the employee "
 "attendance if they forget."
 msgstr ""
-"Час, коли Horilla автоматично зафіксує вихід співробітника, якщо він забуде "
+"Час, коли DSG автоматично зафіксує вихід співробітника, якщо він забуде "
 "це зробити."
 
 msgid "Employee Shift Schedule"
@@ -5438,8 +5438,8 @@ msgstr "Зберегти пароль"
 msgid "Forgot password"
 msgstr "Забули пароль"
 
-msgid "Horilla"
-msgstr "Horilla"
+msgid "DSG"
+msgstr "DSG"
 
 msgid "Assign"
 msgstr "Призначити"
@@ -7588,8 +7588,8 @@ msgstr "{} не знайдено."
 msgid "%(model__meta_verbose_name)s object does not exist."
 msgstr "Об'єкт %(model__meta_verbose_name)s не існує."
 
-msgid "Test mail from Horilla"
-msgstr "Тестовий лист від Horilla"
+msgid "Test mail from DSG"
+msgstr "Тестовий лист від DSG"
 
 msgid "Something went wrong :"
 msgstr "Щось пішло не так:"
@@ -11385,8 +11385,8 @@ msgstr "Невідома дата"
 msgid "Yesterday"
 msgstr "Вчора"
 
-msgid "Horilla Bot"
-msgstr "Horilla Bot"
+msgid "DSG Bot"
+msgstr "DSG Bot"
 
 msgid "record created"
 msgstr "запис створено"
@@ -11523,8 +11523,8 @@ msgstr "Налаштування аудиту оновлено."
 msgid "Tracked fields updated for %(model)s."
 msgstr "Відстежувані поля оновлено для %(model)s."
 
-msgid "Horilla Auth"
-msgstr "Horilla Auth"
+msgid "DSG Auth"
+msgstr "DSG Auth"
 
 msgid "Users"
 msgstr "Користувачі"
@@ -12113,11 +12113,11 @@ msgstr "Інтеграція Google Meet"
 msgid "Enable Google meet"
 msgstr "Увімкніть Google Meet"
 
-msgid "Enable this to integrate Google meet to Horilla."
-msgstr "Увімкніть, щоб інтегрувати Google Meet у Horilla."
+msgid "Enable this to integrate Google meet to DSG."
+msgstr "Увімкніть, щоб інтегрувати Google Meet у DSG."
 
-msgid "Schedule and join Google Meet video calls directly from Horilla."
-msgstr "Плануйте та приєднуйтесь до відеозвінків Google Meet прямо з Horilla."
+msgid "Schedule and join Google Meet video calls directly from DSG."
+msgstr "Плануйте та приєднуйтесь до відеозвінків Google Meet прямо з DSG."
 
 msgid "Google Cloud Credential not found."
 msgstr "Облікові дані Google Cloud не знайдено."
@@ -15065,12 +15065,12 @@ msgstr "Налаштувань не знайдено"
 msgid "Enable Linkedin"
 msgstr "Увімкніть LinkedIn"
 
-msgid "Enable this to integrate linkedin to Horilla."
-msgstr "Увімкніть, щоб інтегрувати LinkedIn у Horilla."
+msgid "Enable this to integrate linkedin to DSG."
+msgstr "Увімкніть, щоб інтегрувати LinkedIn у DSG."
 
 msgid ""
-"Post job openings directly to LinkedIn and manage applicants from Horilla."
-msgstr "Публікуйте вакансії прямо в LinkedIn і керуйте відгуками з Horilla."
+"Post job openings directly to LinkedIn and manage applicants from DSG."
+msgstr "Публікуйте вакансії прямо в LinkedIn і керуйте відгуками з DSG."
 
 msgid "Prefix added to every auto-generated employee badge ID (e.g. PEP0001)."
 msgstr ""
@@ -22192,8 +22192,8 @@ msgid "Error occurred while deleting candidate rejection"
 msgstr "Під час видалення відхилення кандидата сталася помилка"
 
 #, python-format
-msgid "Horilla report ready: %(name)s"
-msgstr "Звіт Horilla готовий: %(name)s"
+msgid "DSG report ready: %(name)s"
+msgstr "Звіт DSG готовий: %(name)s"
 
 #, python-format
 msgid ""
@@ -22208,8 +22208,8 @@ msgstr ""
 "Формат: %(fmt)s"
 
 #, python-format
-msgid "Horilla report export failed: %(name)s"
-msgstr "Не вдалося експортувати звіт Horilla: %(name)s"
+msgid "DSG report export failed: %(name)s"
+msgstr "Не вдалося експортувати звіт DSG: %(name)s"
 
 #, python-format
 msgid ""
@@ -22265,8 +22265,8 @@ msgstr "Підписку оновлено."
 msgid "Comparison"
 msgstr "Порівняння"
 
-msgid "Attached is your scheduled Horilla report:"
-msgstr "У вкладенні — ваш запланований звіт Horilla:"
+msgid "Attached is your scheduled DSG report:"
+msgstr "У вкладенні — ваш запланований звіт DSG:"
 
 #, python-format
 msgid "Showing first %(n)s rows."
@@ -24532,20 +24532,20 @@ msgstr "Секрет застосунку"
 
 msgid ""
 "Meta app secret, used to verify the X-Hub-Signature-256 header on incoming "
-"webhook calls. Without it Horilla cannot tell a real delivery from a forged "
+"webhook calls. Without it DSG cannot tell a real delivery from a forged "
 "one, so unsigned payloads are rejected. Find it under App Settings > Basic "
 "in the Meta developer console."
 msgstr ""
 "Секрет застосунку Meta, який використовується для перевірки заголовка X-Hub-"
-"Signature-256 у вхідних викликах webhook. Без нього Horilla не може "
+"Signature-256 у вхідних викликах webhook. Без нього DSG не може "
 "відрізнити справжню доставку від підробленої, тому непідписані запити "
 "відхиляються. Знайдіть його в App Settings > Basic консолі розробника Meta."
 
 msgid "WhatsApp Integration"
 msgstr "Інтеграція з WhatsApp"
 
-msgid "Enable this to integrate WhatsApp to Horilla."
-msgstr "Увімкніть це, щоб інтегрувати WhatsApp із Horilla."
+msgid "Enable this to integrate WhatsApp to DSG."
+msgstr "Увімкніть це, щоб інтегрувати WhatsApp із DSG."
 
 msgid ""
 "Send HR notifications and updates directly through WhatsApp for better "

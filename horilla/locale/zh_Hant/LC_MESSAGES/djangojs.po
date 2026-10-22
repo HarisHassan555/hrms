@@ -166,8 +166,8 @@ msgstr "階段順序已更新"
 msgid "Dashboard"
 msgstr "儀表板"
 
-msgid "Horilla dashboard section"
-msgstr "Horilla 儀表板區塊"
+msgid "DSG dashboard section"
+msgstr "DSG 儀表板區塊"
 
 msgid "Mark Attendance"
 msgstr "標記出勤"
@@ -208,8 +208,8 @@ msgstr "個人資料與變更密碼選項"
 msgid "Dashboard Tiles"
 msgstr "儀表板區塊"
 
-msgid "Horilla Dashboard Tiles"
-msgstr "Horilla 儀表板區塊"
+msgid "DSG Dashboard Tiles"
+msgstr "DSG 儀表板區塊"
 
 msgid "Dashboard Actions"
 msgstr "儀表板操作"

@@ -19,9 +19,16 @@ from base.models import Company, EmployeeShiftSchedule, IntegrationApps
 from employee.methods.duration_methods import strtime_seconds
 from horilla.horilla_middlewares import _thread_locals
 from horilla.methods import get_horilla_model_class
-from horilla_theme.models import CompanyTheme, HorillaColorTheme
+from horilla_theme.palette import VRISTO_THEME
 
 register = template.Library()
+
+
+@register.filter(name="white_label")
+def white_label(value):
+    from base.branding import white_label_text
+
+    return white_label_text(value)
 
 
 @register.filter(name="is_string")
@@ -444,14 +451,8 @@ def verbose_name(instance, field_name):
 
 
 def _resolve_company_theme(company_id):
-    if company_id is not None and company_id != "all":
-        company = Company.objects.filter(id=company_id).first()
-        theme = CompanyTheme.objects.filter(company=company).first()
-        if theme:
-            return HorillaColorTheme.objects.filter(id=theme.theme.id).first()
-        else:
-            return HorillaColorTheme.objects.filter(is_default=True).first()
-    return HorillaColorTheme.objects.filter(is_default=True).first()
+    """Chrome always uses the Vristo palette, not /theme/color-theme-view/."""
+    return VRISTO_THEME
 
 
 @register.simple_tag(takes_context=True)
@@ -523,31 +524,4 @@ def remove_item_at(obj, idx):
 
 @register.simple_tag(takes_context=True)
 def get_def_theme(context):
-    request = context.get("request")
-    session = getattr(request, "session", None) if request is not None else None
-    company_id = session.get("selected_company") if session is not None else None
-    selected_company_instance = (
-        session.get("selected_company_instance") if session is not None else None
-    )
-    if (
-        (not company_id or company_id == "all")
-        and isinstance(selected_company_instance, dict)
-        and selected_company_instance.get("id")
-    ):
-        company_id = selected_company_instance.get("id")
-
-    if company_id and company_id != "all":
-        company = Company._base_manager.filter(id=company_id).first()
-        if company:
-            return CompanyTheme.get_theme_for_company(company)
-
-    active_company_theme = (
-        CompanyTheme._base_manager.select_related("theme")
-        .exclude(theme__isnull=True)
-        .order_by("-id")
-        .first()
-    )
-    if active_company_theme and active_company_theme.theme:
-        return active_company_theme.theme
-
-    return HorillaColorTheme.get_default_theme()
+    return VRISTO_THEME

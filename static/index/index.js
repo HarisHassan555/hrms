@@ -1500,6 +1500,9 @@ $(document).on("htmx:afterSwap", function () {
     // so a modal reopened more than once was hitting this repeatedly.
     $("[data-summernote]").each(function () {
         var $source = $(this);
+        if ($source.closest("#policyPageEmptyForm, [data-policy-pages]").length > 0) {
+            return;
+        }
         if ($source.next(".note-editor").length > 0) {
             return;
         }

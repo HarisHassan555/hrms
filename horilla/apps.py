@@ -6,7 +6,7 @@ from django.apps import AppConfig
 class HorillaConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "horilla"
-    verbose_name = "Horilla core"
+    verbose_name = "Core"
 
     def ready(self) -> None:
         # Safety net after all models load (class_prepared handles the normal path).

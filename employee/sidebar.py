@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from accessibility.methods import check_is_accessible
 from base.templatetags.basefilters import is_reportingmanager
 from horilla.horilla_middlewares import _thread_locals
+from horilla.menu import settings_menu
 
 request = getattr(_thread_locals, "request", None)
 MENU = _("Employee")
@@ -169,3 +170,103 @@ def employee_type_accessibility(request, submenu, user_perms, *args, **kwargs):
 
 def employee_tag_accessibility(request, submenu, user_perms, *args, **kwargs):
     return request.user.has_perm("employee.view_employeetag")
+
+
+def action_type_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return request.user.has_perm("employee.view_actiontype")
+
+
+@settings_menu.register
+class EmployeeSettings:
+    title = _("Employee")
+    order = 2
+    items = [
+        {
+            "label": _("Work Type"),
+            "url": reverse_lazy("work-type-view"),
+            "accessibility": work_type_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Work Type"),
+                    "description": _("Engagement types such as Full Time or Part Time"),
+                },
+            ],
+        },
+        {
+            "label": _("Rotating Work Type"),
+            "url": reverse_lazy("rotating-work-type-view"),
+            "accessibility": rotating_work_type_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Rotating Work Type"),
+                    "description": _("Cycle employees through work types on a schedule"),
+                },
+            ],
+        },
+        {
+            "label": _("Employee Shift"),
+            "url": reverse_lazy("employee-shift-view"),
+            "accessibility": employee_shift_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Employee Shift"),
+                    "description": _("Named shifts such as Morning or Evening"),
+                },
+            ],
+        },
+        {
+            "label": _("Rotating Shift"),
+            "url": reverse_lazy("rotating-shift-view"),
+            "accessibility": rotating_shift_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Rotating Shift"),
+                    "description": _("Rotate employees across shifts on a schedule"),
+                },
+            ],
+        },
+        {
+            "label": _("Employee Shift Schedule"),
+            "url": reverse_lazy("employee-shift-schedule-view"),
+            "accessibility": shift_schedule_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Employee Shift Schedule"),
+                    "description": _("Day-wise start and end times for each shift"),
+                },
+            ],
+        },
+        {
+            "label": _("Employee Type"),
+            "url": reverse_lazy("employee-type-view"),
+            "accessibility": employee_type_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Employee Type"),
+                    "description": _("Classify employees for policies and reporting"),
+                },
+            ],
+        },
+        {
+            "label": _("Disciplinary Action Type"),
+            "url": reverse_lazy("action-type"),
+            "accessibility": action_type_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Disciplinary Action Type"),
+                    "description": _("Types used in policies and discipline workflows"),
+                },
+            ],
+        },
+        {
+            "label": _("Employee Tags"),
+            "url": reverse_lazy("employee-tag-view"),
+            "accessibility": employee_tag_accessibility,
+            "search_entries": [
+                {
+                    "text": _("Employee Tags"),
+                    "description": _("Tags for grouping and filtering employees"),
+                },
+            ],
+        },
+    ]

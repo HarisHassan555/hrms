@@ -56,11 +56,14 @@
 		<form
 			hx-post="{% url 'email-send' %}?&no_portal=True"
 			hx-target="#reloadMessages"
+			hx-on::after-request="if(event.detail.successful){$('#applyFilter').click();$('#reloadMessagesButton').click();}"
 		>
 			<a
 				class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+				href="#"
 				onclick="
 					event.preventDefault();
+					var el = this;
 					Swal.fire({
 						title: '{% trans "Are you sure?"|escapejs %}',
 						text: `{% trans 'Do you want to add this candidate to onboarding stage?'|escapejs %}`,
@@ -68,9 +71,9 @@
 						showCancelButton: true,
 						confirmButtonText: `{% trans 'Yes'|escapejs %}`,
 						cancelButtonText: `{% trans 'Cancel'|escapejs %}`,
-					}).then((result) => {
+					}).then(function (result) {
 						if (result.isConfirmed) {
-							$(this).closest('form').find('[type=submit]').click();
+							$(el).closest('form').find('[type=submit]').click();
 						}
 					});
 				"
@@ -102,29 +105,17 @@
 		</a>
 	{% endif %}
 
-	{% if instance.onboarding_portal %}
-		<a
-			href="#"
-			class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
-			title="{% trans 'Send Portal / Start Onboarding' %}"
-			onclick="$('select[name=ids]').val('{{instance.id}}');"
-			data-target="#addAttachments"
-			data-toggle="oh-modal-toggle"
-			href="{% url 'email-send' %}?ids={{instance.id}}"
-			><ion-icon name="link-outline"></ion-icon
-		></a>
-	{% else %}
-		<a
-			href="#"
-			class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
-			title="{% trans 'Send Portal / Start onboarding' %}"
-			onclick="$('select[name=ids]').val('{{instance.id}}');"
-			data-target="#addAttachments"
-			data-toggle="oh-modal-toggle"
-			href="{% url 'email-send' %}?ids={{instance.id}}"
-			><ion-icon name="link-outline"></ion-icon
-		></a>
-	{% endif %}
+	<button
+		type="button"
+		class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+		title="{% if instance.onboarding_portal %}{% trans 'Send Portal / Start Onboarding' %}{% else %}{% trans 'Send Portal / Start onboarding' %}{% endif %}"
+		data-onboarding-portal-id="{{ instance.id }}"
+		data-toggle="oh-modal-toggle"
+		data-target="#addAttachments"
+		onclick="if (window.openOnboardingPortalModal) { window.openOnboardingPortalModal('{{ instance.id }}'); }"
+	>
+		<ion-icon name="link-outline"></ion-icon>
+	</button>
 
 	<a
 		class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"

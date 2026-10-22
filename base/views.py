@@ -13,7 +13,6 @@ import os
 import threading
 import uuid
 from datetime import datetime, timedelta
-from email.mime.image import MIMEImage
 from os import path
 from urllib.parse import parse_qs, unquote, urlencode, urlparse
 
@@ -1344,18 +1343,18 @@ class SettingsView(LoginRequiredMixin, RedirectView):
 def _permission_app_label(app_name):
     """
     Human label for permission UI module nav.
-    Uses AppConfig.verbose_name and drops a leading "Horilla" product prefix.
+    Uses AppConfig.verbose_name and replaces leftover Horilla product wording.
     """
-    import re
-
     from django.apps import apps as django_apps
+
+    from base.branding import white_label_text
 
     try:
         label = str(django_apps.get_app_config(app_name).verbose_name)
     except LookupError:
         label = app_name.replace("_", " ")
 
-    label = re.sub(r"(?i)^horilla[\s_\-]*", "", label).strip()
+    label = white_label_text(label).strip()
     label = label.replace("_", " ").strip()
     if not label:
         label = app_name.replace("_", " ")
@@ -2077,9 +2076,8 @@ def mail_server_conf(request):
 @hx_request_required
 @permission_required("base.view_dynamicemailconfiguration")
 def mail_server_test_email(request):
-    instance_id = request.GET.get("instance_id")
+    instance_id = request.GET.get("instance_id") or request.POST.get("instance_id")
     white_labelling = getattr(settings, "WHITE_LABELLING", False)
-    image_path = path.join(settings.STATIC_ROOT, "images/ui/horilla-logo.png")
     company_name = "DSG HRMS"
 
     if white_labelling:
@@ -2095,7 +2093,6 @@ def mail_server_test_email(request):
 
         if company:
             company_name = company.company
-            image_path = path.join(settings.MEDIA_ROOT, company.icon.name)
 
     form = DynamicMailTestForm()
     if request.method == "POST":
@@ -2119,7 +2116,6 @@ def mail_server_test_email(request):
                                 <h3 style="color: #4CAF50;">Email tested successfully</h3>
                                 <b><p style="font-size: 14px;">Hi,<br>
                                     This email is being sent as part of mail sever testing from {company_name}.</p></b>
-                                <img src="cid:unique_image_id" alt="Test Image" style="width: 200px; height: auto; margin: 20px 0;">
                             </td>
                         </tr>
                         <tr>
@@ -2135,11 +2131,15 @@ def mail_server_test_email(request):
             # Plain text content (fallback for email clients that do not support HTML)
             text_content = strip_tags(html_content)
 
-            email_backend = ConfiguredEmailBackend()
             emailconfig = DynamicEmailConfiguration.objects.filter(
                 id=instance_id
             ).first()
-            email_backend.configuration = emailconfig
+            if not emailconfig:
+                emailconfig = DynamicEmailConfiguration.objects.filter(
+                    is_primary=True
+                ).first()
+            email_backend = ConfiguredEmailBackend()
+            email_backend.apply_configuration(emailconfig)
 
             try:
                 msg = EmailMultiAlternatives(
@@ -2150,19 +2150,28 @@ def mail_server_test_email(request):
                     connection=email_backend,
                 )
                 msg.attach_alternative(html_content, "text/html")
-
-                with open(image_path, "rb") as img:
-                    msg_img = MIMEImage(img.read())
-                    msg_img.add_header("Content-ID", "<unique_image_id>")
-                    msg.attach(msg_img)
-
-                msg.send()
+                msg.send(fail_silently=False)
             except Exception as e:
                 messages.error(request, " ".join([_("Something went wrong :"), str(e)]))
-                return HorillaRedirect(request)
+                return render(
+                    request,
+                    "base/mail_server/form_email_test.html",
+                    {
+                        "form": form,
+                        "instance_id": instance_id or getattr(emailconfig, "pk", None),
+                    },
+                )
 
             messages.success(request, _("Mail sent successfully"))
-            return HorillaRedirect(request)
+            return render(
+                request,
+                "base/mail_server/form_email_test.html",
+                {
+                    "form": DynamicMailTestForm(),
+                    "instance_id": getattr(emailconfig, "pk", instance_id),
+                    "send_test_mail_result": _("Mail sent successfully."),
+                },
+            )
     return render(
         request,
         "base/mail_server/form_email_test.html",

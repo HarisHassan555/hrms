@@ -166,7 +166,7 @@ msgstr ""
 msgid "Dashboard"
 msgstr ""
 
-msgid "Horilla dashboard section"
+msgid "DSG dashboard section"
 msgstr ""
 
 msgid "Mark Attendance"
@@ -208,7 +208,7 @@ msgstr ""
 msgid "Dashboard Tiles"
 msgstr ""
 
-msgid "Horilla Dashboard Tiles"
+msgid "DSG Dashboard Tiles"
 msgstr ""
 
 msgid "Dashboard Actions"

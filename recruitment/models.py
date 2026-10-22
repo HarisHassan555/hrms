@@ -217,6 +217,20 @@ class Recruitment(HorillaModel):
     )
     end_date = models.DateField(blank=True, null=True, verbose_name=_("End Date"))
     skills = models.ManyToManyField(Skill, blank=True, verbose_name=_("Skills"))
+    applicant_skill_score_weight = models.PositiveSmallIntegerField(
+        default=50,
+        verbose_name=_("Applicant skill score weight (%)"),
+        help_text=_(
+            "Share of the total score from resume skill matching (with survey weight)."
+        ),
+    )
+    applicant_survey_score_weight = models.PositiveSmallIntegerField(
+        default=50,
+        verbose_name=_("Applicant survey score weight (%)"),
+        help_text=_(
+            "Share of the total score from preferred survey answers (with skill weight)."
+        ),
+    )
     linkedin_account_id = models.ForeignKey(
         "recruitment.LinkedInAccount",
         on_delete=models.PROTECT,
@@ -1532,11 +1546,11 @@ class StageNote(HorillaModel):
     def __str__(self) -> str:
         return f"{self.description}"
 
+    @property
     def updated_user(self):
-        if self.updated_by:
+        if self.updated_by_id:
             return self.updated_by
-        else:
-            return self.candidate_id
+        return self.candidate_id
 
 
 class RecruitmentSurvey(HorillaModel):
@@ -1575,6 +1589,21 @@ class RecruitmentSurvey(HorillaModel):
     )
     options = models.TextField(
         null=True, default="", help_text=_("Separate choices by ',  '"), max_length=255
+    )
+    preferred_answers = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("Preferred answers (scoring)"),
+        help_text=_(
+            "Score applicants against this question. Choices / Yes-No: separate with ',  '. "
+            "Text: keywords with | between them. Number / Rating / %: exact value, range "
+            "(e.g. 3-5), or >= / <= / > / <. Leave blank to ignore in scoring."
+        ),
+    )
+    scoring_weight = models.PositiveSmallIntegerField(
+        default=1,
+        verbose_name=_("Scoring weight"),
+        help_text=_("Relative importance when combining survey questions."),
     )
     objects = HorillaCompanyManager(related_company_field="recruitment_ids__company_id")
 

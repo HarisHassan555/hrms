@@ -3,60 +3,20 @@
 <style>
     #sidebar,
     #sidebarFlyout {
-        --sidebar-accent: {{ theme_obj.primary_600|default:'#E54F38' }};
-        --sidebar-accent-dark: {{ theme_obj.primary_700|default:'#c73f2a' }};
-        --sidebar-accent-soft: {{ theme_obj.primary_100|default:'#FEF6F5' }};
+        --sidebar-accent: {{ theme_obj.primary_600|default:'#4361EE' }};
+        --sidebar-accent-dark: {{ theme_obj.primary_700|default:'#3A4ECC' }};
+        --sidebar-accent-soft: {{ theme_obj.primary_100|default:'#EAF1FF' }};
     }
 </style>
 <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/sidebar-saas.css' %}">
-<div id="sidebar" class="oh-sidebar-saas fixed inset-y-0 left-0 z-50">
+<div id="sidebar" class="oh-sidebar-saas sidebar-pinned fixed inset-y-0 left-0 z-50">
     <div class="oh-sidebar__inner">
-        <!-- Header: pin toggle + company -->
-        <div class="oh-sidebar__header flex items-center gap-3">
-            <button
-                id="sidebarPinBtn"
-                title="{% trans 'Expand sidebar' %}"
-                aria-label="{% trans 'Expand sidebar' %}"
-                data-pin-label="{% trans 'Expand sidebar' %}"
-                data-unpin-label="{% trans 'Collapse sidebar' %}"
-                class="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors duration-150"
-            >
-                <!-- Unlocked padlock: shown when the sidebar is NOT pinned (hover-to-expand mode) -->
-                <svg
-                    class="sidebar-lock-open w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-                    />
-                </svg>
-                <!-- Locked padlock: shown when the sidebar IS pinned (locked open) -->
-                <svg
-                    class="sidebar-lock-closed w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-                    />
-                </svg>
-            </button>
-            <div class="oh-sidebar__company-wrap flex items-center gap-2 min-w-0 flex-1">
+        <div class="oh-sidebar__header">
+            <div class="oh-sidebar__company-wrap oh-sidebar__company-card">
                 {% if request.session.selected_company_instance %}
                     <img
                         src="{{ request.session.selected_company_instance.icon }}"
-                        class="oh-sidebar-label w-7 h-7 rounded-full flex-shrink-0"
+                        class="oh-sidebar__company-logo oh-sidebar-label"
                         title="{{ request.session.selected_company_instance.company }}"
                         alt="{{ request.session.selected_company_instance.company }}"
                     >
@@ -68,9 +28,9 @@
                     </div>
                 {% else %}
                     <img
-                        src="{% if request.user.employee_get.employee_work_info.company_id.icon %}{{ request.user.employee_get.employee_work_info.company_id.icon.url }}{% else %}/static/horilla_theme/assets/img/horilla-logo.png{% endif %}"
+                        src="{% if request.user.employee_get.employee_work_info.company_id.icon %}{{ request.user.employee_get.employee_work_info.company_id.icon.url }}{% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}"
                         alt="{% trans 'Company logo' %}"
-                        class="oh-sidebar-label w-7 h-7 rounded-full flex-shrink-0"
+                        class="oh-sidebar__company-logo oh-sidebar-label"
                     >
                     <div class="oh-sidebar__company-details oh-sidebar-label min-w-0">
                         <span class="oh-sidebar__company-title truncate">{{ request.user.employee_get.employee_work_info.company_id }}</span>
@@ -110,6 +70,7 @@
             role="navigation"
             aria-label="{% trans 'Main navigation' %}"
         >
+            <p class="oh-sidebar__nav-label oh-sidebar-label">{% trans "Navigation" %}</p>
             {% include "horilla_theme/components/sidebar/top_menu.html" %}
             {% for menues in sidebar %}
                 <div class="sidebar-item">
@@ -146,7 +107,7 @@
                                 <a
                                     href="{{ submenu.redirect }}"
                                     {% if submenu.match_prefixes %}data-match-prefixes="{{ submenu.match_prefixes|join:',' }}"{% endif %}
-                                    class="sidebar-subnav-link block text-[13px] text-gray-600 px-3 py-1.5 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150 truncate"
+                                    class="sidebar-subnav-link block truncate"
                                     hx-get="{{ submenu.redirect }}"
                                     hx-target="#ohMainContent"
                                     hx-select="#ohMainContent > *"
@@ -526,12 +487,9 @@
 
         ohAccordionInit();
 
-        // ── Sidebar pin / collapse toggle ────────────────────────────────────
+        // ── Sidebar show / hide (always full width when visible) ─────────────
 
         var sidebarEl = document.getElementById("sidebar");
-
-        var sidebarPinned = true; // default: pinned open
-        try { var _stored = localStorage.getItem("sidebarPinned"); if (_stored !== null) sidebarPinned = _stored === "true"; } catch (_) {}
 
         var sidebarHidden = false;
         try { sidebarHidden = localStorage.getItem("sidebarHidden") === "true"; } catch (_) {}
@@ -542,47 +500,22 @@
           return w || "16rem";
         }
 
-        function applySidebarPin(pinned, animate) {
-          sidebarPinned = pinned;
-          var content = document.querySelector(".oh-main-content");
+        function syncSidebarToggleUi(hidden) {
+          var showLabel = "{% trans 'Show navigation'|escapejs %}";
+          var hideLabel = "{% trans 'Hide navigation'|escapejs %}";
+          var label = hidden ? showLabel : hideLabel;
+          var expanded = hidden ? "false" : "true";
 
-          // Suppress transition on initial load to prevent a margin slide on page open
-          if (!animate && content) content.style.transition = "none";
-
-          sidebarEl.classList.toggle("sidebar-pinned", pinned);
-          /* Content offset: #sidebar.sidebar-pinned ~ .oh-main-content in sidebar-saas.css */
-          if (content) content.style.marginLeft = "";
-
-          // Keep the lock button's tooltip/aria-label in sync with the state.
-          // (The open vs closed padlock icon itself is swapped via CSS on .sidebar-pinned.)
-          var pinBtnEl = document.getElementById("sidebarPinBtn");
-          if (pinBtnEl) {
-            var lockLabel = pinned ? pinBtnEl.dataset.unpinLabel : pinBtnEl.dataset.pinLabel;
-            if (lockLabel) { pinBtnEl.title = lockLabel; pinBtnEl.setAttribute("aria-label", lockLabel); }
-          }
-
-          if (!animate && content) {
-            requestAnimationFrame(function () {
-              requestAnimationFrame(function () { content.style.transition = ""; });
-            });
-          }
-          try { localStorage.setItem("sidebarPinned", pinned ? "true" : "false"); } catch (_) {}
-        }
-
-        function syncTopbarSidebarToggle(hidden) {
           var toggleBtn = document.getElementById("topbarSidebarToggle");
           if (!toggleBtn) return;
-          toggleBtn.setAttribute("aria-expanded", hidden ? "false" : "true");
-          var icon = toggleBtn.querySelector("i");
-          if (icon) {
-            icon.classList.add("fa-bars");
-            icon.classList.remove("fa-xmark");
-          }
-          var showLabel = toggleBtn.dataset.showLabel || "Show navigation";
-          var hideLabel = toggleBtn.dataset.hideLabel || "Hide navigation";
-          var label = hidden ? showLabel : hideLabel;
+          toggleBtn.setAttribute("aria-expanded", expanded);
           toggleBtn.title = label;
           toggleBtn.setAttribute("aria-label", label);
+          var icon = toggleBtn.querySelector(".oh-topbar-sidebar-icon");
+          if (icon) {
+            icon.classList.remove("fa-chevron-left", "fa-chevron-right");
+            icon.classList.add(hidden ? "fa-chevron-right" : "fa-chevron-left");
+          }
         }
 
         function applySidebarHidden(hidden, animate) {
@@ -604,7 +537,7 @@
               });
             });
           }
-          syncTopbarSidebarToggle(hidden);
+          syncSidebarToggleUi(hidden);
           try { localStorage.setItem("sidebarHidden", hidden ? "true" : "false"); } catch (_) {}
         }
 
@@ -612,36 +545,26 @@
           applySidebarHidden(!sidebarHidden, true);
         };
 
-        // Apply saved state immediately (no animation) to avoid layout flash
+        if (sidebarEl) {
+          sidebarEl.classList.add("sidebar-pinned");
+        }
+
         if (sidebarHidden) {
           applySidebarHidden(true, false);
         } else {
-          applySidebarPin(sidebarPinned, false);
-          syncTopbarSidebarToggle(false);
+          syncSidebarToggleUi(false);
         }
 
-        var topToggle = document.getElementById("topbarSidebarToggle");
-        if (topToggle) {
-          topToggle.dataset.showLabel = "{% trans 'Show navigation'|escapejs %}";
-          topToggle.dataset.hideLabel = "{% trans 'Hide navigation'|escapejs %}";
-          syncTopbarSidebarToggle(sidebarHidden);
-          topToggle.addEventListener("click", function (e) {
+        function bindSidebarToggle(btn) {
+          if (!btn) return;
+          btn.addEventListener("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
             window.toggleHorillaSidebar();
           });
         }
 
-        var pinBtn = document.getElementById("sidebarPinBtn");
-        if (pinBtn) {
-          pinBtn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            var nextPinned = !sidebarPinned;
-            applySidebarPin(nextPinned, true);
-            hideFlyout();
-            if (!nextPinned) closeAllSidebarSubnavs();
-          });
-        }
+        bindSidebarToggle(document.getElementById("topbarSidebarToggle"));
 
         // When cursor leaves sidebar, close any open flyout
         if (sidebarEl) {
@@ -766,9 +689,6 @@
             var btn = e.target.closest(".sideboxmain");
             if (!btn) return;
             var item = btn.closest(".sidebar-item");
-            if (!sidebarPinned) {
-              applySidebarPin(true, true);
-            }
             toggleSidebarSubnav(item);
             e.stopPropagation();
           });
@@ -878,7 +798,7 @@
             const emptyHTML = `
       <div id="no-data-${chartId}" class="h-[350px] flex items-center justify-center">
         <div class="flex flex-col items-center justify-center">
-          <img src="/static/horilla_theme/assets/img/no-records.svg" alt="" width="300" class="mb-4">
+          <img src="/static/images/ui/application.png" alt="" width="300" class="mb-4">
           <p class="text-[#666] mb-5">${message}</p>
         </div>
       </div>

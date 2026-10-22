@@ -44,6 +44,21 @@ from horilla_views.generic.cbv.views import (
 logger = logging.getLogger(__name__)
 
 
+def user_can_add_employee(user) -> bool:
+    """Whether the employee directory should show create / add actions."""
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    if user.has_perm("employee.add_employee"):
+        return True
+    from base.auth_backends import get_user_groups_for_company
+
+    return get_user_groups_for_company(user).filter(
+        name__in=("Admin", "Boss")
+    ).exists()
+
+
 def profile_edit_accessibility_display(self):
     """
     Profile edit accessible
@@ -620,31 +635,30 @@ class EmployeeNav(HorillaNavView):
     """
 
     modern_filter = True
+    search_url = reverse_lazy("employees-list")
+    search_in = [
+        ("employee_work_info__reporting_manager_id", _("Reporting Manager")),
+        ("employee_work_info__department_id", _("Department")),
+        ("employee_work_info__job_position_id", _("Job Position")),
+        ("employee_work_info__job_role_id", _("Job Role")),
+        ("employee_work_info__shift_id", _("Shift")),
+        ("employee_work_info__work_type_id", _("Work Type")),
+        ("employee_work_info__company_id", _("Company")),
+    ]
 
-    def __init__(self, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.search_url = reverse("employees-list")
-        self.search_in = [
-            ("employee_work_info__reporting_manager_id", _("Reporting Manager")),
-            (
-                "employee_work_info__department_id",
-                "Department",
-            ),
-            ("employee_work_info__job_position_id", _("Job Position")),
-            ("employee_work_info__job_role_id", _("Job Role")),
-            ("employee_work_info__shift_id", _("Shift")),
-            ("employee_work_info__work_type_id", _("Work Type")),
-            ("employee_work_info__company_id", _("Company")),
-        ]
-        if self.request.user.has_perm("employee.add_employee"):
-            self.create_attrs = f"""
-                                href="{reverse_lazy('employee-view-new')}"
-                                """
+    def get_context_data(self, **kwargs: Any):
+        self._configure_employee_nav()
+        return super().get_context_data(**kwargs)
+
+    def _configure_employee_nav(self) -> None:
+        user = self.request.user
+        if user_can_add_employee(user):
+            self.create_attrs = f'href="{reverse("employee-view-new")}"'
         else:
             self.create_attrs = None
 
         actions = []
-        if self.request.user.has_perm("employee.change_employee"):
+        if user.has_perm("employee.change_employee"):
             actions.append(
                 {
                     "action": _("Import"),
@@ -671,7 +685,7 @@ class EmployeeNav(HorillaNavView):
                     """,
                 }
             )
-        if self.request.user.has_perm("employee.change_employee"):
+        if user.has_perm("employee.change_employee"):
             actions.extend(
                 [
                     {
@@ -724,7 +738,6 @@ class EmployeeNav(HorillaNavView):
                 ]
             )
         self.actions = actions or None
-
         self.view_types = [
             {
                 "type": "list",
@@ -745,6 +758,7 @@ class EmployeeNav(HorillaNavView):
         ]
 
     nav_title = _("Employees")
+    create_button_label = _("Add Employee")
     filter_body_template = "cbv/employees_view/filter_employee.html"
     filter_instance = EmployeeFilter()
     filter_form_context_name = "form"

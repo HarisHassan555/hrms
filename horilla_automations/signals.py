@@ -309,8 +309,10 @@ def send_automated_mail(
     false_exists = False
     instance_values = []
     previous_instance_values = []
+    has_condition_row = False
     for condition in query_strings:
         if condition.getlist("condition"):
+            has_condition_row = True
             attr = condition.getlist("condition")[0]
             operator = condition.getlist("condition")[1]
             value = condition.getlist("condition")[2]
@@ -357,6 +359,10 @@ def send_automated_mail(
             if false_exists and and_exists:
                 applicable = False
                 break
+    if not has_condition_row:
+        # Automations saved without filter rows never set applicable=True,
+        # so e.g. "thank you on apply" rules silently never fired.
+        applicable = True
     if applicable:
         if created and automation.trigger == "on_create":
             send_mail(request, automation, instance)
@@ -458,19 +464,23 @@ def send_mail(request, automation, instance):
         except Exception as e:
             logger.error(f"Error generating user-based email display name: {e}")
 
-    if pk_or_text and request and to_emails:
+    if pk_or_text and to_emails and (request or automation.trigger == "on_create"):
         attachments = []
-        try:
-            sender = request.user.employee_get
-        except:
-            sender = None
+        sender = None
+        if request and hasattr(request, "user"):
+            try:
+                sender = request.user.employee_get
+            except Exception:
+                sender = None
         # Automation bodies/titles are admin-authored Django template source
         # stored in the DB, rendered here with real employee/instance data and
         # (for attachments) fed to wkhtmltopdf. sanitize_mail_template_body()
         # strips forbidden attribute access (password, META, session, ...) and
         # forbidden tags; build_safe_template_request() keeps `request` usable
         # in templates without exposing its sensitive internals.
-        safe_request = build_safe_template_request(request)
+        safe_request = (
+            build_safe_template_request(request) if request is not None else None
+        )
         if context_instance:
             if template_attachments := automation.template_attachments.all():
                 for template_attachment in template_attachments:

@@ -171,8 +171,8 @@ msgstr "Sequenza di fase aggiornata"
 msgid "Dashboard"
 msgstr "Dashboard"
 
-msgid "Horilla dashboard section"
-msgstr "Sezione dashboard Horilla"
+msgid "DSG dashboard section"
+msgstr "Sezione dashboard DSG"
 
 msgid "Mark Attendance"
 msgstr "Registra presenza"
@@ -213,8 +213,8 @@ msgstr "Opzioni profilo e cambio password"
 msgid "Dashboard Tiles"
 msgstr "Riquadri dashboard"
 
-msgid "Horilla Dashboard Tiles"
-msgstr "Riquadri dashboard Horilla"
+msgid "DSG Dashboard Tiles"
+msgstr "Riquadri dashboard DSG"
 
 msgid "Dashboard Actions"
 msgstr "Azioni dashboard"

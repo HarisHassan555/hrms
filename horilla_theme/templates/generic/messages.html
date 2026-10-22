@@ -1,0 +1,7 @@
+{% if messages %}
+<div class="oh-alert-container vr-alert-stack">
+  {% for message in messages %}
+  <div class="oh-alert oh-alert--animated vr-alert {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}

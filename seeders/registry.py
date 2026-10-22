@@ -4,7 +4,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Callable
 
-from . import asset_seeder, attendance_seeder, employee_seeder, leave_seeder
+from . import admin_team_seeder, asset_seeder, attendance_seeder, employee_seeder, leave_seeder
 from . import organization_seeder, qarshi_seeder
 from .utils import SeederResult
 
@@ -35,6 +35,14 @@ SEEDERS = OrderedDict(
                 "qarshi",
                 "Qarshi Industries (company + 4 users)",
                 qarshi_seeder.seed,
+            ),
+        ),
+        (
+            "admin_team",
+            Seeder(
+                "admin_team",
+                "20 Admin employees + org, shifts, leave master data",
+                admin_team_seeder.seed,
             ),
         ),
     )

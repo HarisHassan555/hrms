@@ -191,19 +191,6 @@
     outline: none;
   }
 
-  .employee-saas-page a[href*="employee-view-new"],
-  .employee-saas-page .bg-brand-600 {
-    background: var(--theme-primary) !important;
-    border-color: var(--theme-primary) !important;
-    color: #ffffff !important;
-  }
-
-  .employee-saas-page a[href*="employee-view-new"]:hover,
-  .employee-saas-page .bg-brand-600:hover {
-    background: var(--theme-primary-hover) !important;
-    border-color: var(--theme-primary-hover) !important;
-  }
-
   .employee-saas-page .nav-view-btn,
   .employee-saas-page .oh-view-type {
     border-radius: 8px;
@@ -576,6 +563,10 @@
 </style>
 
 <div class="employee-saas-page">
+  <div class="mb-3">
+    <h1 class="text-2xl font-bold text-slate-900 mb-0">{% trans "Employees" %}</h1>
+    <p class="text-sm text-slate-500 mb-0 mt-1">{% trans "Manage your workforce and employment records." %}</p>
+  </div>
   <div id="employeeListNavBar">
   <div hx-get="{% url "employees-nav" %}?{{initial_nav_query|default:request.GET.urlencode}}" hx-trigger="load">
   </div>

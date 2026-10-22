@@ -1,0 +1,510 @@
+/**
+ * Horilla → Vristo component mapping
+ * Targets existing .oh-* / .btn / list-view classes (no template renames).
+ */
+
+/* ── Base button ─────────────────────────────────────────────────── */
+html.vristo-theme .oh-btn,
+html.vristo-theme .btn,
+html.vristo-theme .vr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 38px;
+  padding: 0.5rem 1.25rem;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  border-radius: var(--vristo-radius) !important;
+  border: 1px solid transparent;
+  box-shadow: none !important;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+html.vristo-theme .oh-btn:hover {
+  background-color: #f6f8fa;
+}
+
+html.vristo-theme .oh-btn:focus,
+html.vristo-theme .oh-btn:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.18) !important;
+}
+
+html.vristo-theme .oh-btn--small {
+  min-height: 32px;
+  padding: 0.35rem 0.85rem;
+  font-size: 13px;
+}
+
+html.vristo-theme .oh-btn--x-small {
+  min-height: 28px;
+  padding: 0.25rem 0.65rem;
+  font-size: 12px;
+}
+
+html.vristo-theme .oh-btn--sq-sm {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 !important;
+}
+
+/* Primary (Horilla: oh-btn--secondary) */
+html.vristo-theme .oh-btn--secondary,
+html.vristo-theme .btn.oh-btn--secondary {
+  background-color: var(--vristo-primary) !important;
+  border-color: var(--vristo-primary) !important;
+  color: #fff !important;
+}
+
+html.vristo-theme .oh-btn--secondary:hover,
+html.vristo-theme .oh-btn--secondary:focus,
+html.vristo-theme .btn.oh-btn--secondary:hover {
+  background-color: var(--vristo-primary-dark) !important;
+  border-color: var(--vristo-primary-dark) !important;
+  color: #fff !important;
+}
+
+html.vristo-theme .oh-btn--secondary-outline,
+html.vristo-theme .oh-btn--secondary-link {
+  background: transparent !important;
+  color: var(--vristo-primary) !important;
+  border-color: transparent !important;
+}
+
+html.vristo-theme .oh-btn--light-bkg {
+  background: var(--vristo-panel) !important;
+  color: var(--vristo-text) !important;
+  border: 1px solid var(--vristo-border) !important;
+}
+
+html.vristo-theme .oh-btn--light-bkg:hover {
+  background: #f6f8fa !important;
+  border-color: #d1d5db !important;
+}
+
+html.vristo-theme .oh-btn--light-bkg.oh-btn--secondary {
+  color: var(--vristo-primary) !important;
+}
+
+html.vristo-theme .oh-btn--primary {
+  background: var(--vristo-heading) !important;
+  border-color: var(--vristo-heading) !important;
+  color: #fff !important;
+}
+
+html.vristo-theme .oh-btn--success {
+  background: var(--vristo-success) !important;
+  border-color: var(--vristo-success) !important;
+  color: #fff !important;
+}
+
+html.vristo-theme .oh-btn--danger,
+html.vristo-theme .oh-btn--light-danger {
+  background: var(--vristo-danger) !important;
+  border-color: var(--vristo-danger) !important;
+  color: #fff !important;
+}
+
+html.vristo-theme .oh-btn--light-bkg.oh-btn--danger {
+  background: #fff5f5 !important;
+  color: var(--vristo-danger) !important;
+  border-color: #fecaca !important;
+}
+
+html.vristo-theme .oh-btn--warning {
+  background: var(--vristo-warning) !important;
+  border-color: var(--vristo-warning) !important;
+  color: #fff !important;
+}
+
+html.vristo-theme .oh-btn--info {
+  background: var(--vristo-info) !important;
+  border-color: var(--vristo-info) !important;
+  color: #fff !important;
+}
+
+html.vristo-theme .oh-btn--transparent,
+html.vristo-theme .oh-btn--danger-link,
+html.vristo-theme .oh-btn--secondary-link {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+html.vristo-theme .oh-btn--danger-link {
+  color: var(--vristo-danger) !important;
+}
+
+/* ── Forms ───────────────────────────────────────────────────────── */
+html.vristo-theme .oh-input,
+html.vristo-theme .oh-select,
+html.vristo-theme .oh-textarea,
+html.vristo-theme .myform input:not([type="checkbox"]):not([type="radio"]),
+html.vristo-theme .myform select,
+html.vristo-theme .myform textarea,
+html.vristo-theme input.form-control,
+html.vristo-theme select.form-control,
+html.vristo-theme textarea.form-control {
+  min-height: 42px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--vristo-radius) !important;
+  border: 1px solid var(--vristo-border) !important;
+  background: var(--vristo-panel) !important;
+  color: var(--vristo-text) !important;
+  font-size: 14px;
+}
+
+html.vristo-theme .oh-input:focus,
+html.vristo-theme .oh-select:focus,
+html.vristo-theme .myform input:focus,
+html.vristo-theme .myform select:focus,
+html.vristo-theme .myform textarea:focus {
+  border-color: var(--vristo-primary) !important;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12) !important;
+}
+
+html.vristo-theme input[type="checkbox"],
+html.vristo-theme input[type="radio"],
+html.vristo-theme .custom-checkbox {
+  accent-color: var(--vristo-primary) !important;
+}
+
+html.vristo-theme .oh-switch .oh-switch__checkbox:checked {
+  background-color: var(--vristo-primary) !important;
+}
+
+/* ── Cards & panels ──────────────────────────────────────────────── */
+html.vristo-theme .oh-card,
+html.vristo-theme .shadow-card,
+html.vristo-theme .hlv-container > .bg-white,
+html.vristo-theme .oh-dashboard-card {
+  background: var(--vristo-panel) !important;
+  border: 1px solid var(--vristo-border) !important;
+  border-radius: var(--vristo-radius-lg) !important;
+  box-shadow: var(--vristo-shadow-sm) !important;
+}
+
+/* ── Tables (list views) ─────────────────────────────────────────── */
+html.vristo-theme .fixed-table thead th,
+html.vristo-theme .oh-sticky-table__th {
+  background: #f6f8fa !important;
+  color: var(--vristo-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-color: var(--vristo-border) !important;
+}
+
+html.vristo-theme .fixed-table tbody td,
+html.vristo-theme .oh-sticky-table__td {
+  font-size: 14px;
+  color: var(--vristo-text);
+  border-color: var(--vristo-border-light) !important;
+}
+
+html.vristo-theme .fixed-table tbody tr:hover,
+html.vristo-theme .oh-sticky-table__tr:hover {
+  background: #f9fafb !important;
+}
+
+html.vristo-theme .highlight-selected {
+  background: rgba(67, 97, 238, 0.08) !important;
+}
+
+/* ── Modals ──────────────────────────────────────────────────────── */
+html.vristo-theme .oh-modal {
+  background-color: rgba(14, 23, 38, 0.45) !important;
+}
+
+html.vristo-theme .oh-modal__dialog {
+  max-width: min(720px, calc(100vw - 2rem));
+  width: 100%;
+  border-radius: var(--vristo-radius-lg) !important;
+  border: 1px solid var(--vristo-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+  background: var(--vristo-panel) !important;
+  overflow: visible !important;
+  margin: 1.25rem auto;
+  max-height: none;
+}
+
+html.vristo-theme #genericModalBody.oh-modal__dialog,
+html.vristo-theme #deleteConfirmationBody.oh-modal__dialog,
+html.vristo-theme .oh-modal__dialog.oh-modal__dialog--custom,
+html.vristo-theme .oh-modal__dialog.oh-modal__dialog-process,
+html.vristo-theme .oh-modal__dialog--wide {
+  max-width: min(900px, calc(100vw - 2rem)) !important;
+}
+
+html.vristo-theme #genericModalBody > .modal-box,
+html.vristo-theme #genericModalBody > .vr-modal-panel,
+html.vristo-theme .oh-modal__dialog > .modal-box {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+html.vristo-theme .oh-modal__dialog-header {
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid var(--vristo-border-light);
+}
+
+html.vristo-theme .oh-modal__dialog-body {
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+html.vristo-theme .oh-modal__dialog-footer {
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--vristo-border-light);
+}
+
+html.vristo-theme .oh-modal__close,
+html.vristo-theme .oh-modal__close--custom {
+  color: var(--vristo-text-muted);
+  border-radius: var(--vristo-radius);
+}
+
+html.vristo-theme .oh-modal__close:hover,
+html.vristo-theme .oh-modal__close--custom:hover {
+  background: #f6f8fa;
+  color: var(--vristo-danger);
+}
+
+/* ── Accordion ───────────────────────────────────────────────────── */
+html.vristo-theme .oh-accordion-header,
+html.vristo-theme .oh-accordion-meta__header {
+  background: var(--vristo-primary-light) !important;
+  color: var(--vristo-primary) !important;
+  border-radius: var(--vristo-radius) !important;
+  border: 1px solid rgba(67, 97, 238, 0.15) !important;
+}
+
+html.vristo-theme .oh-accordion-header:hover,
+html.vristo-theme .oh-accordion-meta__header:hover {
+  background: #dce6ff !important;
+}
+
+html.vristo-theme .oh-accordion-body {
+  border: 1px solid var(--vristo-border-light);
+  border-top: none;
+  border-radius: 0 0 var(--vristo-radius) var(--vristo-radius);
+}
+
+/* ── Tabs ────────────────────────────────────────────────────────── */
+html.vristo-theme .oh-tabs__tab {
+  color: var(--vristo-text-muted);
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+}
+
+html.vristo-theme .oh-tabs__tab--active {
+  color: var(--vristo-primary) !important;
+  border-bottom-color: var(--vristo-primary) !important;
+  background: transparent !important;
+}
+
+html.vristo-theme .usertablist li button {
+  border-radius: var(--vristo-radius);
+  color: var(--vristo-text-muted);
+}
+
+html.vristo-theme .usertablist li button.active,
+html.vristo-theme .usertablist li button:hover {
+  background: var(--vristo-primary-light) !important;
+  color: var(--vristo-primary) !important;
+  border-color: rgba(67, 97, 238, 0.25) !important;
+}
+
+html.vristo-theme .mytab {
+  border-color: var(--vristo-primary) !important;
+  border-radius: var(--vristo-radius);
+}
+
+html.vristo-theme .mytab .tab-button.active {
+  background: var(--vristo-primary) !important;
+}
+
+/* ── Pagination (list views) ─────────────────────────────────────── */
+html.vristo-theme .hlv-pagination {
+  border-color: var(--vristo-border) !important;
+  border-radius: var(--vristo-radius) !important;
+  box-shadow: var(--vristo-shadow-sm);
+}
+
+html.vristo-theme .hlv-pagination button:hover:not(:disabled) {
+  background: var(--vristo-primary-light) !important;
+  color: var(--vristo-primary) !important;
+}
+
+html.vristo-theme .border-primary-500,
+html.vristo-theme .border-primary-600 {
+  border-color: var(--vristo-border) !important;
+}
+
+html.vristo-theme .bg-primary-100 {
+  background-color: var(--vristo-primary-light) !important;
+}
+
+html.vristo-theme .text-primary-600 {
+  color: var(--vristo-primary) !important;
+}
+
+html.vristo-theme .bg-primary-600 {
+  background-color: var(--vristo-primary) !important;
+}
+
+/* ── Dropdowns ───────────────────────────────────────────────────── */
+html.vristo-theme .oh-dropdown__menu,
+html.vristo-theme .oh-sticy-dropdown {
+  border: 1px solid var(--vristo-border) !important;
+  border-radius: var(--vristo-radius-lg) !important;
+  box-shadow: var(--vristo-shadow) !important;
+  padding: 6px !important;
+}
+
+html.vristo-theme .oh-dropdown__link,
+html.vristo-theme .oh-sticy-dropdown-item {
+  border-radius: var(--vristo-radius);
+  color: var(--vristo-text);
+}
+
+html.vristo-theme .oh-dropdown__link:hover,
+html.vristo-theme .oh-sticy-dropdown-item:hover {
+  background: #f6f8fa !important;
+  color: var(--vristo-primary) !important;
+}
+
+/* ── Alerts & messages ───────────────────────────────────────────── */
+html.vristo-theme .oh-alert {
+  border-radius: var(--vristo-radius);
+  border: 1px solid var(--vristo-border);
+  font-weight: 600;
+}
+
+html.vristo-theme .oh-alert--success {
+  background: #ddf5f0 !important;
+  color: var(--vristo-success) !important;
+  border-color: #b8ece0 !important;
+}
+
+html.vristo-theme .oh-alert--danger {
+  background: #fff5f5 !important;
+  color: var(--vristo-danger) !important;
+  border-color: #fecaca !important;
+}
+
+html.vristo-theme .oh-alert--warning {
+  background: #fff8eb !important;
+  color: var(--vristo-warning) !important;
+}
+
+html.vristo-theme .oh-alert--info {
+  background: #e8f4fd !important;
+  color: var(--vristo-info) !important;
+}
+
+/* ── SweetAlert2 ─────────────────────────────────────────────────── */
+html.vristo-theme .swal2-popup {
+  border-radius: var(--vristo-radius-lg) !important;
+  font-family: inherit;
+}
+
+html.vristo-theme .swal2-styled.swal2-confirm {
+  background-color: var(--vristo-primary) !important;
+  border-radius: var(--vristo-radius) !important;
+}
+
+html.vristo-theme .swal2-styled.swal2-cancel {
+  background-color: var(--vristo-danger) !important;
+  border-radius: var(--vristo-radius) !important;
+}
+
+/* ── Select2 ─────────────────────────────────────────────────────── */
+html.vristo-theme .select2-container--default .select2-selection--single,
+html.vristo-theme .select2-container--default .select2-selection--multiple {
+  border: 1px solid var(--vristo-border) !important;
+  border-radius: var(--vristo-radius) !important;
+  min-height: 42px;
+}
+
+html.vristo-theme .select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background: var(--vristo-primary-light) !important;
+  border-color: rgba(67, 97, 238, 0.2) !important;
+  color: var(--vristo-primary) !important;
+  border-radius: 4px !important;
+}
+
+html.vristo-theme .select2-dropdown {
+  border-color: var(--vristo-border) !important;
+  border-radius: var(--vristo-radius-lg) !important;
+  box-shadow: var(--vristo-shadow-sm) !important;
+}
+
+/* ── Status pills / filters ────────────────────────────────────────── */
+html.vristo-theme .oh-row-status-indication {
+  border-radius: 999px !important;
+  font-weight: 600;
+  border: 1px solid var(--vristo-border) !important;
+}
+
+html.vristo-theme .oh-row-status-indication:focus,
+html.vristo-theme .oh-row-status-indication:active {
+  border-color: var(--vristo-primary) !important;
+}
+
+/* ── Title bars & tags ───────────────────────────────────────────── */
+html.vristo-theme .oh-titlebar__title {
+  color: var(--vristo-heading);
+  font-weight: 700;
+}
+
+html.vristo-theme .oh-titlebar__tag,
+html.vristo-theme .oh-titlebar__tag--custom {
+  background: var(--vristo-primary-light) !important;
+  color: var(--vristo-primary) !important;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* ── Empty states ────────────────────────────────────────────────── */
+html.vristo-theme .oh-empty {
+  color: var(--vristo-text-muted);
+}
+
+/* ── Index inline theme hook overrides ───────────────────────────── */
+html.vristo-theme .toggle-input:checked + .toggle-switch {
+  background-color: var(--vristo-primary) !important;
+}
+
+html.vristo-theme .breadcrumb li a:hover,
+html.vristo-theme .breadcrumb li.oh-breadcrumb-current,
+html.vristo-theme .oh-chrome-breadcrumb__link:hover {
+  color: var(--vristo-primary) !important;
+}
+
+/* ── Dark ──────────────────────────────────────────────────────────── */
+html.vristo-theme.dark .oh-card,
+html.vristo-theme.dark .shadow-card,
+html.vristo-theme.dark .hlv-container > .bg-white,
+html.vristo-theme.dark .oh-modal__dialog {
+  background: var(--vristo-panel) !important;
+  border-color: var(--vristo-border) !important;
+}
+
+html.vristo-theme.dark .fixed-table thead th,
+html.vristo-theme.dark .oh-sticky-table__th {
+  background: #1b2e4b !important;
+}
+
+html.vristo-theme.dark .oh-btn--light-bkg {
+  background: #1b2e4b !important;
+  border-color: var(--vristo-border) !important;
+  color: var(--vristo-text) !important;
+}

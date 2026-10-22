@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     # Core Horilla apps
     "horilla_auth",
     THEME_APP,
+    "horilla_vristo",
     "base",
     "employee",
     "recruitment",
@@ -305,7 +306,9 @@ if REDIS_URL:
 # ========================================
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+from horilla_vristo.conf import extend_staticfiles_dirs, extend_template_loaders
+
+STATICFILES_DIRS = extend_staticfiles_dirs([BASE_DIR / "static"])
 # STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
@@ -339,12 +342,18 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 # re-parsing it (and re-running horilla_dbtemplate's DB-lookup chain) on
 # every include, on every request. Left uncached in DEBUG so template
 # edits during development are picked up without restarting the server.
-_TEMPLATE_LOADERS = [
-    "horilla_dbtemplate.loaders.Loader",
-    ("django.template.loaders.filesystem.Loader", [BASE_DIR / THEME_APP / "templates"]),
-    "django.template.loaders.app_directories.Loader",
-    ("django.template.loaders.filesystem.Loader", [BASE_DIR / "templates"]),
-]
+_TEMPLATE_LOADERS = extend_template_loaders(
+    [
+        "horilla_dbtemplate.loaders.Loader",
+        (
+            "django.template.loaders.filesystem.Loader",
+            [BASE_DIR / THEME_APP / "templates"],
+        ),
+        "django.template.loaders.app_directories.Loader",
+        ("django.template.loaders.filesystem.Loader", [BASE_DIR / "templates"]),
+    ],
+    BASE_DIR,
+)
 
 TEMPLATES = [
     {
@@ -369,6 +378,7 @@ TEMPLATES = [
                 "base.context_processors.intial_notice_period",
                 "base.context_processors.check_candidate_self_tracking",
                 "base.context_processors.check_candidate_self_tracking_rating",
+                "base.context_processors.check_application_acknowledgment_email",
                 "base.context_processors.get_initial_prefix",
                 "base.context_processors.biometric_app_exists",
                 "base.context_processors.enable_late_come_early_out_tracking",

@@ -3,7 +3,7 @@
 {% load horillafilters %}
 {% get_company as theme_obj %}
 <!DOCTYPE html>
-<html class="{% if request.session.theme == 'dark' %}dark{% endif %}">
+<html class="vristo-theme {% if request.session.theme == 'dark' %}dark{% endif %}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,6 +73,14 @@
             rel="stylesheet"
             href="{% static 'horilla_theme/assets/css/v1_styles.css' %}?v=14"
         >
+        <link
+            rel="stylesheet"
+            href="{% static 'horilla_theme/assets/css/app-chrome.css' %}?v=9"
+        >
+        <link
+            rel="stylesheet"
+            href="{% static 'horilla_theme/assets/css/kanban-cards.css' %}?v=3"
+        >
         <link rel="stylesheet" href="{% static 'build/css/pivottable.min.css' %}">
         {% with theme=theme_obj %}
             <style>
@@ -84,20 +92,21 @@
                    form, so it degrades gracefully if a page renders through a base
                    layout that doesn't define these tokens. */
                 :root {
-                    --primary-100: {{ theme.primary_100|default:"#FFF5F1" }};
-                    --primary-200: {{ theme.primary_200|default:"#FEF6F5" }};
-                    --primary-300: {{ theme.primary_300|default:"#FCEDEB" }};
-                    --primary-500: {{ theme.primary_500|default:"#F7C8C1" }};
-                    --primary-600: {{ theme.primary_600|default:"#E54F38" }};
-                    --primary-700: {{ theme.primary_700|default:"#ce4732" }};
-                    --primary-800: {{ theme.primary_800|default:"#AC3B2A" }};
-                    --secondary-100: {{ theme.secondary_100|default:"#F0F0F0" }};
+                    --primary-50: {{ theme.primary_50|default:"#f5f7fb" }};
+                    --primary-100: {{ theme.primary_100|default:"#eaf1ff" }};
+                    --primary-200: {{ theme.primary_200|default:"#d9e5ff" }};
+                    --primary-300: {{ theme.primary_300|default:"#c4d7ff" }};
+                    --primary-500: {{ theme.primary_500|default:"#6b8cff" }};
+                    --primary-600: {{ theme.primary_600|default:"#4361ee" }};
+                    --primary-700: {{ theme.primary_700|default:"#3a4ecc" }};
+                    --primary-800: {{ theme.primary_800|default:"#2f3eb8" }};
+                    --secondary-100: {{ theme.secondary_100|default:"#f1f5f9" }};
                     /* Shared semantic tokens (previously hardcoded across components) */
                     --status-success: limegreen;
                     --gender-male: rgb(32, 128, 218);
                     --gender-female: pink;
                     --text-muted: #4d4a4a;
-                    --btn-add-another: {{ theme.primary_500|default:"#F7C8C1" }};
+                    --btn-add-another: {{ theme.primary_500|default:"#6b8cff" }};
                 }
 
                 /* Primary 600 background */
@@ -169,7 +178,10 @@
                 .breadcrumb li a:hover,
                 /* Current crumb: global.css hardcodes the default red here, so
                    it needs the theme shade like the hover state above. */
-                .breadcrumb li.oh-breadcrumb-current {
+                .breadcrumb li.oh-breadcrumb-current,
+                .oh-chrome-breadcrumb__link:hover,
+                .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__text,
+                .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__link {
                     color: {{ theme.primary_600|default:"#E54F38" }};
                 }
 
@@ -195,9 +207,10 @@
                 .border-primary-300 { border-color: {{ theme.primary_300|default:"#FCEDEB" }}; }
                 .border-primary-500 { border-color: {{ theme.primary_500|default:"#F7C8C1" }}; }
                 .border-primary-600 { border-color: {{ theme.primary_600|default:"#E54F38" }}; }
-                .bg-primary-100 { background-color: {{ theme.primary_100|default:"#FFF5F1" }}; }
-                .bg-primary-200 { background-color: {{ theme.primary_200|default:"#FEF6F5" }}; }
-                .bg-primary-300 { background-color: {{ theme.primary_300|default:"#FCEDEB" }}; }
+                .bg-primary-50 { background-color: {{ theme.primary_50|default:"#f5f7fb" }}; }
+                .bg-primary-100 { background-color: {{ theme.primary_100|default:"#eaf1ff" }}; }
+                .bg-primary-200 { background-color: {{ theme.primary_200|default:"#d9e5ff" }}; }
+                .bg-primary-300 { background-color: {{ theme.primary_300|default:"#c4d7ff" }}; }
                 .bg-primary-500 { background-color: {{ theme.primary_500|default:"#F7C8C1" }}; }
                 .bg-primary-600 { background-color: {{ theme.primary_600|default:"#E54F38" }}; }
                 .text-primary-600 { color: {{ theme.primary_600|default:"#E54F38" }}; }
@@ -289,12 +302,29 @@
             </style>
         {% endwith %}
 
+        <link
+            rel="stylesheet"
+            href="{% static 'horilla_theme/assets/css/vristo-theme.css' %}?v=3"
+        >
+        <link
+            rel="stylesheet"
+            href="{% static 'horilla_theme/assets/css/vristo-components.css' %}?v=3"
+        >
+        <link
+            rel="stylesheet"
+            href="{% static 'horilla_theme/assets/css/vristo-ui.css' %}?v=4"
+        >
+        <link
+            rel="stylesheet"
+            href="{% static 'horilla_theme/assets/css/vristo-tables.css' %}?v=3"
+        >
+
         {% block styles %}
             <!-- Page-specific styles (optional) -->
         {% endblock %}
     </head>
 
-    <body class="bg-[{{theme_obj.primary_50}}] font-[Inter,_sans-serif] overflow-hidden {% if request.session.theme == 'dark' %}dark{% endif %}">
+    <body class="vristo-theme overflow-hidden {% if request.session.theme == 'dark' %}dark{% endif %}">
         {% get_current_language_bidi as LANGUAGE_BIDI %}
         {% get_current_language as LANGUAGE_CODE %}
         <div hidden id="statiUrl" data-url='{% static "" %}'></div>
@@ -326,85 +356,79 @@
                     try {
                         var sidebarEl = document.getElementById('sidebar');
                         if (!sidebarEl) return;
+                        sidebarEl.classList.add('sidebar-pinned');
                         if (localStorage.getItem('sidebarHidden') === 'true') {
                             sidebarEl.classList.add('sidebar-hidden');
-                            return;
-                        }
-                        var stored = localStorage.getItem('sidebarPinned');
-                        var pinned = stored === null ? true : stored === 'true';
-                        if (pinned) {
-                            sidebarEl.classList.add('sidebar-pinned');
                         }
                     } catch (_) {}
                 })();
             </script>
-            <div>
-                <!-- Include Header -->
+            <div class="oh-app-shell">
                 <div id="header">
                     {% include "horilla_theme/components/header.html" %}
                 </div>
 
-                <div id="ohMainContent" class="p-6 flex-1 min-h-0">
+                <div id="ohMainContent" class="oh-app-shell__main flex-1 min-h-0">
                     {% block content %}
                         {% include "horilla_theme/components/dashboard.html" %}
                     {% endblock %}
-
-                    <div id="imagePreview" style="display: none; position: absolute; z-index: 9999">
-                        <img
-                            id="previewImg"
-                            src=""
-                            style="box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); background: white"
-                            class="rounded-lg"
-                        >
-                    </div>
-                    <div
-                        class="oh-modal"
-                        style="z-index: 100"
-                        id="objectDetailsModal"
-                        role="dialog"
-                        aria-labelledby="objectDetailsModalLabel"
-                    >
-                        <div class="oh-modal__dialog oh-modal__dialog-relative" id="objectDetailsModalTarget"></div>
-                    </div>
-                    <div
-                        class="oh-modal"
-                        style="z-index: 100"
-                        id="objectDetailsModalW25"
-                        role="dialog"
-                        aria-labelledby="objectDetailsModalW25Label"
-                    >
-                        <div
-                            class="oh-modal__dialog oh-modal__dialog-relative"
-                            style="max-width: 410px"
-                            id="objectDetailsModalW25Target"
-                        >
-                        </div>
-                    </div>
-                    <div
-                        class="oh-modal"
-                        id="objectCreateModal"
-                        role="dialog"
-                        aria-labelledby="objectCreateModalLabel"
-                    >
-                        <div class="oh-modal__dialog" id="objectCreateModalTarget"></div>
-                    </div>
-                    <div
-                        class="oh-modal"
-                        id="objectUpdateModal"
-                        role="dialog"
-                        aria-labelledby="objectUpdateModalLabel"
-                    >
-                        <div class="oh-modal__dialog" id="objectUpdateModalTarget"></div>
-                    </div>
-                    <div
-                        class="oh-modal"
-                        id="dynamicCreateModal"
-                        role="dialog"
-                        style="z-index: 1022"
-                    >
-                        <div id="dynamicCreateModalTarget" class="oh-modal__dialog" style="max-width: 550px"></div>
-                    </div>
                 </div>
+            </div>
+        </div>
+
+        {# Modals must not live inside #ohMainContent (flex + min-h-0 clips position:fixed overlays). #}
+        <div id="ohAppModalRoot" class="oh-app-modal-root">
+            <div id="imagePreview" style="display: none; position: absolute; z-index: 9999">
+                <img
+                    id="previewImg"
+                    src=""
+                    style="box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); background: white"
+                    class="rounded-lg"
+                >
+            </div>
+            <div
+                class="oh-modal vr-modal"
+                id="objectDetailsModal"
+                role="dialog"
+                aria-labelledby="objectDetailsModalLabel"
+            >
+                <div class="oh-modal__dialog oh-modal__dialog-relative" id="objectDetailsModalTarget"></div>
+            </div>
+            <div
+                class="oh-modal vr-modal"
+                id="objectDetailsModalW25"
+                role="dialog"
+                aria-labelledby="objectDetailsModalW25Label"
+            >
+                <div
+                    class="oh-modal__dialog oh-modal__dialog-relative"
+                    style="max-width: 410px"
+                    id="objectDetailsModalW25Target"
+                >
+                </div>
+            </div>
+            <div
+                class="oh-modal vr-modal"
+                id="objectCreateModal"
+                role="dialog"
+                aria-labelledby="objectCreateModalLabel"
+            >
+                <div class="oh-modal__dialog" id="objectCreateModalTarget"></div>
+            </div>
+            <div
+                class="oh-modal vr-modal"
+                id="objectUpdateModal"
+                role="dialog"
+                aria-labelledby="objectUpdateModalLabel"
+            >
+                <div class="oh-modal__dialog" id="objectUpdateModalTarget"></div>
+            </div>
+            <div
+                class="oh-modal vr-modal"
+                id="dynamicCreateModal"
+                role="dialog"
+            >
+                <div id="dynamicCreateModalTarget" class="oh-modal__dialog" style="max-width: 550px"></div>
             </div>
         </div>
         {% include "generic/components.html" %}

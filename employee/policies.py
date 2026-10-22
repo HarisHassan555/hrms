@@ -147,7 +147,9 @@ def search_policies(request):
     """
     This method is used to search in policies
     """
-    policies = _visible_policies(request, PolicyFilter(request.GET).qs)
+    policies = _visible_policies(
+        request, PolicyFilter(request.GET).qs.prefetch_related("slides")
+    )
     return render(
         request,
         "policies/records.html",
@@ -166,7 +168,12 @@ def view_policy(request):
     """
     instance_id = request.GET.get("instance_id")
     policy = (
-        _visible_policies(request, Policy.objects.filter(id=instance_id)).first()
+        _visible_policies(
+            request,
+            Policy.objects.filter(id=instance_id).prefetch_related(
+                "slides", "attachments"
+            ),
+        ).first()
         if instance_id
         else None
     )

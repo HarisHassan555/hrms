@@ -168,8 +168,8 @@ msgstr "تم تحديث تسلسل المراحل"
 msgid "Dashboard"
 msgstr "لوحة التحكم"
 
-msgid "Horilla dashboard section"
-msgstr "قسم لوحة تحكم Horilla"
+msgid "DSG dashboard section"
+msgstr "قسم لوحة تحكم DSG"
 
 msgid "Mark Attendance"
 msgstr "تسجيل الحضور"
@@ -210,8 +210,8 @@ msgstr "خيارات الملف الشخصي وتغيير كلمة المرور"
 msgid "Dashboard Tiles"
 msgstr "بلاطات لوحة التحكم"
 
-msgid "Horilla Dashboard Tiles"
-msgstr "بلاطات لوحة تحكم Horilla"
+msgid "DSG Dashboard Tiles"
+msgstr "بلاطات لوحة تحكم DSG"
 
 msgid "Dashboard Actions"
 msgstr "إجراءات لوحة التحكم"

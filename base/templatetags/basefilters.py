@@ -23,18 +23,24 @@ _ALLOWED_HTML_TAGS = {
     # silently vanished on upgrade is a support problem, not a security win.
     # The src protocol allow-list below is what keeps it safe.
     "a",
+    "article",
     "b",
     "blockquote",
     "br",
     "code",
+    "col",
+    "colgroup",
     "div",
     "em",
+    "figure",
+    "figcaption",
     "h1",
     "h2",
     "h3",
     "h4",
     "h5",
     "h6",
+    "header",
     "hr",
     "i",
     "img",
@@ -43,6 +49,8 @@ _ALLOWED_HTML_TAGS = {
     "p",
     "pre",
     "s",
+    "section",
+    "small",
     "span",
     "strong",
     "sub",
@@ -60,42 +68,107 @@ _ALLOWED_HTML_TAGS = {
 _ALLOWED_HTML_ATTRS = {
     "a": ["href", "title", "target", "rel"],
     "img": ["src", "alt", "title", "width", "height"],
-    "td": ["colspan", "rowspan"],
-    "th": ["colspan", "rowspan"],
-    # "style" so that colour and emphasis applied in the editor survive.
-    "*": ["class", "style"],
+    "td": ["colspan", "rowspan", "width", "height"],
+    "th": ["colspan", "rowspan", "width", "height"],
+    "table": ["width", "border", "cellpadding", "cellspacing"],
+    "col": ["width", "span"],
+    "colgroup": ["span"],
+    # "style" so that colour and layout applied in the editor survive.
+    "*": ["class", "style", "align", "valign"],
 }
 
-# Only properties a rich-text editor actually emits, and only ones whose values
-# are plain keywords or literals. Nothing here needs a CSS function, which is
-# what _StrictCSSSanitizer relies on.
+# Layout and typography the policy / Summernote editors actually emit.
+# Dangerous properties (position, behaviour, etc.) stay off this list.
 _ALLOWED_CSS_PROPERTIES = [
     "color",
+    "background",
     "background-color",
     "font-size",
     "font-weight",
     "font-style",
+    "font-family",
     "text-align",
     "text-decoration",
+    "text-transform",
+    "line-height",
+    "letter-spacing",
+    "white-space",
+    "vertical-align",
+    "display",
+    "flex",
+    "flex-direction",
+    "flex-wrap",
+    "flex-grow",
+    "flex-shrink",
+    "flex-basis",
+    "align-items",
+    "align-content",
+    "align-self",
+    "justify-content",
+    "justify-items",
+    "justify-self",
+    "gap",
+    "row-gap",
+    "column-gap",
+    "grid-template-columns",
+    "grid-template-rows",
+    "grid-column",
+    "grid-row",
+    "width",
+    "min-width",
+    "max-width",
+    "height",
+    "min-height",
+    "max-height",
+    "margin",
+    "margin-top",
+    "margin-right",
+    "margin-bottom",
+    "margin-left",
+    "padding",
+    "padding-top",
+    "padding-right",
+    "padding-bottom",
+    "padding-left",
+    "border",
+    "border-top",
+    "border-right",
+    "border-bottom",
+    "border-left",
+    "border-width",
+    "border-style",
+    "border-color",
+    "border-radius",
+    "border-collapse",
+    "border-spacing",
+    "box-sizing",
+    "box-shadow",
+    "opacity",
+    "overflow",
+    "overflow-x",
+    "overflow-y",
+    "list-style",
+    "list-style-type",
+    "list-style-position",
+    "object-fit",
+    "float",
+    "clear",
 ]
 
 
 class _StrictCSSSanitizer(CSSSanitizer):
-    """Reject declarations whose value contains a CSS function call.
+    """Allow layout CSS while still blocking executable values.
 
     bleach validates the property NAME against the allow-list but does not
-    look at the VALUE, so `color: expression(alert(1))` passes its filter
-    untouched -- verified against bleach 6.4.0. That is a legacy IE vector
-    rather than a live one in current browsers, but a sanitiser that emits it
-    is not doing its job, and restricting the property list does not help
-    because the payload rides on whichever property is allowed.
-
-    None of _ALLOWED_CSS_PROPERTIES needs a function value, so dropping any
-    declaration containing one costs nothing and closes the whole class --
-    expression(), url(), image-set() and anything added later.
+    look at the VALUE, so `color: expression(alert(1))` or `background:url(...)`
+    would otherwise pass. Safe colour/layout functions (rgb, calc, …) are
+    kept so designed policy HTML still renders.
     """
 
-    _FUNCTION_CALL = re.compile(r"[a-z-]+\s*\(", re.IGNORECASE)
+    _BLOCKED_FUNCTION = re.compile(
+        r"(?:url|expression|image-set|element|attr)\s*\(",
+        re.IGNORECASE,
+    )
 
     def sanitize_css(self, style):
         declarations = []
@@ -103,7 +176,8 @@ class _StrictCSSSanitizer(CSSSanitizer):
             if not declaration.strip():
                 continue
             _, _, value = declaration.partition(":")
-            if self._FUNCTION_CALL.search(value):
+            lowered = value.lower()
+            if self._BLOCKED_FUNCTION.search(value) or "javascript:" in lowered:
                 continue
             declarations.append(declaration.strip())
         return "; ".join(declarations) + (";" if declarations else "")
@@ -111,9 +185,77 @@ class _StrictCSSSanitizer(CSSSanitizer):
 
 _CSS_SANITIZER = _StrictCSSSanitizer(allowed_css_properties=_ALLOWED_CSS_PROPERTIES)
 
+_STYLE_BLOCK_RE = re.compile(
+    r"<\s*style\b[^>]*>(.*?)</\s*style\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
+_DEFAULT_RICHTEXT_SCOPE = ".oh-richtext"
+
+
+def _scope_css_selector(selector, scope):
+    parts = []
+    for part in selector.split(","):
+        part = part.strip()
+        if not part or "</" in part or ";" in part:
+            continue
+        lowered = part.lower()
+        if lowered in {"html", "body", ":root"}:
+            parts.append(scope)
+        elif part.startswith(scope):
+            parts.append(part)
+        else:
+            parts.append(f"{scope} {part}")
+    return ", ".join(parts)
+
+
+def _sanitize_style_block(css, scope=_DEFAULT_RICHTEXT_SCOPE):
+    """Keep editor <style> rules, scoped so they cannot restyle the app chrome."""
+    css = re.sub(r"/\*.*?\*/", "", css or "", flags=re.DOTALL)
+    css = re.sub(r"@import[^;]*;", "", css, flags=re.IGNORECASE)
+    rules = []
+    i = 0
+    length = len(css)
+    while i < length:
+        while i < length and css[i].isspace():
+            i += 1
+        if i >= length:
+            break
+        if css[i] == "@":
+            j = i
+            while j < length and css[j] not in "{;":
+                j += 1
+            if j < length and css[j] == ";":
+                i = j + 1
+                continue
+            if j < length and css[j] == "{":
+                depth = 1
+                j += 1
+                while j < length and depth:
+                    if css[j] == "{":
+                        depth += 1
+                    elif css[j] == "}":
+                        depth -= 1
+                    j += 1
+                i = j
+                continue
+            break
+        brace = css.find("{", i)
+        end = css.find("}", i)
+        if brace == -1 or end == -1 or end < brace:
+            break
+        selector = css[i:brace].strip()
+        declarations = _CSS_SANITIZER.sanitize_css(css[brace + 1 : end])
+        i = end + 1
+        if not selector or not declarations:
+            continue
+        scoped = _scope_css_selector(selector, scope)
+        if scoped:
+            rules.append(f"{scoped} {{ {declarations} }}")
+    return "\n".join(rules)
+
 
 @register.filter(name="sanitize_html")
-def sanitize_html(value):
+def sanitize_html(value, scope=_DEFAULT_RICHTEXT_SCOPE):
     """
     Render user-authored rich text without trusting it.
 
@@ -124,22 +266,37 @@ def sanitize_html(value):
     and not a parser -- anything it fails to match became executable HTML
     in every viewer's session. This strips to an allow-list instead, so a
     gap in that regex is no longer exploitable.
+
+    ``<style>`` blocks from the editor are kept after CSS sanitizing and
+    scoped under ``scope`` (default ``.oh-richtext``) so designed policy
+    layouts survive without restyling the rest of the app.
     """
     if not value:
         return ""
-    return mark_safe(
-        bleach.clean(
-            str(value),
-            tags=_ALLOWED_HTML_TAGS,
-            attributes=_ALLOWED_HTML_ATTRS,
-            # No "data": a data: URI on an <img> can carry text/html, which is
-            # a script delivery vector. Pasted screenshots that were inlined as
-            # base64 are dropped; hosted ones survive.
-            protocols=["http", "https", "mailto"],
-            css_sanitizer=_CSS_SANITIZER,
-            strip=True,
-        )
+    raw = str(value)
+    scoped_css = []
+
+    def _remember_style(match):
+        cleaned = _sanitize_style_block(match.group(1), scope)
+        if cleaned:
+            scoped_css.append(cleaned)
+        return ""
+
+    html = _STYLE_BLOCK_RE.sub(_remember_style, raw)
+    cleaned = bleach.clean(
+        html,
+        tags=_ALLOWED_HTML_TAGS,
+        attributes=_ALLOWED_HTML_ATTRS,
+        # No "data": a data: URI on an <img> can carry text/html, which is
+        # a script delivery vector. Pasted screenshots that were inlined as
+        # base64 are dropped; hosted ones survive.
+        protocols=["http", "https", "mailto"],
+        css_sanitizer=_CSS_SANITIZER,
+        strip=True,
     )
+    if scoped_css:
+        cleaned = "<style>" + "\n".join(scoped_css) + "</style>" + cleaned
+    return mark_safe(cleaned)
 
 
 @register.filter
@@ -423,6 +580,13 @@ def show_section(context):
     if not user.is_authenticated:
         return False
 
+    request = context.get("request")
+    if request is not None:
+        from horilla.menu.settings_menu import get_settings_menu
+
+        if any(section.get("items") for section in get_settings_menu(request)):
+            return True
+
     return any(
         [
             user.has_perm("attendance.view_attendancevalidationcondition"),
@@ -436,9 +600,7 @@ def show_section(context):
             user.has_perm("attendance.add_attendance"),
             user.has_perm("geofencing.add_geofencing"),
             user.has_perm("facedetection.add_facedetection"),
-            user.has_perm("recruitment.view_recruitment"),
             user.has_perm("recruitment.view_rejectreason"),
-            user.has_perm("recruitment.add_recruitment"),
             user.has_perm("recruitment.add_linkedinaccount"),
             user.has_perm("horilla_audit.view_accountblockunblock"),
             user.has_perm("offboarding.change_offboardinggeneralsetting"),

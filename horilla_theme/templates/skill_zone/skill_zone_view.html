@@ -2,11 +2,72 @@
 {% load i18n static basefilters %}
 {% block content %}
     {% include 'generic/modern_filter_panel.html' %}
-    <div class="oh-wrapper">
+    <div class="oh-wrapper w-full max-w-full">
         {% include 'skill_zone/skill_zone_nav.html' %}
-        <div id="skill_zone_container">
+        <div id="skill_zone_container" class="w-full min-w-0">
             {% include "skill_zone/skill_zone_list.html" %}
         </div>
     </div>
+    {% include "skill_zone/skill_zone_filter_panel.html" %}
     {% include "generic/components.html" %}
+    <script>
+        (function () {
+            function mountSkillZoneFilterPanel() {
+                var root = document.getElementById("ohAppModalRoot");
+                var backdrop = document.getElementById("modernFilterBackdrop");
+                var panel = document.getElementById("modernFilterPanel");
+                if (root && backdrop && backdrop.parentElement !== root) {
+                    root.appendChild(backdrop);
+                }
+                if (root && panel && panel.parentElement !== root) {
+                    root.appendChild(panel);
+                }
+                if (panel) {
+                    panel.querySelectorAll("input, select, textarea").forEach(function (el) {
+                        if (el.id === "modernFilterFieldSearch") {
+                            return;
+                        }
+                        el.setAttribute("form", "filterForm");
+                    });
+                }
+            }
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", mountSkillZoneFilterPanel);
+            } else {
+                mountSkillZoneFilterPanel();
+            }
+            document.body.addEventListener("htmx:afterSwap", function (evt) {
+                if (evt.detail && evt.detail.target && evt.detail.target.id === "ohMainContent") {
+                    mountSkillZoneFilterPanel();
+                }
+            });
+            $(document).on("htmx:afterRequest", "#filterForm", function () {
+                if (typeof toggleModernFilterPanel === "function") {
+                    toggleModernFilterPanel(false);
+                }
+            });
+        })();
+    </script>
+    <script>
+        if (window._skillZoneContainerReloadHandler) {
+            document.body.removeEventListener(
+                "skillZoneContainerReload",
+                window._skillZoneContainerReloadHandler
+            );
+        }
+        window._skillZoneContainerReloadHandler = function () {
+            var $filter = $(".filterButton").first();
+            if ($filter.length) {
+                $filter.click();
+            }
+            var $msg = $("#reloadMessagesButton");
+            if ($msg.length) {
+                $msg.click();
+            }
+        };
+        document.body.addEventListener(
+            "skillZoneContainerReload",
+            window._skillZoneContainerReloadHandler
+        );
+    </script>
 {% endblock %}

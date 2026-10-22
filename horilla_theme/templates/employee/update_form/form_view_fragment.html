@@ -32,6 +32,11 @@
 
 <div id="employee-update-form-root"{% if active_tab %} data-active-tab="{{ active_tab }}"{% endif %}>
 
+    <!-- Shared dynamic-create modal (outside tab panels so it is never hidden) -->
+    <div class="oh-modal" id="dynamicCreateModal" role="dialog" aria-hidden="true" style="z-index: 1050;">
+        <div class="oh-modal__dialog" style="max-width: 550px" id="dynamicCreateModalBody"></div>
+    </div>
+
     <!-- Header + Stepper -->
     <div class="bg-white rounded-2xl shadow-card px-6 py-3 mb-2">
         <div class="flex items-center justify-between flex-wrap gap-3">

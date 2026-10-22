@@ -1,0 +1,50 @@
+{% extends 'index.html' %}
+{% load i18n static basefilters %}
+{% block content %}
+    {% include 'generic/modern_filter_panel.html' %}
+    <div class="oh-wrapper w-full max-w-full">
+        {% include 'skill_zone/skill_zone_nav.html' %}
+        <div id="skill_zone_container" class="w-full min-w-0">
+            <div class="flex flex-col items-center justify-center py-12 bg-white border border-[#E2E8F0] rounded-xl">
+                <img src="{% static 'images/ui/application.png' %}" alt="" width="200" class="mb-4 opacity-80">
+                <h2 class="text-base font-semibold text-[#0F172A] mb-1">{% trans "No Records found." %}</h2>
+                <p class="text-sm text-[#64748B]">{% trans "There are currently no talent pools to consider." %}</p>
+            </div>
+        </div>
+    </div>
+    {% include "skill_zone/skill_zone_filter_panel.html" %}
+    {% include "generic/components.html" %}
+    <script>
+        (function () {
+            function mountSkillZoneFilterPanel() {
+                var root = document.getElementById("ohAppModalRoot");
+                var backdrop = document.getElementById("modernFilterBackdrop");
+                var panel = document.getElementById("modernFilterPanel");
+                if (root && backdrop && backdrop.parentElement !== root) {
+                    root.appendChild(backdrop);
+                }
+                if (root && panel && panel.parentElement !== root) {
+                    root.appendChild(panel);
+                }
+                if (panel) {
+                    panel.querySelectorAll("input, select, textarea").forEach(function (el) {
+                        if (el.id === "modernFilterFieldSearch") {
+                            return;
+                        }
+                        el.setAttribute("form", "filterForm");
+                    });
+                }
+            }
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", mountSkillZoneFilterPanel);
+            } else {
+                mountSkillZoneFilterPanel();
+            }
+            $(document).on("htmx:afterRequest", "#filterForm", function () {
+                if (typeof toggleModernFilterPanel === "function") {
+                    toggleModernFilterPanel(false);
+                }
+            });
+        })();
+    </script>
+{% endblock %}

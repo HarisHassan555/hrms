@@ -1,0 +1,233 @@
+/**
+ * Horilla layout on top of TailAdmin build CSS (style.css).
+ */
+
+.tailadmin-shell {
+  font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+}
+
+.tailadmin-shell .oh-main-content {
+  margin-left: 0 !important;
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: #f9fafb;
+}
+
+.tailadmin-shell.dark .oh-main-content,
+.tailadmin-shell .dark .oh-main-content {
+  background: #101828;
+}
+
+.tailadmin-shell .oh-app-shell {
+  padding: 0;
+  gap: 0;
+}
+
+.tailadmin-shell #ohMainContent.oh-app-shell__main,
+.tailadmin-shell #ohMainContent {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.tailadmin-shell #ohMainContent > .oh-page-body-panel {
+  padding: 1rem 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .tailadmin-shell #ohMainContent > .oh-page-body-panel {
+    padding: 1.5rem;
+  }
+}
+
+/* Map Horilla sidebar links to TailAdmin menu appearance */
+.tailadmin-shell .tailadmin-horilla-sidebar .sideboxmain,
+.tailadmin-shell .tailadmin-horilla-sidebar a.sideboxmain {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #344054;
+  border: none;
+  background: transparent;
+  text-decoration: none;
+}
+
+.tailadmin-shell .tailadmin-horilla-sidebar .sideboxmain:hover,
+.tailadmin-shell .tailadmin-horilla-sidebar a.sideboxmain:hover {
+  background: #f2f4f7;
+  color: #344054;
+}
+
+.tailadmin-shell .tailadmin-horilla-sidebar .sideboxmain.sidebox-current,
+.tailadmin-shell .tailadmin-horilla-sidebar a.sideboxmain.sidebox-current {
+  background: #ecf3ff;
+  color: #465fff;
+}
+
+.tailadmin-shell .tailadmin-horilla-sidebar .sideboxmain.sidebox-current::before {
+  display: none;
+}
+
+.tailadmin-shell .tailadmin-horilla-sidebar .sidebar-subnav-link {
+  display: block;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475467;
+}
+
+.tailadmin-shell .tailadmin-horilla-sidebar .sidebar-subnav-link:hover,
+.tailadmin-shell .tailadmin-horilla-sidebar .oh-sidebar-active-link {
+  background: #f2f4f7;
+  color: #465fff;
+}
+
+.tailadmin-shell .tailadmin-horilla-sidebar .oh-sidebar__nav-label {
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #98a2b3;
+}
+
+.tailadmin-shell .tailadmin-horilla-sidebar .oh-sidebar__company-card {
+  border: 1px solid #e4e7ec;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tailadmin-shell .oh-app-chrome-header {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  min-height: auto;
+  padding: 0;
+}
+
+/* ── TailAdmin header chrome ─────────────────────────────────────── */
+.tailadmin-shell .ta-header {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.tailadmin-shell .ta-header-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #667085;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.tailadmin-shell .ta-header-icon-btn--round {
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid #e4e7ec;
+  background: #ffffff;
+}
+
+.tailadmin-shell.dark .ta-header-icon-btn--round,
+.tailadmin-shell .dark .ta-header-icon-btn--round {
+  border-color: #344054;
+  background: #101828;
+  color: #98a2b3;
+}
+
+.tailadmin-shell .ta-header-icon-btn--round:hover {
+  background: #f2f4f7;
+  color: #344054;
+}
+
+.tailadmin-shell.dark .ta-header-icon-btn--round:hover,
+.tailadmin-shell .dark .ta-header-icon-btn--round:hover {
+  background: #1d2939;
+  color: #f9fafb;
+}
+
+.tailadmin-shell .ta-header-breadcrumb-bar .oh-chrome-breadcrumb__link,
+.tailadmin-shell .ta-header-breadcrumb-bar .oh-chrome-breadcrumb__text {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tailadmin-shell .ta-header-breadcrumb-bar .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__link,
+.tailadmin-shell .ta-header-breadcrumb-bar .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__text {
+  color: #465fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tailadmin-shell .ta-header-breadcrumb-bar .oh-chrome-breadcrumb__link:hover {
+  color: #3641f5;
+}
+
+.tailadmin-shell .ta-header-profile button > .flex {
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tailadmin-shell .ta-header-profile img.w-11 {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid #e4e7ec;
+}
+
+.tailadmin-shell .ta-header-profile h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #101828;
+}
+
+.tailadmin-shell .ta-header-profile p {
+  color: #667085;
+}
+
+.tailadmin-shell.dark .ta-header-profile h5,
+.tailadmin-shell .dark .ta-header-profile h5 {
+  color: #f9fafb;
+}
+
+.tailadmin-shell .ta-header-attendance .bg-primary-100,
+.tailadmin-shell .ta-header-attendance [class*="border-primary"] {
+  border-radius: 0.5rem !important;
+  border-color: #e4e7ec !important;
+  background: #ffffff !important;
+  font-size: 0.8125rem;
+}
+
+.tailadmin-shell #header {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.tailadmin-shell .oh-chrome-breadcrumb {
+  font-size: 0.875rem;
+}
+
+/* Legacy sidebar hide — disabled in TailAdmin shell (use sidebarToggle) */
+.tailadmin-shell #sidebar.sidebar-hidden {
+  transform: translateX(-100%);
+}
+
+@media (min-width: 1280px) {
+  .tailadmin-shell #sidebar.sidebar-hidden {
+    transform: none;
+    width: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden;
+  }
+}

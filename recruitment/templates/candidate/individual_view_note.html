@@ -74,7 +74,7 @@
                 <span class="oh-activity-sidebar__a">
                     {% trans 'by' %}
                     <img src="{{ note.note_by.get_avatar }}" style="width: 1.5em; border-radius: 100%" />
-                    {{ note.updated_by }} @ {{note.stage_id }}
+                    {{ note.updated_user }} @ {{note.stage_id }}
                     {% trans "stage" %}
                 </span>
                 <div style="width: 50%">

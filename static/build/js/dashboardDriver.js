@@ -4,7 +4,7 @@ const driver = window.driver.js.driver;
 
 
 var steps = [
-    { popover: { title: gettext('Dashboard'), description: gettext('Horilla dashboard section') } },
+    { popover: { title: gettext('Dashboard'), description: gettext('DSG dashboard section') } },
     { element: '#attendance-activity-container', popover: { title: gettext('Mark Attendance'), description: gettext('Used to mark your attendance') } },
 ];
 
@@ -26,7 +26,7 @@ if ($('#mainNavProfile').length) {
     steps.push({ element: '#mainNavProfile', popover: { title: gettext('Profile'), description: gettext('Profile and change password options') } });
 }
 if ($('.oh-card-dashboard').length) {
-    steps.push({ element: '#tileContainer .oh-card-dashboard:nth-child(1)', popover: { title: gettext('Dashboard Tiles'), description: gettext('Horilla Dashboard Tiles') } });
+    steps.push({ element: '#tileContainer .oh-card-dashboard:nth-child(1)', popover: { title: gettext('Dashboard Tiles'), description: gettext('DSG Dashboard Tiles') } });
 }
 setTimeout(() => {
     if ($('.oh-btn-group').length) {

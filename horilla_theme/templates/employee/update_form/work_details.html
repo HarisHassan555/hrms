@@ -1,10 +1,6 @@
 {% load i18n widget_tweaks %}
 
 <div class="oh-general__tab-target" id="work">
-    <!-- Dynamic create modals -->
-    <div class="oh-modal" id="dynamicCreateModal" role="dialog" aria-hidden="true">
-        <div class="oh-modal__dialog" style="max-width: 550px" id="dynamicCreateModalBody"></div>
-    </div>
     <span id="dynamicDept" style="display:none" data-toggle="oh-modal-toggle" data-target="#dynamicCreateModal"
           hx-get="{% url 'department-creation' %}?dynamic=true" hx-target="#dynamicCreateModalBody"></span>
     <span id="dynamicJobPosition" style="display:none" data-toggle="oh-modal-toggle" data-target="#dynamicCreateModal"
@@ -168,10 +164,43 @@
 </div>
 
 <script>
-    function onDynamicCreate(value, id) {
-      if (value === "create") {
-        $(id)[0].click();
+    window.openEmployeeDynamicCreate = function (triggerSelector) {
+      var trigger = document.querySelector(triggerSelector);
+      if (!trigger) {
         return;
+      }
+      var modalSelector = trigger.getAttribute("data-target");
+      var modal = modalSelector ? document.querySelector(modalSelector) : null;
+      var targetSelector = trigger.getAttribute("hx-target");
+      var url = trigger.getAttribute("hx-get");
+      if (modal) {
+        modal.classList.add("oh-modal--show");
+      }
+      if (typeof htmx !== "undefined" && url && targetSelector) {
+        htmx.ajax("GET", url, { target: targetSelector, swap: "innerHTML" });
+      } else {
+        trigger.click();
+      }
+    };
+
+    window.onDynamicCreate = function (value, id, selectEl) {
+      if (value === "create") {
+        if (selectEl) {
+          var previous =
+            selectEl.getAttribute("data-dynamic-prev") || "";
+          window.openEmployeeDynamicCreate(id);
+          selectEl.value = previous;
+          if (window.jQuery) {
+            window.jQuery(selectEl).trigger("change.select2");
+          }
+        } else {
+          window.openEmployeeDynamicCreate(id);
+        }
+        return;
+      }
+
+      if (selectEl) {
+        selectEl.setAttribute("data-dynamic-prev", value || "");
       }
 
       let url, dropdownId, createText, emptyText;
@@ -207,6 +236,9 @@
 
             options.push(`<option value="create">${createText}</option>`);
             dropdown.html(options.join(""));
+            if (dropdown.hasClass("select2-hidden-accessible")) {
+              dropdown.trigger("change.select2");
+            }
           },
         });
       } else {
@@ -261,16 +293,46 @@
           data: { job_position_id: selectedJobPosition },
           success: function (data) {
             $("#id_job_role_id").empty();
+            $("#id_job_role_id").append(
+              $("<option>", {
+                value: "",
+                text: '{% trans "---Choose Job Role---"|escapejs %}',
+              })
+            );
             $.each(data.job_roles, function (key, value) {
               $("#id_job_role_id").append(
                 $("<option>", { value: key, text: value })
               );
             });
+            $("#id_job_role_id").append(
+              $("<option>", {
+                value: "create",
+                text: '{% trans "Create New Job Role"|escapejs %}',
+              })
+            );
             if (selectedJobRole) {
               $("#id_job_role_id").val(selectedJobRole);
+            }
+            if ($("#id_job_role_id").hasClass("select2-hidden-accessible")) {
+              $("#id_job_role_id").trigger("change.select2");
             }
           },
         });
       }
+
+      var dynamicSelectMap = {
+        id_department_id: "#dynamicDept",
+        id_job_position_id: "#dynamicJobPosition",
+        id_job_role_id: "#dynamicJobRole",
+        id_work_type_id: "#dynamicWorkType",
+        id_employee_type_id: "#dynamicEmployeeType",
+        id_shift_id: "#dynamicShift",
+      };
+      $("#employeeUpdateWorkForm").on("change", "select", function () {
+        var trigger = dynamicSelectMap[this.id];
+        if (trigger && this.value === "create") {
+          window.onDynamicCreate("create", trigger, this);
+        }
+      });
     });
 </script>

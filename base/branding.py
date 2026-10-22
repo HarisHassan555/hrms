@@ -2,10 +2,28 @@
 Resolve which Company row drives login favicon, product name, and public branding.
 """
 
+import re
+
+from django.utils.encoding import force_str
+
 from base.models import Company
 
 # Created by seeders/organization_seeder.py — not meant as customer-facing brand.
 SEED_PLACEHOLDER_COMPANY_NAME = "Default Company"
+
+# Default product mark when a company has not uploaded its own icon.
+DEFAULT_PRODUCT_LOGO = "images/ui/dsglogo.png"
+
+_HORILLA_LABEL = re.compile(r"horilla", re.IGNORECASE)
+
+
+def white_label_text(value):
+    """
+    Replace leftover Horilla product wording in user-facing labels.
+    """
+    if value is None:
+        return value
+    return _HORILLA_LABEL.sub("DSG", force_str(value))
 
 
 def resolve_branding_company():

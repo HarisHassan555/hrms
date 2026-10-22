@@ -1,0 +1,323 @@
+/**
+ * Vristo data-table appearance for Horilla list views.
+ * Loaded after global.css and vristo-components.css so it wins app-wide.
+ */
+
+/* ── Scope: primary HR list tables ───────────────────────────────── */
+html.vristo-theme #ohMainContent table.fixed-table,
+html.vristo-theme #ohMainContent table.vr-table,
+html.vristo-theme .hlv-container table.fixed-table,
+html.vristo-theme .hlv-container table.vr-table,
+html.vristo-theme .oh-card table.fixed-table,
+html.vristo-theme .oh-accordion-body table.fixed-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  color: var(--vristo-text);
+  background: var(--vristo-panel);
+}
+
+html.vristo-theme table.fixed-table thead,
+html.vristo-theme table.vr-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+html.vristo-theme table.fixed-table thead th,
+html.vristo-theme table.vr-table thead th,
+html.vristo-theme table.fixed-table thead td,
+html.vristo-theme table.vr-table thead td {
+  background: #f6f8fa !important;
+  color: var(--vristo-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 12px !important;
+  border: none !important;
+  border-bottom: 1px solid var(--vristo-border) !important;
+  border-radius: 0 !important;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+html.vristo-theme table.fixed-table tbody td,
+html.vristo-theme table.vr-table tbody td,
+html.vristo-theme table.fixed-table tbody td.vr-table__cell {
+  padding: 10px 12px !important;
+  border: none !important;
+  border-bottom: 1px solid var(--vristo-border-light) !important;
+  border-radius: 0 !important;
+  color: var(--vristo-text) !important;
+  font-size: 13px !important;
+  vertical-align: middle;
+  min-height: 48px;
+  max-width: none !important;
+  background: var(--vristo-panel);
+  white-space: normal;
+  word-break: break-word;
+}
+
+html.vristo-theme .vr-table__cell-text {
+  white-space: normal !important;
+  word-break: break-word;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+html.vristo-theme .vr-table-scroll {
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+html.vristo-theme .oh-accordion-body .heightContainer,
+html.vristo-theme .oh-accordion-body .vr-table-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: none;
+}
+
+html.vristo-theme table.fixed-table tbody tr:last-child td,
+html.vristo-theme table.vr-table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+html.vristo-theme table.fixed-table tbody tr:hover td,
+html.vristo-theme table.vr-table tbody tr:hover td {
+  background: #f9fafb !important;
+}
+
+html.vristo-theme table.fixed-table tbody tr.highlight-selected td,
+html.vristo-theme table.vr-table tbody tr.highlight-selected td {
+  background: rgba(67, 97, 238, 0.08) !important;
+}
+
+/* No horizontal sticky columns — full table scrolls as one unit */
+html.vristo-theme table.fixed-table .stickyleft,
+html.vristo-theme table.fixed-table .stickyleft-second,
+html.vristo-theme table.fixed-table .stickyright,
+html.vristo-theme table.fixed-table td.stickyleft,
+html.vristo-theme table.fixed-table td.stickyleft-second,
+html.vristo-theme table.fixed-table td.stickyright,
+html.vristo-theme table.fixed-table th.stickyleft,
+html.vristo-theme table.fixed-table th.stickyleft-second,
+html.vristo-theme table.fixed-table th.stickyright,
+html.vristo-theme table.vr-table .stickyleft,
+html.vristo-theme table.vr-table .stickyleft-second,
+html.vristo-theme table.vr-table .stickyright {
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+  z-index: auto !important;
+  box-shadow: none !important;
+}
+
+html.vristo-theme table.fixed-table tbody tr:hover .stickyleft,
+html.vristo-theme table.fixed-table tbody tr:hover .stickyleft-second,
+html.vristo-theme table.fixed-table tbody tr:hover .stickyright {
+  background: #f9fafb !important;
+}
+
+/* Sort icons in header */
+html.vristo-theme table.fixed-table thead .text-primary-600,
+html.vristo-theme table.fixed-table thead .fa-solid {
+  color: var(--vristo-primary) !important;
+}
+
+/* ── Legacy sticky-table layout (group_by.html, older views) ─────── */
+html.vristo-theme .oh-sticky-table {
+  border: 1px solid var(--vristo-border) !important;
+  border-radius: var(--vristo-radius-lg) !important;
+  background: var(--vristo-panel) !important;
+  box-shadow: var(--vristo-shadow-sm);
+  max-height: 75vh;
+}
+
+html.vristo-theme .oh-sticky-table__th,
+html.vristo-theme .oh-sticky-table__sd {
+  background: #f6f8fa !important;
+  color: var(--vristo-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-color: var(--vristo-border-light) !important;
+}
+
+html.vristo-theme .oh-sticky-table__td {
+  color: var(--vristo-text) !important;
+  font-size: 13px !important;
+  border-color: var(--vristo-border-light) !important;
+  background: var(--vristo-panel) !important;
+}
+
+html.vristo-theme .oh-sticky-table__tr:hover .oh-sticky-table__td,
+html.vristo-theme .oh-sticky-table__tr:hover .oh-sticky-table__sd {
+  background: #f9fafb !important;
+  cursor: pointer;
+}
+
+html.vristo-theme .oh-sticky-table__th {
+  border-bottom: 1px solid var(--vristo-border) !important;
+  padding: 10px 12px !important;
+}
+
+html.vristo-theme .oh-sticky-table .oh-sticky-table__sd,
+html.vristo-theme .oh-sticky-table .oh-sticky-table__right {
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+}
+
+/* ── Table toolbar / column config / row actions ─────────────────── */
+html.vristo-theme .oh-sticky-dropdown_btn,
+html.vristo-theme .is-column-config-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--vristo-radius);
+  border: 1px solid var(--vristo-border);
+  background: var(--vristo-panel);
+  color: var(--vristo-text-muted);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+html.vristo-theme .oh-sticky-dropdown_btn:hover,
+html.vristo-theme .is-column-config-trigger:hover {
+  border-color: var(--vristo-primary);
+  color: var(--vristo-primary);
+  background: var(--vristo-primary-light);
+}
+
+html.vristo-theme .oh-sticky-table_dropdown,
+html.vristo-theme .oh-dropdown__menu.oh-sticky-table_dropdown {
+  border: 1px solid var(--vristo-border) !important;
+  border-radius: var(--vristo-radius-lg) !important;
+  box-shadow: var(--vristo-shadow) !important;
+  background: var(--vristo-panel) !important;
+}
+
+html.vristo-theme .oh-column-config {
+  border-color: var(--vristo-border);
+}
+
+html.vristo-theme .oh-column-config__header {
+  border-bottom-color: var(--vristo-border-light);
+}
+
+html.vristo-theme .oh-column-config__title {
+  color: var(--vristo-heading);
+  font-weight: 700;
+}
+
+/* ── Checkboxes in tables (override company theme inline accent) ─── */
+html.vristo-theme table input[type="checkbox"].custom-checkbox,
+html.vristo-theme table input[type="checkbox"].list-table-row,
+html.vristo-theme table input[type="checkbox"].bulk-list-table-row,
+html.vristo-theme .oh-sticky-table input[type="checkbox"] {
+  accent-color: var(--vristo-primary) !important;
+  border-radius: 4px;
+}
+
+html.vristo-theme table input[type="checkbox"].custom-checkbox:checked {
+  background-color: var(--vristo-primary) !important;
+  border-color: var(--vristo-primary) !important;
+}
+
+/* ── Employee avatar cells ───────────────────────────────────────── */
+html.vristo-theme table .oh-profile__image,
+html.vristo-theme table .oh-table-img {
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+html.vristo-theme table .oh-profile {
+  gap: 0.35rem;
+}
+
+/* ── Generic bootstrap / report tables in main content ───────────── */
+html.vristo-theme #ohMainContent table.table:not(.fixed-table) {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--vristo-panel);
+  border: 1px solid var(--vristo-border);
+  border-radius: var(--vristo-radius-lg);
+  overflow: hidden;
+}
+
+html.vristo-theme #ohMainContent table.table:not(.fixed-table) thead th {
+  background: #f6f8fa;
+  color: var(--vristo-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--vristo-border);
+}
+
+html.vristo-theme #ohMainContent table.table:not(.fixed-table) tbody td {
+  border-top: 1px solid var(--vristo-border-light);
+  font-size: 13px;
+  color: var(--vristo-text);
+}
+
+html.vristo-theme #ohMainContent table.table:not(.fixed-table) tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* ── Widget picker tables ──────────────────────────────────────────── */
+html.vristo-theme [id^="multiselect"] .oh-sticky-table,
+html.vristo-theme .oh-sticky-table.oh-sticky-table--widget {
+  border-radius: var(--vristo-radius-lg);
+}
+
+html.vristo-theme table.oh-table.custom-table {
+  border: 1px solid var(--vristo-border) !important;
+  border-radius: var(--vristo-radius-lg) !important;
+  overflow: hidden;
+  background: var(--vristo-panel);
+}
+
+html.vristo-theme table.oh-table.custom-table th,
+html.vristo-theme table.oh-table.custom-table td {
+  border-color: var(--vristo-border-light) !important;
+  padding: 10px 12px !important;
+  font-size: 13px;
+}
+
+html.vristo-theme table.oh-table.custom-table thead th {
+  background: #f6f8fa !important;
+  color: var(--vristo-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+}
+
+html.vristo-theme .oh-table_sticky--wrapper .oh-sticky-table {
+  border-radius: var(--vristo-radius-lg);
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────── */
+html.vristo-theme.dark table.fixed-table thead th,
+html.vristo-theme.dark table.vr-table thead th {
+  background: #1b2e4b !important;
+  color: var(--vristo-text-muted) !important;
+}
+
+html.vristo-theme.dark table.fixed-table tbody td,
+html.vristo-theme.dark table.vr-table tbody td {
+  background: var(--vristo-panel);
+  border-color: var(--vristo-border) !important;
+}
+
+html.vristo-theme.dark table.fixed-table tbody tr:hover td {
+  background: #17263c !important;
+}
+
+html.vristo-theme.dark .oh-sticky-table__th,
+html.vristo-theme.dark .oh-sticky-table__sd {
+  background: #1b2e4b !important;
+}

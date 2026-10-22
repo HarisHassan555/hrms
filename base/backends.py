@@ -60,6 +60,19 @@ class DefaultHorillaMailBackend(EmailBackend):
             **kwargs,
         )
 
+    def apply_configuration(self, configuration=None):
+        """Re-read SMTP connection fields after ``self.configuration`` changes."""
+        if configuration is not None:
+            self.configuration = configuration
+        self.host = self.dynamic_host
+        self.port = self.dynamic_port
+        self.username = self.dynamic_username
+        self.password = self.dynamic_password
+        self.use_tls = self.dynamic_use_tls
+        self.use_ssl = self.dynamic_use_ssl
+        self.fail_silently = self.dynamic_fail_silently
+        self.timeout = self.dynamic_timeout
+
     @staticmethod
     def get_dynamic_email_config():
         request = getattr(_thread_locals, "request", None)
@@ -84,7 +97,12 @@ class DefaultHorillaMailBackend(EmailBackend):
                     configuration.use_dynamic_display_name
                     and request.user.is_authenticated
                 ):
-                    display_email_name = f"{request.user.employee_get.get_full_name()} <{request.user.employee_get.get_email()}>"
+                    # Use the configured mailbox as From (SMTP auth); employee
+                    # contact is still available via Reply-To below.
+                    display_email_name = (
+                        f"{request.user.employee_get.get_full_name()} "
+                        f"<{configuration.from_email}>"
+                    )
                 if request.user.is_authenticated:
                     user_id = request.user.pk
                     reply_to = [

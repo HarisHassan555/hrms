@@ -1160,13 +1160,53 @@ class PolicyMultipleFile(HorillaModel):
         )
 
 
+class PolicySlide(HorillaModel):
+    """
+    One page in a policy presentation (slideshow).
+    """
+
+    policy = models.ForeignKey(
+        "Policy",
+        on_delete=models.CASCADE,
+        related_name="slides",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    title = models.CharField(max_length=120, blank=True, verbose_name=_("Slide title"))
+    body = models.TextField(blank=True, verbose_name=_("Slide text"))
+    image = models.ImageField(
+        upload_to=upload_path,
+        blank=True,
+        null=True,
+        verbose_name=_("Slide image"),
+    )
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        verbose_name = _("Policy slide")
+        verbose_name_plural = _("Policy slides")
+
+    def __str__(self) -> str:
+        label = self.title or _("Slide")
+        return f"{label} ({self.policy_id})"
+
+
 class Policy(HorillaModel):
     """
     Policies model
     """
 
+    class BodyFormat(models.TextChoices):
+        SINGLE = "single", _("Single page")
+        SLIDESHOW = "slideshow", _("Multiple pages (slideshow)")
+
     title = models.CharField(max_length=50)
-    body = models.TextField()
+    body_format = models.CharField(
+        max_length=12,
+        choices=BodyFormat.choices,
+        default=BodyFormat.SINGLE,
+        verbose_name=_("Body format"),
+    )
+    body = models.TextField(blank=True)
     employees = models.ManyToManyField(
         Employee,
         related_name="policy_employees",
@@ -1205,6 +1245,14 @@ class Policy(HorillaModel):
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         self.attachments.all().delete()
+
+    @property
+    def has_slideshow(self):
+        return self.slides.count() > 1
+
+    @property
+    def page_count(self):
+        return self.slides.count()
 
 
 class BonusPoint(HorillaModel):

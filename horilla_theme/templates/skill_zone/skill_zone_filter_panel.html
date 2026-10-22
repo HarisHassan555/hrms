@@ -1,0 +1,93 @@
+{% load i18n %}
+<div class="oh-filter-backdrop" id="modernFilterBackdrop" onclick="toggleModernFilterPanel(false)"></div>
+<div class="oh-filter-panel" id="modernFilterPanel">
+    <div class="oh-filter-panel__header">
+        <h3>{% trans "Filter" %} {% trans "Talent Pool" %}</h3>
+        <button type="button" class="oh-filter-panel__close" onclick="toggleModernFilterPanel(false)" aria-label="{% trans 'Close' %}">
+            <ion-icon name="close-outline"></ion-icon>
+        </button>
+    </div>
+    <div class="oh-filter-panel__search">
+        <input
+            type="text"
+            id="modernFilterFieldSearch"
+            placeholder="{% trans 'Find a filter' %}"
+            oninput="filterModernPanelFields(this.value)"
+            autocomplete="off"
+        >
+    </div>
+    <div class="oh-filter-panel__body">
+        <div class="oh-filter-modern">
+            <div class="oh-accordion oh-accordion--show">
+                <div class="oh-accordion-header">
+                    <span class="oh-filter-section-icon"><ion-icon name="people-outline"></ion-icon></span>
+                    {% trans "Candidate Filter" %}
+                </div>
+                <div class="oh-accordion-body">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-12">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.candidate_id.id_for_label }}">{{ f.form.candidate_id.label }}</label>
+                                {{ f.form.candidate_id }}
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-12 col-lg-12">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.candidate_id__recruitment_id.id_for_label }}">{{ f.form.candidate_id__recruitment_id.label }}</label>
+                                {{ f.form.candidate_id__recruitment_id }}
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-12 col-lg-12">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.candidate_id__job_position_id.id_for_label }}">{{ f.form.candidate_id__job_position_id.label }}</label>
+                                {{ f.form.candidate_id__job_position_id }}
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-12 col-lg-12">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.candidate_id__rejected_candidate__reject_reason_id.id_for_label }}">{% trans "Rejection Reason" %}</label>
+                                {{ f.form.candidate_id__rejected_candidate__reject_reason_id }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-6">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.scheduled_from.id_for_label }}">{{ f.form.scheduled_from.label }}</label>
+                                {{ f.form.scheduled_from }}
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-12 col-lg-6">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.scheduled_till.id_for_label }}">{{ f.form.scheduled_till.label }}</label>
+                                {{ f.form.scheduled_till }}
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-12 col-lg-6">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.candidate_id__offer_letter_status.id_for_label }}">{% trans "Offer Letter Status" %}</label>
+                                {{ f.form.candidate_id__offer_letter_status }}
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-12 col-lg-6">
+                            <div class="oh-input-group">
+                                <label class="oh-label" for="{{ f.form.is_active.id_for_label }}">{{ f.form.is_active.label }}</label>
+                                {{ f.form.is_active }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="oh-filter-panel__footer">
+        <button type="button" class="oh-filter-panel__clear" onclick="clearAllFilter(this)">
+            <ion-icon name="close-outline"></ion-icon>
+            {% trans "Clear all" %}
+        </button>
+        <button type="submit" class="oh-filter-panel__apply filterButton" id="applyFilter" form="filterForm">
+            <ion-icon name="checkmark-outline"></ion-icon>
+            {% trans "Apply" %}
+        </button>
+    </div>
+</div>

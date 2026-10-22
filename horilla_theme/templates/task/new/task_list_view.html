@@ -45,7 +45,7 @@
     columns stay aligned across all of them.
     {% endcomment %}
     <div class="bg-white border border-[#EAE8E3] rounded-lg mb-1.5 overflow-hidden">
-        <table class="fixed-table w-full table-fixed border-separate">
+        <table class="vr-table fixed-table w-full table-fixed border-separate">
             {% include "task/new/_task_colgroup.html" %}
             <thead>
                 <tr class="border-b border-[#ececec]">
@@ -140,7 +140,7 @@
                     <div class="py-2">
                         {% if stage.tasks.exists %}
                             <div class="overflow-x-auto">
-                                <table class="fixed-table w-full table-fixed border-separate">
+                                <table class="vr-table fixed-table w-full table-fixed border-separate">
                                     {% include "task/new/_task_colgroup.html" %}
                                     <tbody>
                                         {% for task in stage.tasks.all %}

@@ -45,7 +45,7 @@
            shell's budget, and the outer shell ends up scrolling/growing
            instead of just the table. Override .heightContainer's max-height
            here with a page-specific budget that subtracts this extra
-           header's own height too. Needs !important: the app's Tailwind
+           title block height (42px). Needs !important: the app's Tailwind
            runtime (horilla_theme/assets/js/tailwind.js) recompiles
            arbitrary-value classes like max-h-[calc(...)] into an inline
            style on every htmx swap, and a plain inline style always beats a

@@ -1158,9 +1158,11 @@ def export_data(request, model, form_class, filter_class, file_name, perm=None):
         if value in selected_fields:
             selected_columns.append((value, key))
 
+    from base.branding import white_label_text
+
     for field_name, verbose_name in selected_columns:
         if field_name in selected_fields:
-            data_export[verbose_name] = []
+            data_export[white_label_text(verbose_name)] = []
             for obj in export_objects:
                 value = obj
                 nested_attributes = field_name.split("__")

@@ -1,0 +1,497 @@
+/**
+ * DSG HRMS — Application chrome (top bar, breadcrumbs)
+ * Loaded after global.css; pairs with sidebar-saas.css
+ */
+
+:root {
+  --chrome-primary: #4f46e5;
+  --chrome-primary-hover: #4338ca;
+  --chrome-primary-soft: #eef2ff;
+  --chrome-surface: #ffffff;
+  --chrome-page-bg: #f8fafc;
+  --chrome-border: #e2e8f0;
+  --chrome-border-light: #f1f5f9;
+  --chrome-text: #0f172a;
+  --chrome-text-secondary: #475569;
+  --chrome-text-muted: #94a3b8;
+  --chrome-header-height: 64px;
+  --chrome-header-inset: 8px;
+  --app-shell-inset: 8px;
+  --app-shell-gap: 8px;
+  --chrome-header-radius: 12px;
+  --chrome-radius: 8px;
+  --chrome-shadow-header: 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+/* ── Main column background ───────────────────────────────────────── */
+.oh-main-content {
+  background-color: var(--chrome-page-bg);
+}
+
+/*
+ * Wireframe layout: sidebar | [ shell padding → header bar → gap → main body ]
+ * One inset on the shell (not on #header) so top matches left/right exactly.
+ */
+.oh-app-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: var(--app-shell-inset);
+  gap: var(--app-shell-gap);
+}
+
+#header {
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+/* Main content surface — matches header card (12px radius, border, shadow) */
+#ohMainContent.oh-app-shell__main,
+.oh-page-body-panel {
+  flex: 1;
+  min-height: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--chrome-surface);
+  border: 1px solid var(--chrome-border);
+  border-radius: var(--chrome-header-radius);
+  box-shadow: var(--chrome-shadow-header);
+}
+
+/* Legacy inner wrapper (dashboard): avoid double border when nested */
+#ohMainContent.oh-app-shell__main > .oh-page-body-panel {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  overflow: visible;
+}
+
+/* Recruitment / onboarding pipeline: full-width board (avoid nested .oh-wrapper 95% shrink) */
+.pipeline-page-root,
+#pipelineContainer.pipeline-page-root {
+  max-width: none;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.pipeline-page-root .oh-tabs__tab-content-shell,
+.pipeline-page-root [id^="pipelineTabContent"] {
+  max-width: none;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* ── Top header ───────────────────────────────────────────────────── */
+.oh-app-chrome-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--chrome-header-height);
+  height: var(--chrome-header-height);
+  padding: 0 24px !important;
+  background: var(--chrome-surface) !important;
+  border: 1px solid var(--chrome-border) !important;
+  border-radius: var(--chrome-header-radius);
+  box-shadow: var(--chrome-shadow-header);
+}
+
+.oh-app-chrome-header__start {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.oh-app-chrome-header__crumbs {
+  min-width: 0;
+  flex: 1;
+  padding-left: 4px;
+  border-left: 1px solid var(--chrome-border-light);
+}
+
+.oh-app-chrome-header__end {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.oh-app-chrome-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.oh-app-chrome-header__profile {
+  padding-left: 12px;
+  border-left: 1px solid var(--chrome-border-light);
+}
+
+/* Icon controls (menu, theme, settings, …) */
+.oh-chrome-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--chrome-border);
+  border-radius: var(--chrome-radius);
+  background: var(--chrome-surface);
+  color: var(--chrome-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.oh-chrome-icon-btn:hover {
+  background: var(--chrome-page-bg);
+  border-color: #cbd5e1;
+  color: var(--chrome-text);
+}
+
+.oh-chrome-icon-btn:focus-visible {
+  outline: none;
+  border-color: var(--chrome-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.oh-chrome-icon-btn--menu {
+  color: var(--chrome-primary);
+  background: var(--chrome-primary-soft);
+  border-color: transparent;
+}
+
+.oh-chrome-icon-btn--menu:hover {
+  background: var(--chrome-primary);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.oh-chrome-icon-btn i {
+  font-size: 16px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.oh-chrome-icon-btn--menu:hover i {
+  color: #ffffff;
+}
+
+.oh-chrome-icon-btn > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.oh-chrome-icon-btn .oh-chrome-notify-badge {
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  color: #ffffff;
+  background: var(--chrome-primary);
+  border: 2px solid var(--chrome-surface);
+  border-radius: 999px;
+}
+
+.oh-chrome-icon-btn--has-badge {
+  position: relative;
+}
+
+/* Override legacy circular primary chips inside the new header */
+.oh-app-chrome-header .bg-primary-100 {
+  background-color: var(--chrome-surface) !important;
+  border: 1px solid var(--chrome-border);
+  border-radius: var(--chrome-radius) !important;
+  width: 40px !important;
+  height: 40px !important;
+  color: var(--chrome-text-secondary) !important;
+}
+
+.oh-app-chrome-header .bg-primary-100:hover {
+  background-color: var(--chrome-page-bg) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.oh-app-chrome-header .bg-primary-100 i {
+  color: var(--chrome-text-secondary) !important;
+}
+
+.oh-app-chrome-header .bg-primary-100:hover i {
+  color: var(--chrome-text) !important;
+}
+
+.oh-app-chrome-header .oh-topbar-menu-toggle.bg-primary-100:hover {
+  background-color: var(--chrome-primary) !important;
+  border-color: transparent !important;
+}
+
+.oh-app-chrome-header .oh-topbar-menu-toggle.bg-primary-100:hover i {
+  color: #ffffff !important;
+}
+
+/* ── Breadcrumbs ──────────────────────────────────────────────────── */
+.oh-chrome-breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oh-chrome-breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--chrome-text-muted);
+}
+
+.oh-chrome-breadcrumb__item:not(:last-child)::after {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin: 0 6px;
+  flex-shrink: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m9 5 7 7-7 7'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  opacity: 0.85;
+}
+
+.oh-chrome-breadcrumb__link,
+.oh-chrome-breadcrumb__text {
+  display: inline-block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--chrome-text-secondary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.oh-chrome-breadcrumb__link:hover {
+  color: var(--chrome-primary);
+}
+
+.oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__text,
+.oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__link {
+  color: var(--chrome-text);
+  font-size: 15px;
+  font-weight: 600;
+  max-width: 20rem;
+}
+
+/* Hide legacy breadcrumb rules when chrome breadcrumb is used */
+.oh-chrome-breadcrumb .breadcrumb,
+.oh-chrome-breadcrumb.oh-chrome-breadcrumb {
+  gap: 0;
+}
+
+nav.oh-chrome-breadcrumb {
+  min-width: 0;
+}
+
+/* ── Dark mode ────────────────────────────────────────────────────── */
+body.dark {
+  --chrome-surface: #1e1e1e;
+  --chrome-page-bg: #141414;
+  --chrome-border: #333333;
+  --chrome-border-light: #2a2a2a;
+  --chrome-text: #f1f5f9;
+  --chrome-text-secondary: #cbd5e1;
+  --chrome-text-muted: #94a3b8;
+  --chrome-shadow-header: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+body.dark .oh-chrome-icon-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+body.dark .oh-chrome-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+body.dark .oh-chrome-icon-btn--menu {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+}
+
+body.dark .oh-chrome-icon-btn--menu:hover {
+  background: var(--chrome-primary);
+  color: #ffffff;
+}
+
+body.dark .oh-app-chrome-header .bg-primary-100 {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark .oh-app-chrome-header .bg-primary-100 i {
+  color: #ffffff !important;
+}
+
+body.dark .oh-app-chrome-header .bg-primary-100:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark .oh-app-chrome-header .oh-topbar-menu-toggle.bg-primary-100:hover {
+  background-color: var(--chrome-primary) !important;
+}
+
+@media (max-width: 767.98px) {
+  .oh-app-chrome-header {
+    padding: 0 16px !important;
+  }
+
+  .oh-app-chrome-header__crumbs {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__text,
+  .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__link {
+    font-size: 14px;
+    max-width: 10rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oh-chrome-icon-btn,
+  .oh-chrome-breadcrumb__link {
+    transition: none !important;
+  }
+}
+
+/* ── Empty-state illustration (no records) ─────────────────────────── */
+img[src*="images/ui/application.png"] {
+  width: 160px;
+  max-width: 65%;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.58;
+}
+
+/* Compact empty states inside dashboard / chart widgets */
+.md-empty img[src*="images/ui/application.png"],
+.as-empty img[src*="images/ui/application.png"],
+.hd-empty img[src*="images/ui/application.png"],
+.ob-empty img[src*="images/ui/application.png"],
+.on-empty img[src*="images/ui/application.png"],
+.ld-empty img[src*="images/ui/application.png"],
+.pd-empty img[src*="images/ui/application.png"],
+.pm-empty img[src*="images/ui/application.png"],
+.pr-empty img[src*="images/ui/application.png"],
+.rd-empty img[src*="images/ui/application.png"],
+.ed-empty img[src*="images/ui/application.png"] {
+  width: 56px;
+  max-width: none;
+  opacity: 0.65;
+}
+
+/* ── Rich-text document body (policies, etc.) ──────────────────────── */
+.oh-modal:has(.oh-richtext) .oh-modal__dialog {
+  max-width: 880px;
+  width: min(880px, 92vw);
+}
+
+.oh-richtext {
+  color: var(--color-text-primary, #0f172a);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.oh-richtext > *:first-child {
+  margin-top: 0;
+}
+
+.oh-richtext h1,
+.oh-richtext h2,
+.oh-richtext h3,
+.oh-richtext h4,
+.oh-richtext h5,
+.oh-richtext h6 {
+  color: var(--color-text-primary, #0f172a);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.1em 0 0.5em;
+}
+
+.oh-richtext h1 { font-size: 28px; }
+.oh-richtext h2 { font-size: 22px; }
+.oh-richtext h3 { font-size: 18px; }
+.oh-richtext h4 { font-size: 16px; }
+
+.oh-richtext p {
+  margin: 0 0 0.85em;
+}
+
+.oh-richtext ul,
+.oh-richtext ol {
+  margin: 0 0 1em;
+  padding-left: 1.4em;
+}
+
+.oh-richtext li {
+  margin: 0.25em 0;
+}
+
+.oh-richtext img {
+  max-width: 100%;
+  height: auto;
+}
+
+.oh-richtext table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1em;
+}
+
+.oh-richtext th,
+.oh-richtext td {
+  padding: 10px 12px;
+  vertical-align: top;
+  border: 1px solid var(--color-border, #e2e8f0);
+}
+
+.oh-richtext blockquote {
+  margin: 0 0 1em;
+  padding: 8px 14px;
+  border-left: 3px solid var(--color-primary, #4f46e5);
+  color: var(--color-text-secondary, #475569);
+  background: var(--color-surface-secondary, #f8fafc);
+}
