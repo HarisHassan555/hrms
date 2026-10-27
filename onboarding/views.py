@@ -827,12 +827,22 @@ def email_send(request):
             )
             continue
 
+        from base.mail_template_catalog import (
+            build_candidate_mail_template_context,
+            build_onboarding_portal_absolute_url,
+        )
+
+        portal_url = build_onboarding_portal_absolute_url(
+            request, candidate, create=True, refresh=True
+        )
+
         # Generate PDFs
+        mail_context = build_candidate_mail_template_context(
+            request, candidate, ensure_onboarding_portal=True
+        )
         for html in bodys:
             template_bdy = template.Template(sanitize_mail_template_body(html))
-            context = template.Context(
-                {"instance": candidate, "self": request.user.employee_get}
-            )
+            context = template.Context(mail_context)
             render_bdy = template_bdy.render(context)
 
             attachments.append(
@@ -843,22 +853,12 @@ def email_send(request):
                 )
             )
 
-        # Create / reset portal
-        token = secrets.token_hex(15)
-        portal, _createdcreated = OnboardingPortal.objects.get_or_create(
-            candidate_id=candidate
-        )
-        portal.token = token
-        portal.used = False
-        portal.count = 0
-        portal.profile = None
-        portal.save()
-
         # Render email HTML
         html_message = render_to_string(
             "onboarding/mail_templates/default.html",
             {
-                "portal": f"{protocol}://{host}/onboarding/user-creation/{token}",
+                "portal": portal_url or mail_context.get("portal", ""),
+                "candidate_mobile": mail_context.get("candidate_mobile", ""),
                 "instance": candidate,
                 "host": host,
                 "protocol": protocol,

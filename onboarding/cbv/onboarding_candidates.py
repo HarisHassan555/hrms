@@ -46,8 +46,7 @@ class OnboardingCandidatesView(TemplateView):
             is_active=True,
             recruitment_id__closed=False,
         ).filter(Q(hired=True) | Q(stage_id__stage_type="hired"))
-        mail_templates = HorillaMailTemplate.objects.all()
-        context["mail_templates"] = mail_templates
+        context["mail_templates"] = HorillaMailTemplate.objects.all()
         context["hired_candidates"] = hired_candidates
         return context
 

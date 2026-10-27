@@ -481,20 +481,50 @@ def send_mail(request, automation, instance):
         safe_request = (
             build_safe_template_request(request) if request is not None else None
         )
+
+        def _mail_render_context():
+            base = {
+                "instance": context_instance,
+                "self": sender,
+                "model_instance": instance,
+                "request": safe_request,
+                "portal": "",
+            }
+            if context_instance is None or request is None:
+                return base
+            try:
+                from recruitment.models import Candidate
+
+                if isinstance(context_instance, Candidate):
+                    from base.mail_template_catalog import (
+                        build_candidate_mail_template_context,
+                        mail_body_needs_onboarding_portal,
+                    )
+
+                    body_source = ""
+                    if mail_template:
+                        body_source = mail_template.body or ""
+                    return build_candidate_mail_template_context(
+                        request,
+                        context_instance,
+                        ensure_onboarding_portal=mail_body_needs_onboarding_portal(
+                            body_source
+                        )
+                        or context_instance.hired,
+                    )
+            except Exception:
+                pass
+            return base
+
+        mail_context = _mail_render_context()
+
         if context_instance:
             if template_attachments := automation.template_attachments.all():
                 for template_attachment in template_attachments:
                     template_bdy = template.Template(
                         sanitize_mail_template_body(template_attachment.body)
                     )
-                    context = template.Context(
-                        {
-                            "instance": context_instance,
-                            "self": sender,
-                            "model_instance": instance,
-                            "request": safe_request,
-                        }
-                    )
+                    context = template.Context(mail_context)
                     render_bdy = template_bdy.render(context)
                     # A blocklist over the raw template source can be bypassed
                     # by splitting a dangerous tag across separate {{ }}
@@ -525,14 +555,7 @@ def send_mail(request, automation, instance):
             )
         else:
             template_bdy = template.Template(sanitize_mail_template_body(pk_or_text))
-        context = template.Context(
-            {
-                "instance": context_instance,
-                "self": sender,
-                "model_instance": instance,
-                "request": safe_request,
-            }
-        )
+        context = template.Context(mail_context)
         render_bdy = template_bdy.render(context)
 
         title_template = template.Template(

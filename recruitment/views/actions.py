@@ -472,7 +472,10 @@ def remove_recruitment_manager(request, mid, rid):
 @login_required
 def get_template(request, obj_id=None):
     """
-    This method is used to return the mail template
+    Return the raw mail template HTML for the send-mail editor.
+
+    The editor must keep Django template tags; send_acknowledgement renders them
+    on submit with portal URL, request host, and candidate fields.
     """
     body = ""
     if obj_id:
@@ -483,18 +486,6 @@ def get_template(request, obj_id=None):
         )
         if not body:
             return JsonResponse({"body": None})
-
-        template_bdy = template.Template(body)
-    if request.GET.get("word"):
-        word = request.GET.get("word")
-        template_bdy = template.Template("{{" + word + "}}")
-    candidate_id = request.GET.get("candidate_id")
-    if candidate_id:
-        candidate_obj = Candidate.objects.get(id=candidate_id)
-        context = template.Context(
-            {"instance": candidate_obj, "self": request.user.employee_get}
-        )
-        # body = template_bdy.render(context) or " "
     return JsonResponse({"body": body})
 
 
@@ -529,8 +520,17 @@ def get_template_hint(request, obj_id=None):
         candidate_obj = candidate_qs.first()
         if not candidate_obj:
             return JsonResponse({"body": " "}, status=404)
+        from base.mail_template_catalog import (
+            build_candidate_mail_template_context,
+            mail_body_needs_onboarding_portal,
+        )
+
         context = template.Context(
-            {"instance": candidate_obj, "self": request.user.employee_get}
+            build_candidate_mail_template_context(
+                request,
+                candidate_obj,
+                ensure_onboarding_portal=mail_body_needs_onboarding_portal(body),
+            )
         )
         body = template_bdy.render(context) or " "
     return JsonResponse({"body": body})
@@ -562,13 +562,27 @@ def get_mail_preview(request):
         if not candidate_obj:
             return HttpResponse("Candidate not found", status=404)
 
-    # Keep `request` in context, but only as a sanitized proxy.
+    from base.mail_template_catalog import (
+        build_candidate_mail_template_context,
+        mail_body_needs_onboarding_portal,
+    )
+
     context = {
         "instance": candidate_obj,
         "model_instance": candidate_obj,
         "self": getattr(request.user, "employee_get", None),
-        "request": build_safe_template_request(request),
     }
+    if candidate_obj:
+        context.update(
+            build_candidate_mail_template_context(
+                request,
+                candidate_obj,
+                ensure_onboarding_portal=mail_body_needs_onboarding_portal(body or ""),
+            )
+        )
+    else:
+        context["request"] = build_safe_template_request(request)
+        context["portal"] = ""
 
     # Render template
     rendered_body = template.Template(body).render(template.Context(context)) or " "

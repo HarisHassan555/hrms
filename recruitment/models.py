@@ -1198,6 +1198,27 @@ class Candidate(HorillaModel):
         """ """
         return self.get_email()
 
+    def get_onboarding_portal_path(self):
+        """
+        Relative URL path for the hired candidate's onboarding portal link.
+
+        Used in mail templates (``request.scheme`` + ``request.get_host`` + this path)
+        without exposing the raw token placeholder in user-editable template source.
+        """
+        from django.apps import apps
+        from django.core.exceptions import ObjectDoesNotExist
+
+        if not apps.ready or not apps.is_installed("onboarding"):
+            return ""
+        try:
+            portal = self.onboarding_portal
+        except ObjectDoesNotExist:
+            return ""
+        token = getattr(portal, "token", None)
+        if not token:
+            return ""
+        return f"/onboarding/user-creation/{token}"
+
     def phone(self):
         return self.mobile
 

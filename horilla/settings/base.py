@@ -35,6 +35,10 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+# Public URL for links in outbound email (e.g. https://hrms.example.com).
+HORILLA_PUBLIC_URL = (env("HORILLA_PUBLIC_URL", default="") or "").strip().rstrip("/")
+# Honor X-Forwarded-Host / X-Forwarded-Proto behind reverse proxies.
+USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", default=True)
 HORILLA_ENV = env("HORILLA_ENV", default="")
 REDIS_URL = env("REDIS_URL", default=None)
 

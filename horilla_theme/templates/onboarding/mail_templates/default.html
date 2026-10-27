@@ -100,17 +100,40 @@
                 </tr>
                 <tr>
                     <td align="center" style="padding-top: 0px">
-                        <p style="width: 90%">
-                            Your dedication is valued, and we wish you continued success. If you have questions or need
-                            assistance, feel free to ask. Best wishes for your journey! Kindly complete your profile
-                            when convenient.
+                        <p style="width: 90%; font-size: 14px; line-height: 1.7; color: #374151">
+                            Congratulations on your selection. Use the onboarding portal below to complete your employee
+                            profile, upload documents, and finish onboarding tasks before you join
+                            <strong>{{ instance.get_company }}</strong> as
+                            <strong>{{ instance.get_job_position }}</strong>.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding: 8px 25px 0 25px">
+                        <table style="width: 90%; max-width: 520px; margin: 0 auto; border: 1px solid #f0f0f0; border-left: 4px solid {{ theme_obj.primary_600 }}; background: #fafafa">
+                            <tr>
+                                <td style="padding: 10px; font-size: 14px; line-height: 1.6; text-align: left; color: #111827">
+                                    <p style="margin: 0 0 8px 0"><strong>{% trans 'Portal link' %}:</strong><br>
+                                    <a href="http://localhost:8000{{ instance.get_onboarding_portal_path }}" style="color: {{ theme_obj.primary_600 }}; word-break: break-all">http://localhost:8000{{ instance.get_onboarding_portal_path }}</a></p>
+                                    <p style="margin: 0 0 8px 0"><strong>{% trans 'Email (for your account)' %}:</strong> {{ instance.email }}</p>
+                                    <p style="margin: 0 0 8px 0"><strong>{% trans 'Mobile number' %}:</strong> {{ instance.mobile }}</p>
+                                    <p style="margin: 0"><strong>{% trans 'How to access' %}:</strong> {% trans 'Open the personal link above. You will create your password on first visit.' %}</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding: 8px 25px 0 25px">
+                        <p style="width: 90%; font-size: 13px; color: #6b7280; margin: 0">
+                            {% trans 'For security, please keep this onboarding link private and do not forward it.' %}
                         </p>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding: 15px" align="center">
                         <a
-                            href="{{ portal }}"
+                            href="http://localhost:8000{{ instance.get_onboarding_portal_path }}"
                             style="background-color: {{ theme_obj.primary_600 }}; color: #fff; border-radius: 10px; display: inline-block; padding: 15px 25px; text-decoration: none; font-weight: bold"
                         >{% trans 'Complete Profile' %}</a>
                     </td>

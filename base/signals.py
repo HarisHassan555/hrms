@@ -574,6 +574,26 @@ def create_default_hrms_groups(sender, **kwargs):
         )
 
 
+@receiver(post_migrate)
+def sync_portal_mail_templates(sender, **kwargs):
+    """Seed or upgrade recruitment/onboarding portal mail templates after migrate."""
+    if getattr(sender, "label", None) != "base":
+        return
+    try:
+        from base.mail_template_catalog import (
+            ensure_onboarding_complete_profile_portal_mail_template,
+            ensure_recruitment_candidate_portal_mail_template,
+        )
+
+        ensure_recruitment_candidate_portal_mail_template()
+        ensure_onboarding_complete_profile_portal_mail_template()
+    except Exception:
+        logging.getLogger(__name__).debug(
+            "Skipping portal mail template sync after migrate",
+            exc_info=True,
+        )
+
+
 @receiver(m2m_changed, sender=Announcement.employees.through)
 def filtered_employees(sender, instance, action, **kwargs):
     """

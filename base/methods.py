@@ -338,6 +338,82 @@ def sanitize_mail_template_placeholders(body, allowed_template_words):
     return body
 
 
+def get_public_request_host(request) -> str:
+    """Host for absolute URLs, honoring reverse-proxy forwarded headers."""
+    if request is None:
+        return ""
+    forwarded_host = request.META.get("HTTP_X_FORWARDED_HOST")
+    if forwarded_host:
+        host = forwarded_host.split(",")[0].strip()
+        forwarded_port = request.META.get("HTTP_X_FORWARDED_PORT")
+        if forwarded_port and ":" not in host:
+            host = f"{host}:{forwarded_port}"
+        return host
+    try:
+        return request.get_host()
+    except Exception:
+        return ""
+
+
+def get_public_request_scheme(request) -> str:
+    if request is None:
+        return ""
+    forwarded = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").split(",")[
+        0
+    ].strip()
+    if forwarded in ("http", "https"):
+        return forwarded
+    return "https" if request.is_secure() else "http"
+
+
+def get_public_site_origin(request) -> str:
+    """Return ``scheme://host`` for links in outbound email."""
+    from urllib.parse import urlparse
+
+    if request is not None:
+        try:
+            absolute = request.build_absolute_uri("/")
+            parsed = urlparse(absolute)
+            if parsed.scheme and parsed.netloc:
+                return f"{parsed.scheme}://{parsed.netloc}"
+        except Exception:
+            pass
+
+    host = get_public_request_host(request)
+    scheme = get_public_request_scheme(request)
+    if host and scheme:
+        return f"{scheme}://{host}"
+
+    public_url = (getattr(settings, "HORILLA_PUBLIC_URL", None) or "").strip()
+    if public_url:
+        return public_url.rstrip("/")
+
+    origins = getattr(settings, "CSRF_TRUSTED_ORIGINS", None) or []
+    if origins:
+        return str(origins[0]).rstrip("/")
+
+    try:
+        from django.contrib.sites.models import Site
+
+        domain = Site.objects.get_current().domain
+        if domain:
+            if domain.startswith("http://") or domain.startswith("https://"):
+                return domain.rstrip("/")
+            return f"https://{domain}".rstrip("/")
+    except Exception:
+        pass
+
+    for allowed in getattr(settings, "ALLOWED_HOSTS", None) or []:
+        if allowed and allowed != "*":
+            return f"https://{allowed.split(':')[0]}"
+    return ""
+
+
+def request_site_origin(request) -> str:
+    """Return ``scheme://host`` for the current HTTP request."""
+    return get_public_site_origin(request)
+
+
 def build_safe_template_request(request):
     """
     Build a sanitized request proxy for template rendering.
@@ -345,7 +421,25 @@ def build_safe_template_request(request):
     Keeps a `request` object available in context while preventing access to
     sensitive request/user internals such as password hashes, META, session,
     csrf token internals, etc.
+
+    Exposes ``scheme`` and ``get_host`` so mail templates can build absolute
+    URLs (e.g. candidate portal links) without the full Django request object.
     """
+    if request is None:
+        return SimpleNamespace(
+            method="",
+            path="",
+            scheme="",
+            user=SimpleNamespace(
+                id=None,
+                username="",
+                is_authenticated=False,
+                is_staff=False,
+                is_superuser=False,
+            ),
+            get_host=lambda: "",
+        )
+
     user = getattr(request, "user", None)
     safe_user = SimpleNamespace(
         id=getattr(user, "id", None),
@@ -355,10 +449,15 @@ def build_safe_template_request(request):
         is_superuser=bool(getattr(user, "is_superuser", False)),
     )
 
+    scheme = get_public_request_scheme(request)
+    host = get_public_request_host(request)
+
     return SimpleNamespace(
         method=getattr(request, "method", ""),
         path=getattr(request, "path", ""),
+        scheme=scheme,
         user=safe_user,
+        get_host=lambda: host,
     )
 
 

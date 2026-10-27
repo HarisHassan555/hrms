@@ -80,6 +80,7 @@ def apply_secure_defaults(env, debug: bool) -> dict:
         "SECURE_CONTENT_TYPE_NOSNIFF": True,
         "SECURE_REFERRER_POLICY": "strict-origin-when-cross-origin",
         "SECURE_PROXY_SSL_HEADER": ("HTTP_X_FORWARDED_PROTO", "https"),
+        "USE_X_FORWARDED_HOST": True,
         "SECURE_SSL_REDIRECT": env.bool("SECURE_SSL_REDIRECT", default=False),
     }
     if settings["SECURE_SSL_REDIRECT"]:
