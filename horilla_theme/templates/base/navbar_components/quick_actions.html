@@ -1,0 +1,127 @@
+{% load i18n horillafilters %}
+{% comment %}
+  Header Quick Actions dropdown — same chrome as language / company switchers.
+  Items mirror the former floating FAB (floating_button.html).
+{% endcomment %}
+<div
+    class="dropdown-content absolute right-0 z-10 w-max min-w-56 max-w-[22rem] rounded-lg bg-white py-2 [box-shadow:0px_0px_20px_0px_rgb(0_0_0_/_8%)]"
+>
+    <div class="px-4 pb-2 mb-1 border-b border-[#f0f0f0]">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            {% trans "Quick Actions" %}
+        </span>
+    </div>
+    <ul class="max-h-[70vh] overflow-y-auto text-sm">
+        {% if "helpdesk"|app_installed %}
+            <li>
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-2.5 px-4 py-2 text-sm transition duration-300 hover:bg-primary-100 hover:text-primary-600"
+                    data-toggle="oh-modal-toggle"
+                    data-target="#objectCreateModal"
+                    hx-get="{% url 'ticket-create' %}"
+                    hx-target="#objectCreateModalTarget"
+                >
+                    <i class="fas fa-ticket w-4 text-center opacity-70" aria-hidden="true"></i>
+                    <span>{% trans "Create Ticket" %}</span>
+                </button>
+            </li>
+        {% endif %}
+
+        {% if "asset"|app_installed %}
+            <li>
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-2.5 px-4 py-2 text-sm transition duration-300 hover:bg-primary-100 hover:text-primary-600"
+                    data-toggle="oh-modal-toggle"
+                    data-target="#objectCreateModal"
+                    hx-get="{% url 'asset-request-creation' %}"
+                    hx-target="#objectCreateModalTarget"
+                >
+                    <i class="fas fa-laptop w-4 text-center opacity-70" aria-hidden="true"></i>
+                    <span>{% trans "Create Asset Request" %}</span>
+                </button>
+            </li>
+        {% endif %}
+
+        {% if "payroll"|app_installed %}
+            <li>
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-2.5 px-4 py-2 text-sm transition duration-300 hover:bg-primary-100 hover:text-primary-600"
+                    data-toggle="oh-modal-toggle"
+                    data-target="#genericModal"
+                    hx-get="{% url 'reimbursement-create' %}"
+                    hx-target="#genericModalBody"
+                >
+                    <i class="fas fa-money-bill-wave w-4 text-center opacity-70" aria-hidden="true"></i>
+                    <span>{% trans "Create Reimbursement" %}</span>
+                </button>
+            </li>
+        {% endif %}
+
+        <li>
+            <button
+                type="button"
+                class="flex w-full items-center gap-2.5 px-4 py-2 text-sm transition duration-300 hover:bg-primary-100 hover:text-primary-600"
+                data-toggle="oh-modal-toggle"
+                data-target="#objectCreateModal"
+                hx-get="{% url 'work-type-request' %}"
+                hx-target="#objectCreateModalTarget"
+            >
+                <i class="fas fa-briefcase w-4 text-center opacity-70" aria-hidden="true"></i>
+                <span>{% trans "Create Work Type Request" %}</span>
+            </button>
+        </li>
+
+        <li>
+            <button
+                type="button"
+                class="flex w-full items-center gap-2.5 px-4 py-2 text-sm transition duration-300 hover:bg-primary-100 hover:text-primary-600"
+                data-toggle="oh-modal-toggle"
+                data-target="#objectCreateModal"
+                hx-get="{% url 'shift-request' %}"
+                hx-target="#objectCreateModalTarget"
+            >
+                <i class="fas fa-clock-rotate-left w-4 text-center opacity-70" aria-hidden="true"></i>
+                <span>{% trans "Create Shift Request" %}</span>
+            </button>
+        </li>
+
+        {% if "leave"|app_installed %}
+            <li>
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-2.5 px-4 py-2 text-sm transition duration-300 hover:bg-primary-100 hover:text-primary-600"
+                    data-toggle="oh-modal-toggle"
+                    data-target="#genericModal"
+                    {% if perms.leave.create_leaverequest %}
+                        hx-get="{% url 'request-creation' %}"
+                    {% else %}
+                        hx-get="{% url 'leave-request-create' %}"
+                    {% endif %}
+                    hx-target="#genericModalBody"
+                >
+                    <i class="fas fa-calendar-plus w-4 text-center opacity-70" aria-hidden="true"></i>
+                    <span>{% trans "Create Leave Request" %}</span>
+                </button>
+            </li>
+        {% endif %}
+
+        {% if "attendance"|app_installed %}
+            <li>
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-2.5 px-4 py-2 text-sm transition duration-300 hover:bg-primary-100 hover:text-primary-600"
+                    data-toggle="oh-modal-toggle"
+                    data-target="#genericModal"
+                    hx-get="{% url 'request-new-attendance' %}"
+                    hx-target="#genericModalBody"
+                >
+                    <i class="fas fa-user-plus w-4 text-center opacity-70" aria-hidden="true"></i>
+                    <span>{% trans "Create Attendance Request" %}</span>
+                </button>
+            </li>
+        {% endif %}
+    </ul>
+</div>

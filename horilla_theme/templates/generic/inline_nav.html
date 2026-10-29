@@ -78,10 +78,47 @@
     {% endcomment %}
     {% include 'generic/filter_count_and_custom_builder.html' %}
 {% endif %}
+<style>
+    .hrms-inline-nav-toolbar {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+    .hrms-inline-nav-toolbar .navFilterForm {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+    .hrms-inline-nav-toolbar .hrms-nav-search {
+        position: relative;
+        flex: 0 1 200px;
+        width: 200px;
+        max-width: 240px;
+        min-width: 140px;
+    }
+    .hrms-inline-nav-toolbar .hrms-nav-search input[name="search"] {
+        width: 100%;
+    }
+    @media (max-width: 767.98px) {
+        .hrms-inline-nav-toolbar,
+        .hrms-inline-nav-toolbar .navFilterForm {
+            flex-wrap: wrap;
+        }
+        .hrms-inline-nav-toolbar .hrms-nav-search {
+            flex: 1 1 100%;
+            width: 100%;
+            max-width: none;
+        }
+    }
+</style>
 <div class="text-sm font-semibold bg-[#f3f3f3] px-3 py-3 text-[#333] flex items-center justify-between gap-2 flex-wrap">
     <span>{{ nav_title }}</span>
 
-    <div class="flex flex-wrap items-center gap-1">
+    <div class="hrms-inline-nav-toolbar">
         {% if search_url %}
             <form
                 autocomplete="off"
@@ -92,15 +129,15 @@
                 hx-replace-url="false"
                 hx-target="{{ search_swap_target }}"
                 hx-on:submit="htmxLoadIndicator(this);"
-                class="flex flex-wrap items-center gap-1 navFilterForm"
+                class="navFilterForm"
             >
                 <input type="text" name="nav_url" value="{{ request.path }}" hidden>
                 <input type="hidden" name="filter_applied" value="on">
 
-                <div class="relative">
+                <div class="hrms-nav-search">
                     <input
                         type="text"
-                        class="text-color-600 ps-8 p-1.5 pb-2 placeholder:text-xs w-full border border-primary-500 rounded-md focus-visible:outline-0 placeholder:text-dark-100 text-sm [transition:.3s] focus:border-primary-600"
+                        class="text-color-600 ps-8 p-1.5 pb-2 placeholder:text-xs border border-primary-500 rounded-md focus-visible:outline-0 placeholder:text-dark-100 text-sm [transition:.3s] focus:border-primary-600"
                         name="search"
                         aria-label="{% trans 'Search Input' %}"
                         placeholder="{% trans 'Search' %}"

@@ -3,6 +3,7 @@
 
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="{% static 'build/js/chartPalette.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
 
     <div class="md-dashboard">
@@ -569,7 +570,10 @@
             const subTextColor = isDark ? '#64748b' : '#94a3b8';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
             const cardBg = isDark ? '#242424' : '#ffffff';
-            const COLORS = ['#4F46E5','#0EA5E9','#14B8A6','#22C55E','#F59E0B','#EF4444','#94A3B8'];
+            // Soft pastel palette (same language as Needs Your Attention cards)
+            const COLORS = (window.HORILLA_CHART_COLORS || [
+                '#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE'
+            ]);
             const ANIM = { enabled: true, easing: 'easeinout', speed: 700, animateGradually: { enabled: true, delay: 80 }, dynamicAnimation: { enabled: true, speed: 500 } };
             const GRID = { borderColor: gridColor, strokeDashArray: 5, padding: { left: 4, right: 4 } };
             const TOOLTIP_STYLE = { theme: isDark ? 'dark' : 'light', style: { fontSize: '12px' } };
@@ -1238,10 +1242,10 @@
                     renderChart('attendance-trend', document.querySelector("#chart-attendance-trend"), {
                         series: [{ name: '{% trans "Attendance Rate"|escapejs %}', data: data.weeks.map(w => w.rate) }],
                         chart: { type: 'area', height: 280, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
-                        colors: ['#4F46E5'],
-                        fill: { type: 'solid', opacity: 0.12 },
+                        colors: [COLORS[0]],
+                        fill: { type: 'solid', opacity: 0.18 },
                         stroke: { curve: 'straight', width: 3 },
-                        markers: { size: 5, colors: ['#4F46E5'], strokeColors: cardBg, strokeWidth: 2, hover: { size: 7 } },
+                        markers: { size: 5, colors: [COLORS[0]], strokeColors: cardBg, strokeWidth: 2, hover: { size: 7 } },
                         dataLabels: { enabled: false },
                         xaxis: { ...XAXIS_STYLE, categories: data.weeks.map(w => w.week) },
                         yaxis: { ...YAXIS_STYLE, min: 0, max: 100, tickAmount: 5, forceNiceScale: false, labels: { ...YAXIS_STYLE.labels, formatter: v => v + '%' } },
@@ -1329,7 +1333,7 @@
                 .then(data => {
                     if (!data.genders.length) { document.querySelector("#chart-gender").innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
                     {# keyed on the raw gender value: the name the API sends is translated #}
-                    const gc = { 'male': '#0EA5E9', 'female': '#14B8A6', 'other': '#4F46E5', '': '#94A3B8' };
+                    const gc = { 'male': '#93C5FD', 'female': '#5EEAD4', 'other': '#A5B4FC', '': '#CBD5E1' };
                     renderChart('gender', document.querySelector("#chart-gender"), {
                         series: data.genders.map(g => g.count),
                         chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
@@ -1399,7 +1403,10 @@
                 .then(data => {
                     if (!data.dataSet || !data.dataSet.length) { document.querySelector("#chart-employee-status").innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
                     {# keyed on the API's stable series keys, not on the translated labels #}
-                    const sc = { 'active': '#22c55e', 'inactive': '#ef4444' };
+                    const sc = Object.assign(
+                        { active: '#86EFAC', inactive: '#FCA5A5' },
+                        window.HORILLA_CHART_STATUS || {}
+                    );
                     const statusKeys = data.keys || ['active', 'inactive'];
                     renderChart('employee-status', document.querySelector("#chart-employee-status"), {
                         series: data.dataSet[0].data,
@@ -1460,7 +1467,7 @@
                                 window.location.href = "{% url 'employee-view' %}?" + params.toString();
                             }}
                         },
-                        colors: ['#22C55E', '#F59E0B', '#EF4444'],
+                        colors: ['#86EFAC', '#FCD34D', '#FCA5A5'],
                         fill: { type: 'solid', opacity: 1 },
                         plotOptions: { bar: { borderRadius: 6, borderRadiusApplication: 'end', columnWidth: '58%' } },
                         xaxis: { ...XAXIS_STYLE, categories: data.labels },
@@ -1512,11 +1519,11 @@
                         series: seriesArr.map(s => ({ name: s.label || 'Leaves', data: s.data })),
                         chart: { type: 'area', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
                             dropShadow: { enabled: false } },
-                        colors: ['#4F46E5'],
-                        fill: { type: 'solid', opacity: 0.12 },
+                        colors: [COLORS[0]],
+                        fill: { type: 'solid', opacity: 0.18 },
                         stroke: { curve: 'smooth', width: 3 },
-                        markers: { size: 5, colors: ['#4F46E5'], strokeColors: cardBg, strokeWidth: 2, hover: { size: 7 } },
-                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#4F46E5'] }, background: { enabled: true, foreColor: '#fff', borderRadius: 4, padding: 3, borderWidth: 0, fillColors: ['#4F46E5'] } },
+                        markers: { size: 5, colors: [COLORS[0]], strokeColors: cardBg, strokeWidth: 2, hover: { size: 7 } },
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#4338CA'] }, background: { enabled: true, foreColor: '#fff', borderRadius: 4, padding: 3, borderWidth: 0, fillColors: [COLORS[0]] } },
                         xaxis: { ...XAXIS_STYLE, categories: data.labels },
                         yaxis: { ...YAXIS_STYLE, min: 0, tickAmount: 4 },
                         grid: GRID,
@@ -1553,7 +1560,7 @@
                                     window.location.href = "{% url 'candidate-view' %}?recruitment=" + encodeURIComponent(recruitment) + "&stage_id__stage_type=" + encodeURIComponent(stage.toLowerCase());
                                 }}
                             },
-                            colors: ['#4F46E5', '#0EA5E9', '#14B8A6', '#22C55E', '#F59E0B'],
+                            colors: COLORS.slice(0, 5),
                             plotOptions: { bar: { borderRadius: 6, columnWidth: '60%' } },
                             xaxis: { ...XAXIS_STYLE, categories: data.labels },
                             yaxis: { ...YAXIS_STYLE },
@@ -1605,13 +1612,13 @@
                                 window.location.href = "{% url 'candidate-view' %}?joining_date_from=" + from + "&joining_date_till=" + till + "&hired=true";
                             }}
                         },
-                        colors: ['#F59E0B'],
+                        colors: [COLORS[4]],
                         fill: { type: 'solid', opacity: 1 },
                         plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', columnWidth: '48%' } },
                         xaxis: { ...XAXIS_STYLE, categories: data.labels },
                         yaxis: { ...YAXIS_STYLE },
                         grid: GRID,
-                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#fff'] }, background: { enabled: false } },
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#92400E'] }, background: { enabled: false } },
                         tooltip: { ...TOOLTIP_STYLE, y: { formatter: v => v + ' {% trans "employee(s)"|escapejs %}' } },
                         states: { hover: { filter: { type: 'darken', value: 0.85 } } },
                     });
@@ -1638,7 +1645,7 @@
                             { name: '{% trans "Available"|escapejs %}', data: data.days.map(d => d.available) },
                         ],
                         chart: { type: 'bar', height: 280, stacked: true, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-                        colors: ['#F59E0B', '#22C55E'],
+                        colors: [COLORS[4], COLORS[3]],
                         plotOptions: { bar: { columnWidth: '55%', borderRadius: 4 } },
                         xaxis: { ...XAXIS_STYLE, categories: data.days.map(d => d.label) },
                         yaxis: { labels: { style: { colors: textColor, fontSize: '11px' } } },
@@ -1671,7 +1678,7 @@
                                 window.location.href = "{% url 'request-view' %}?department=" + encodeURIComponent(dept);
                             }}
                         },
-                        colors: ['#4F46E5','#0EA5E9','#14B8A6','#22C55E','#F59E0B','#EF4444'],
+                        colors: COLORS.slice(0, 6),
                         plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', horizontal: true, barHeight: '52%', distributed: true } },
                         xaxis: { ...XAXIS_STYLE, categories: data.labels },
                         yaxis: { labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } } },
@@ -1695,7 +1702,7 @@
                     renderChart('leave-days', document.querySelector("#chart-leave-days"), {
                         series: [{ name: '{% trans "Leave Days"|escapejs %}', data: data.dataset[0].data }],
                         chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
-                        colors: ['#4F46E5','#0EA5E9','#14B8A6','#22C55E','#F59E0B','#EF4444','#94A3B8'],
+                        colors: COLORS,
                         plotOptions: { bar: { borderRadius: 8, borderRadiusApplication: 'end', horizontal: true, barHeight: '50%', distributed: true } },
                         xaxis: { ...XAXIS_STYLE, categories: data.labels },
                         yaxis: { labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } } },
@@ -1872,7 +1879,17 @@
                         chartInstances['recruitment-funnel'] = null;
                     }
                     if (!data.stages || !data.stages.length) { el.innerHTML = emptyHtml('{% trans "No active recruitments"|escapejs %}'); return; }
-                    const stageColors = { initial: '#94A3B8', applied: '#4F46E5', test: '#0EA5E9', interview: '#F59E0B', hired: '#22C55E', cancelled: '#EF4444' };
+                    const stageColors = Object.assign(
+                        {
+                            initial: '#CBD5E1',
+                            applied: '#A5B4FC',
+                            test: '#93C5FD',
+                            interview: '#FCD34D',
+                            hired: '#86EFAC',
+                            cancelled: '#FCA5A5',
+                        },
+                        window.HORILLA_CHART_STAGE || {}
+                    );
                     const maxCount = Math.max(...data.stages.map(s => s.count), 1);
                     const total = data.total_candidates || data.stages.reduce((a, s) => a + (s.count || 0), 0) || 1;
                     let html = '<div class="md-funnel">';
@@ -1920,13 +1937,13 @@
                             { name: '{% trans "Exits"|escapejs %}', data: data.months.map(m => m.exits) },
                         ],
                         chart: { type: 'bar', height: 290, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
-                        colors: ['#22C55E', '#EF4444'],
+                        colors: [COLORS[3], COLORS[5]],
                         fill: { type: 'solid', opacity: 1 },
                         plotOptions: { bar: { borderRadius: 6, borderRadiusApplication: 'end', columnWidth: '52%', grouped: true } },
                         xaxis: { ...XAXIS_STYLE, categories: data.months.map(m => m.month) },
                         yaxis: { ...YAXIS_STYLE },
                         grid: GRID,
-                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#fff'] }, background: { enabled: false } },
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 700, colors: ['#166534', '#991B1B'] }, background: { enabled: false } },
                         legend: { ...LEGEND_STYLE, position: 'top', horizontalAlign: 'right' },
                         tooltip: { ...TOOLTIP_STYLE },
                         states: { hover: { filter: { type: 'darken', value: 0.85 } } },
@@ -1955,12 +1972,12 @@
 
                     el.innerHTML = `
                 <div style="padding:10px 4px 4px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:14px 16px;border-radius:12px;background:#4F46E5;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:14px 16px;border-radius:12px;background:#EEF2FF;border:1px solid #E0E7FF;">
                         <div>
-                            <div style="font-size:10px;color:rgba(255,255,255,0.7);text-transform:uppercase;font-weight:700;letter-spacing:0.06em;margin-bottom:2px;">{% trans "Net Pay"|escapejs %}</div>
-                            <div style="font-size:28px;font-weight:800;color:#fff;line-height:1;">${fmt(data.current.net)}</div>
+                            <div style="font-size:10px;color:#6366F1;text-transform:uppercase;font-weight:700;letter-spacing:0.06em;margin-bottom:2px;">{% trans "Net Pay"|escapejs %}</div>
+                            <div style="font-size:28px;font-weight:800;color:#3730A3;line-height:1;">${fmt(data.current.net)}</div>
                         </div>
-                        <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">${changeIcon} ${Math.abs(data.change_percent)}%</span>
+                        <span style="background:#E0E7FF;color:#4338CA;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">${changeIcon} ${Math.abs(data.change_percent)}%</span>
                     </div>
                     <div class="md-payroll-summary">
                         <div class="md-payroll-stat" style="background:rgba(34,197,94,0.08);border-radius:10px;padding:10px;">

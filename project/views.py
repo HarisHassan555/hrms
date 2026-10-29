@@ -976,8 +976,15 @@ def task_stage_change(request, task_id):
         messages.error(request, _("Stage not found"))
         return HttpResponse("<script>$('#reloadMessagesButton').click();</script>")
 
-    if task.end_date and task.end_date < datetime.date.today():
-        messages.warning(request, _("Cannot update stage. Task has already expired."))
+    if task.is_update_locked:
+        if task.status == "completed":
+            messages.warning(
+                request, _("Cannot update stage. Task is already completed.")
+            )
+        else:
+            messages.warning(
+                request, _("Cannot update stage. Task has already expired.")
+            )
         return HttpResponse("<script>$('#reloadMessagesButton').click();</script>")
 
     project = task.project
@@ -991,7 +998,10 @@ def task_stage_change(request, task_id):
         messages.info(request, _("You don't have permission."))
         return HttpResponse("<script>$('#reloadMessagesButton').click();</script>")
 
+    from project.methods import sync_task_status_to_stage
+
     task.stage = stage
+    sync_task_status_to_stage(task, stage)
     task.save()
     messages.success(request, _("Task stage has been updated successfully"))
 
@@ -1087,9 +1097,17 @@ def drag_and_drop_task(request):
         messages.error(request, _("Task not found"))
         return JsonResponse({"error": "Task not found"}, status=404)
 
-    if task.end_date and task.end_date < date.today():
-        messages.warning(request, _("Cannot update status. Task has already expired."))
-        return JsonResponse({"change": True})
+    if task.is_update_locked:
+        if task.status == "completed":
+            messages.warning(
+                request, _("Cannot update status. Task is already completed.")
+            )
+        else:
+            messages.warning(
+                request, _("Cannot update status. Task has already expired.")
+            )
+        # change=False so the client can revert the optimistic drag move
+        return JsonResponse({"change": False, "locked": True})
 
     project = task.project
     if (
@@ -1100,7 +1118,10 @@ def drag_and_drop_task(request):
         or request.user.employee_get in project.managers.all()
     ):
         if previous_stage_id != updated_stage_id:
+            from project.methods import sync_task_status_to_stage
+
             task.stage = ProjectStage.objects.get(id=updated_stage_id)
+            sync_task_status_to_stage(task, task.stage)
             task.save()
             change = True
         sequence = json.loads(request.POST["sequence"])
@@ -1177,14 +1198,43 @@ def update_project_task_status(request, task_id):
     if not task:
         return HorillaRedirect(request, message=_("Task not found"))
 
-    if task.end_date and task.end_date < date.today():
-        messages.warning(request, _("Cannot update status. Task has already expired."))
+    if task.is_update_locked:
+        if task.status == "completed":
+            messages.warning(
+                request, _("Cannot update status. Task is already completed.")
+            )
+        else:
+            messages.warning(
+                request, _("Cannot update status. Task has already expired.")
+            )
         return HttpResponse("<script>$('#reloadMessagesButton').click();</script>")
 
+    from project.methods import sync_task_stage_to_status
+
     task.status = status
+    sync_task_stage_to_status(task, status)
     task.save()
     messages.success(request, _("Task status has been updated successfully"))
     return HttpResponse("<script>$('#reloadMessagesButton').click();</script>")
+
+
+@login_required
+def task_kanban_lock_check(request):
+    """
+    Pre-move check for /project/task-all/ status kanban.
+    Blocks dragging completed / expired / past-due tasks into another column.
+    """
+    task = Task.find(request.GET.get("objectId"))
+    if not task:
+        return JsonResponse({"blocked": True, "message": str(_("Task not found"))})
+    if task.is_update_locked:
+        message = (
+            _("Cannot update status. Task is already completed.")
+            if task.status == "completed"
+            else _("Cannot update status. Task has already expired.")
+        )
+        return JsonResponse({"blocked": True, "message": str(message)})
+    return JsonResponse({"blocked": False})
 
 
 @login_required

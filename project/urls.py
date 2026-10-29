@@ -194,6 +194,11 @@ urlpatterns = [
         views.update_project_task_status,
         name="update-project-task-status",
     ),
+    path(
+        "task-kanban-lock-check/",
+        views.task_kanban_lock_check,
+        name="task-kanban-lock-check",
+    ),
     # path("task-all", views.task_all, name="task-all"),
     # path("create-task-all", views.task_all_create, name="create-task-all"),
     # path(

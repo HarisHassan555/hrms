@@ -17,6 +17,17 @@
             --md-teal: #14B8A6;
             --md-gray: #94A3B8;
             --md-radius: 12px;
+            /* Soft chart fills — same language as Needs Your Attention cards */
+            --md-chart-1: #A5B4FC;
+            --md-chart-2: #93C5FD;
+            --md-chart-3: #5EEAD4;
+            --md-chart-4: #86EFAC;
+            --md-chart-5: #FCD34D;
+            --md-chart-6: #FCA5A5;
+            --md-chart-7: #D8B4FE;
+            --md-chart-8: #F9A8D4;
+            --md-chart-9: #67E8F9;
+            --md-chart-10: #FDBA74;
         }
 
         .md-dashboard {

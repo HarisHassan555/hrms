@@ -26,6 +26,9 @@ class HorillaKanbanView(HorillaCardView):
     folded_groups: list = []
     action_method: str = """"""
     group_label_key: str = ""
+    # Optional URL polled before a cross-column move; response
+    # ``{"blocked": true, "message": "..."}`` cancels the drag.
+    pre_move_check_url: str = ""
     # Plural noun for this board's columns, shown in the "No <label> found"
     # empty state when there are none (e.g. "stages", "statuses"). Falls
     # back to "groups" in the template when left blank.

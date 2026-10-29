@@ -10,7 +10,6 @@ from datetime import date, datetime, time, timedelta
 from types import SimpleNamespace
 
 import pandas as pd
-import pdfkit
 from django import template
 from django.apps import apps
 from django.conf import settings
@@ -1851,20 +1850,9 @@ def template_pdf(template, context={}, html=False, filename="payslip.pdf"):
         bootstrap_css = '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">'
         html_content = f"{bootstrap_css}\n{template}"
 
-        pdf_options = {
-            "page-size": "A4",
-            "margin-top": "10mm",
-            "margin-bottom": "10mm",
-            "margin-left": "10mm",
-            "margin-right": "10mm",
-            "encoding": "UTF-8",
-            "enable-local-file-access": None,
-            "dpi": 300,
-            "zoom": 1.3,
-            "footer-center": "[page]/[topage]",
-        }
+        from base.pdf_utils import html_to_pdf
 
-        pdf = pdfkit.from_string(html_content, False, options=pdf_options)
+        pdf = html_to_pdf(html_content)
 
         response = HttpResponse(pdf, content_type="application/pdf")
         response["Content-Disposition"] = f"inline; filename={filename}"

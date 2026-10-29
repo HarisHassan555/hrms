@@ -1,10 +1,10 @@
-﻿{% extends "index.html" %}
+{% extends "index.html" %}
 {% load static i18n %}
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
-    :root { --on-indigo: var(--primary-600, #E54F38); --on-green: #22c55e; --on-amber: #f59e0b; --on-red: #ef4444; --on-blue: #3b82f6; --on-purple: #a855f7; }
+    :root { --on-indigo: var(--primary-600, #A5B4FC); --on-green: #86EFAC; --on-amber: #FCD34D; --on-red: #FCA5A5; --on-blue: #93C5FD; --on-purple: #D8B4FE; }
     .on-dashboard { font-family: inherit; background: #ffffff; margin: -24px; padding: 24px; min-height: calc(100vh - 80px); }
     .dark .on-dashboard { background: #000000; }
     .on-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -234,7 +234,7 @@
     const textColor = isDark ? '#e2e8f0' : '#334155';
     const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
     const cardBg = isDark ? '#242424' : '#ffffff';
-    const COLORS = ['#E54F38','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
+    const COLORS = (window.HORILLA_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
     const taskColors = { todo: '#94a3b8', scheduled: '#3b82f6', ongoing: '#f59e0b', stuck: '#ef4444', done: '#22c55e' };
     const emptyHtml = (msg) => `<div class="on-empty"><img src="/static/images/ui/application.png" alt="">${msg}</div>`;
 

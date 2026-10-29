@@ -5,7 +5,16 @@ from dataclasses import dataclass
 from typing import Callable
 
 from . import admin_team_seeder, asset_seeder, attendance_seeder, employee_seeder, leave_seeder
-from . import organization_seeder, qarshi_seeder
+from . import (
+    organization_seeder,
+    pakistan_helpdesk_seeder,
+    pakistan_org_seeder,
+    pakistan_pms_seeder,
+    pakistan_profile_seeder,
+    pakistan_project_seeder,
+    pakistan_recruitment_seeder,
+    qarshi_seeder,
+)
 from .utils import SeederResult
 
 
@@ -35,6 +44,54 @@ SEEDERS = OrderedDict(
                 "qarshi",
                 "Qarshi Industries (company + 4 users)",
                 qarshi_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_org",
+            Seeder(
+                "pakistan_org",
+                "DataSphere Global PK — 2 companies, org charts, history",
+                pakistan_org_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_recruitment",
+            Seeder(
+                "pakistan_recruitment",
+                "DSG PK recruitment jobs, candidates, onboarding, conversions",
+                pakistan_recruitment_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_profiles",
+            Seeder(
+                "pakistan_profiles",
+                "Complete employee profiles — shifts, bank, contracts, perks",
+                pakistan_profile_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_projects",
+            Seeder(
+                "pakistan_projects",
+                "DSG PK projects, tasks, timesheets + visibility scenarios",
+                pakistan_project_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_pms",
+            Seeder(
+                "pakistan_pms",
+                "DSG PK performance — OKRs, feedback, meetings, bonus",
+                pakistan_pms_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_helpdesk",
+            Seeder(
+                "pakistan_helpdesk",
+                "DSG PK tickets, types, dept managers, FAQs, claims",
+                pakistan_helpdesk_seeder.seed,
             ),
         ),
         (

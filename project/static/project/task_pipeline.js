@@ -87,14 +87,29 @@ $(document).ready(function () {
         // Enables sortable functionality for task containers,
         // tracking drag-and-drop events and updating task sequences via AJAX.
         connectWith: ".task-container",
+        cancel: ".task--locked",
+        items: ".task:not(.task--locked)",
         start: function (event, ui) {
             var $draggedCard = ui.item;
+            if ($draggedCard.data('task-locked') === true || $draggedCard.attr('data-task-locked') === 'true') {
+                $(this).sortable('cancel');
+                return;
+            }
             var $taskOldStage = $draggedCard.closest('.oh-kanban__section');
             taskOldStageId = $taskOldStage.data('stage-id');  // Store the task old stage ID
-            window.$oldStageTaskCount = $taskOldStage.find('.task-count')
+            window.$oldStageTaskCount = $taskOldStage.find('.task-count');
+            window.$taskDragOrigin = {
+                $stage: $taskOldStage,
+                $placeholderParent: $draggedCard.parent(),
+                index: $draggedCard.index(),
+            };
         },
         stop: function (event, ui) {
             var $draggedCard = ui.item;
+            if ($draggedCard.data('task-locked') === true || $draggedCard.attr('data-task-locked') === 'true') {
+                $(this).sortable('cancel');
+                return;
+            }
             var $taskNewStage = $draggedCard.closest('.oh-kanban__section');
             var $newStageTaskCount = $taskNewStage.find('.task-count');
             var taskNewStageId = $taskNewStage.data('stage-id');  // Get the task new stage ID
@@ -103,7 +118,7 @@ $(document).ready(function () {
             // Check if the task has moved to a new stage
             if (taskNewStageId !== taskOldStageId) {
                 var new_stage_seq = {};
-                var task_container = $(this).children(".task");
+                var task_container = $taskNewStage.find('.task-container').children(".task");
                 task_container.each(function (i, obj) {
                     new_stage_seq[$(obj).data('task-id')] = i;
                 });
@@ -129,6 +144,23 @@ $(document).ready(function () {
                         sequence: JSON.stringify(new_stage_seq),
                     },
                     success: function (response) {
+                        if (response.locked || response.change === false) {
+                            // Revert optimistic move so UI matches server state
+                            var origin = window.$taskDragOrigin;
+                            if (origin && origin.$stage && origin.$stage.length) {
+                                var $originContainer = origin.$stage.find('.task-container');
+                                var $siblings = $originContainer.children('.task');
+                                if (origin.index >= $siblings.length) {
+                                    $originContainer.append($draggedCard);
+                                } else {
+                                    $draggedCard.insertBefore($siblings.eq(origin.index));
+                                }
+                                window.$oldStageTaskCount.html(oldCount);
+                                $newStageTaskCount.html(newCount);
+                            }
+                            $("#reloadMessagesButton").click();
+                            return;
+                        }
                         if (response.change === true) {
                             $("#reloadMessagesButton").click();
                         }

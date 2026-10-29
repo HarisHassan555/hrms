@@ -429,6 +429,24 @@ class Task(HorillaModel):
         )
 
     @property
+    def is_update_locked(self):
+        """
+        Completed / expired / past-due tasks cannot change status or stage
+        via pipeline dropdowns or drag-and-drop (UI and API must match).
+        """
+        if self.status in ("completed", "expired"):
+            return True
+        return bool(self.end_date and self.end_date < date.today())
+
+    def get_update_locked_flag(self):
+        """Lowercase flag for kanban data attributes."""
+        return "true" if self.is_update_locked else "false"
+
+    def get_update_locked_class(self):
+        """CSS class for locked kanban cards."""
+        return "task--locked" if self.is_update_locked else ""
+
+    @property
     def is_due_soon(self):
         """
         Due within the next 2 days and not already overdue/completed --

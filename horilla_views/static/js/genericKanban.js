@@ -106,6 +106,20 @@ function handleValidDrop(groupId, objectId, row) {
 				order: JSON.stringify(values),
 			},
 			success: function (response) {
+				if (response.blocked) {
+					var originParent = row.data("origin-parent");
+					var originIndex = row.data("origin-index");
+					if (originParent && originIndex !== undefined) {
+						revertItemPosition({ item: row });
+					}
+					Swal.fire({
+						icon: "error",
+						title: typeof gettext !== "undefined" ? gettext("Cannot Change Status") : "Cannot Change Status",
+						text: response.error || response.message || (typeof gettext !== "undefined" ? gettext("This move is not allowed.") : "This move is not allowed."),
+						confirmButtonText: typeof i18nMessages !== "undefined" ? i18nMessages.ok : "Ok",
+					});
+					return;
+				}
 				row.find(`[name="group_id"]`).val(groupId);
 				adjustGroupCount(originalGroupId, -1);
 				adjustGroupCount(groupId, 1);
@@ -128,9 +142,14 @@ function handleValidDrop(groupId, objectId, row) {
 				}
 			},
 			error: function (xhr) {
+				var originParent = row.data("origin-parent");
+				var originIndex = row.data("origin-index");
+				if (originParent && originIndex !== undefined) {
+					revertItemPosition({ item: row });
+				}
 				Toast.fire({
 					icon: "error",
-					title: gettext("Failed to update sequence: ") + xhr.responseJSON?.error || "Unknown error",
+					title: (typeof gettext !== "undefined" ? gettext("Failed to update sequence: ") : "Failed to update sequence: ") + (xhr.responseJSON?.error || "Unknown error"),
 					position: "top-end",
 				});
 			},
@@ -275,11 +294,20 @@ function initializeSortable() {
 		.disableSelection();
 }
 
+function isKanbanItemLocked($item) {
+	return (
+		$item.attr("data-task-locked") === "true" ||
+		$item.data("task-locked") === true ||
+		$item.hasClass("task--locked")
+	);
+}
+
 function initializeKanbanSortable(sectionSelector, stageSelector) {
 
 	$(sectionSelector).sortable({
 		connectWith: sectionSelector,
-		items: "> :not(.htmx-indicator)",
+		items: "> :not(.htmx-indicator):not([data-task-locked='true']):not(.task--locked)",
+		cancel: "[data-task-locked='true'], .task--locked",
 		ghostClass: "blue-background-class",
 		placeholder: "sortable-placeholder",
 		forcePlaceholderSize: true,
@@ -298,6 +326,10 @@ function initializeKanbanSortable(sectionSelector, stageSelector) {
 
 		start: function (event, ui) {
 			var row = $(ui.item);
+			if (isKanbanItemLocked(row)) {
+				$(this).sortable("cancel");
+				return;
+			}
 			var nodeId = row.closest(stageSelector).attr("data-group-id");
 			var currentStage = parseInt(nodeId);
 
@@ -313,6 +345,10 @@ function initializeKanbanSortable(sectionSelector, stageSelector) {
 		stop: function (event, ui) {
 			var self = this;
 			var row = $(ui.item);
+			if (isKanbanItemLocked(row)) {
+				revertItemPosition(ui);
+				return;
+			}
 			var candidateId = row.data("instanceId");
 			var nodeId = row.closest(stageSelector).attr("data-group-id");
 			var targetStageId = parseInt(nodeId);

@@ -11,7 +11,6 @@ from itertools import groupby
 from urllib.parse import parse_qs
 
 import pandas as pd
-import pdfkit
 from django.conf import settings as pay_settings
 from django.contrib import messages
 from django.db.models import ProtectedError, Q
@@ -610,6 +609,18 @@ def view_payslip_pdf(request, payslip_id):
             data["host"] = request.get_host()
             data["protocol"] = "https" if request.is_secure() else "http"
             data["company"] = company
+            from payroll.methods.payslip_assets import (
+                payslip_company_for_employee,
+                resolve_company_logo_data_uri,
+            )
+
+            payslip_company = payslip_company_for_employee(
+                payslip.employee_id, company
+            )
+            data["payslip_company"] = payslip_company
+            data["company_logo_data_uri"] = resolve_company_logo_data_uri(
+                payslip_company
+            )
 
             return render(request, "payroll/payslip/payslip_pdf.html", context=data)
         return redirect(filter_payslip)
@@ -1466,8 +1477,24 @@ def generate_payslip_pdf(template_path, context, html=False):
     """
 
     from horilla.horilla_middlewares import _thread_locals
+    from payroll.methods.payslip_assets import (
+        payslip_company_for_employee,
+        resolve_company_logo_data_uri,
+    )
 
     try:
+        # Inline logo as data URI so wkhtmltopdf does not need network/media access
+        if not context.get("company_logo_data_uri"):
+            employee = context.get("employee")
+            company = payslip_company_for_employee(
+                employee, context.get("company")
+            )
+            context = {
+                **context,
+                "payslip_company": company,
+                "company_logo_data_uri": resolve_company_logo_data_uri(company),
+            }
+
         # Render the HTML content from the template and context
         html_content = render_to_string(template_path, context)
         request = getattr(_thread_locals, "request")
@@ -1479,20 +1506,9 @@ def generate_payslip_pdf(template_path, context, html=False):
         if html:
             return HttpResponse(html_content, content_type="text/html")
 
-        # PDF options for pdfkit
-        pdf_options = {
-            "page-size": "A4",
-            "margin-top": "10mm",
-            "margin-bottom": "10mm",
-            "margin-left": "10mm",
-            "margin-right": "10mm",
-            "encoding": "UTF-8",
-            "enable-local-file-access": None,  # Required to load local CSS/images
-            "dpi": 300,
-            "zoom": 1.3,
-            "footer-center": "[page]/[topage]",  # Required to load local CSS/images
-        }
+        from base.pdf_utils import html_to_pdf
 
+        pdf_options = {}
         if cookies:
             pdf_options.update(
                 {
@@ -1504,7 +1520,7 @@ def generate_payslip_pdf(template_path, context, html=False):
             )
 
         # Generate the PDF as binary content
-        pdf = pdfkit.from_string(html_content, False, options=pdf_options)
+        pdf = html_to_pdf(html_content, options=pdf_options or None)
 
         # Return an HttpResponse containing the PDF content
         response = HttpResponse(pdf, content_type="application/pdf")

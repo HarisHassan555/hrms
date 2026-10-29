@@ -473,14 +473,6 @@ from payroll.models.tax_models import PayrollSettings
 from payroll.views.component_views import filter_payslip
 from payroll.views.views import equalize_lists_length
 
-try:
-    import pdfkit
-
-    HAVE_PDFKIT = True
-except Exception:
-    HAVE_PDFKIT = False
-
-
 class PayslipPDFAPIView(APIView):
     """
     GET /api/payslip/<payslip_id>/?format=pdf
@@ -586,33 +578,40 @@ class PayslipPDFAPIView(APIView):
         data["host"] = request.get_host()
         data["protocol"] = "https" if request.is_secure() else "http"
         data["company"] = Company.objects.filter(hq=True).first()
+        from payroll.methods.payslip_assets import (
+            payslip_company_for_employee,
+            resolve_company_logo_data_uri,
+        )
+
+        payslip_company = payslip_company_for_employee(
+            payslip.employee_id, data["company"]
+        )
+        data["payslip_company"] = payslip_company
+        data["company_logo_data_uri"] = resolve_company_logo_data_uri(payslip_company)
 
         # render HTML string using template
         html = render_to_string(
             "payroll/payslip/payslip_pdf.html", context=data, request=request
         )
 
-        # If client asked for PDF and pdfkit is available -> return PDF
+        # If client asked for PDF -> return PDF via shared wkhtmltopdf helper
         requested_format = request.GET.get("format", "").lower()
         if requested_format == "pdf":
-            if not HAVE_PDFKIT:
-                return Response(
-                    {
-                        "detail": _(
-                            "PDF generation not available on server. Install pdfkit/wkhtmltopdf."
-                        )
-                    },
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
             try:
-                # optional: configure pdfkit with path if needed
-                pdf_options = {
-                    "enable-local-file-access": None,  # if your template references local CSS
-                }
-                pdf_bytes = pdfkit.from_string(html, False, options=pdf_options)
+                from base.pdf_utils import html_to_pdf
+
+                pdf_bytes = html_to_pdf(
+                    html,
+                    options={"enable-local-file-access": None},
+                )
                 response = HttpResponse(pdf_bytes, content_type="application/pdf")
                 response["Content-Disposition"] = f'inline; filename="payslip-{id}.pdf"'
                 return response
+            except FileNotFoundError as e:
+                return Response(
+                    {"detail": str(e)},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
             except Exception as e:
                 return Response(
                     {"detail": f"PDF generation failed: {str(e)}"},

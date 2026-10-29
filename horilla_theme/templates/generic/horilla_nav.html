@@ -46,6 +46,53 @@
         border-color: #94a3b8 !important;
         color: #0f172a !important;
     }
+
+    /* Keep Search / Filter / Actions / Create on one horizontal row.
+       The previous w-full search input forced Filter to wrap under Search
+       while Create (outside the form) sat beside both rows. */
+    .hrms-nav-toolbar {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+    .hrms-nav-toolbar .navFilterForm {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+    .hrms-nav-toolbar .hrms-nav-search {
+        position: relative;
+        flex: 0 1 220px;
+        width: 220px;
+        max-width: 260px;
+        min-width: 160px;
+    }
+    .hrms-nav-toolbar .hrms-nav-search input[name="search"] {
+        width: 100%;
+    }
+    .hrms-nav-toolbar .hrms-nav-create-btn,
+    .hrms-nav-toolbar .dropdown-wrapper > button,
+    .hrms-nav-toolbar .dropdown-wrapper > span,
+    .hrms-nav-toolbar .dropdown-wrapper > a {
+        flex-shrink: 0;
+        white-space: nowrap;
+        align-self: center;
+    }
+    @media (max-width: 767.98px) {
+        .hrms-nav-toolbar,
+        .hrms-nav-toolbar .navFilterForm {
+            flex-wrap: wrap;
+        }
+        .hrms-nav-toolbar .hrms-nav-search {
+            flex: 1 1 100%;
+            width: 100%;
+            max-width: none;
+        }
+    }
 </style>
 {% comment %}
     Filter-count badge counter and the custom filter builder ("+ Add
@@ -149,9 +196,9 @@
         }
     });
 </script>
-<div class="flex flex-wrap justify-between items-center mb-3">
+<div class="flex flex-wrap justify-between items-center mb-3 gap-2">
     <h3 class="text-lg font-semibold">{{ nav_title }}</h3>
-    <div class="flex flex-wrap gap-1">
+    <div class="hrms-nav-toolbar">
         {% if search_url %}
             <form
                 autocomplete="off"
@@ -166,15 +213,15 @@
                 hx-on::response-error="htmxLoadFailIndicator(this, event);"
                 hx-on::send-error="htmxLoadFailIndicator(this, event);"
                 hx-on::timeout="htmxLoadFailIndicator(this, event);"
-                class="flex flex-wrap gap-1 navFilterForm"
+                class="navFilterForm"
             >
                 <input type="text" name="nav_url" value="{{request.path}}" hidden>
                 <input type="radio" name="filter_applied" checked hidden>
 
-                <div class="relative">
+                <div class="hrms-nav-search">
                     <input
                         type="text"
-                        class="text-color-600 ps-8 p-1.5 pb-2 placeholder:text-xs w-full border border-primary-500 rounded-md focus-visible:outline-0 placeholder:text-dark-100 text-sm [transition:.3s] focus:border-primary-600"
+                        class="text-color-600 ps-8 p-1.5 pb-2 placeholder:text-xs border border-primary-500 rounded-md focus-visible:outline-0 placeholder:text-dark-100 text-sm [transition:.3s] focus:border-primary-600"
                         name="search"
                         aria-label="{% trans 'Search Input' %}"
                         placeholder="{% trans 'Search' %}"

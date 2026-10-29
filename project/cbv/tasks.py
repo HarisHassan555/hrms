@@ -16,7 +16,6 @@ from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from base.methods import get_subordinates
 from employee.models import Employee
 from horilla.http import HorillaRedirect
 from horilla.methods import handle_no_permission
@@ -81,24 +80,9 @@ class TaskListView(HorillaListView):
             else False
         )
         queryset = queryset.filter(is_active=active)
-        if not self.request.user.has_perm("project.view_task"):
-            employee_id = self.request.user.employee_get
-            subordinates = get_subordinates(self.request)
-            subordinate_ids = [subordinate.id for subordinate in subordinates]
-            project = queryset.filter(
-                Q(project__managers=employee_id)
-                | Q(project__managers__in=subordinate_ids)
-            )
-            queryset = (
-                queryset.filter(
-                    Q(task_members=employee_id)
-                    | Q(task_managers=employee_id)
-                    | Q(task_members__in=subordinate_ids)
-                    | Q(task_managers__in=subordinate_ids)
-                )
-                | project
-            )
-        return queryset.distinct()
+        from project.methods import filter_tasks_for_user
+
+        return filter_tasks_for_user(queryset, self.request)
 
     @cached_property
     def columns(self):
@@ -686,24 +670,9 @@ class TaskCardView(HorillaKanbanView):
             else False
         )
         self.queryset = self.queryset.filter(is_active=active)
-        if not self.request.user.has_perm("project.view_task"):
-            employee_id = self.request.user.employee_get
-            subordinates = get_subordinates(self.request)
-            subordinate_ids = [subordinate.id for subordinate in subordinates]
-            project = self.queryset.filter(
-                Q(project__managers=employee_id)
-                | Q(project__managers__in=subordinate_ids)
-            )
-            self.queryset = (
-                self.queryset.filter(
-                    Q(task_members=employee_id)
-                    | Q(task_managers=employee_id)
-                    | Q(task_members__in=subordinate_ids)
-                    | Q(task_managers__in=subordinate_ids)
-                )
-                | project
-            )
-        self.queryset = self.queryset.distinct()
+        from project.methods import filter_tasks_for_user
+
+        self.queryset = filter_tasks_for_user(self.queryset, self.request)
         return self.queryset
 
     details = {

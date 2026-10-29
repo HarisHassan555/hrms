@@ -57,6 +57,18 @@
           </div>
         {% endif %}
 
+        <div class="relative dropdown-wrapper">
+          <button
+            type="button"
+            class="ta-header-icon-btn ta-header-icon-btn--round hidden sm:inline-flex"
+            aria-label="{% trans 'Quick Actions' %}"
+            title="{% trans 'Quick Actions' %}"
+          >
+            <i class="fas fa-bolt" aria-hidden="true"></i>
+          </button>
+          {% include "base/navbar_components/quick_actions.html" %}
+        </div>
+
         <button
           id="themeToggleButton"
           type="button"

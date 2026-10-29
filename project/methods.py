@@ -1,6 +1,7 @@
 import random
 
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from base.methods import get_pagination, get_subordinates
@@ -105,6 +106,67 @@ def any_task_member(user):
         return True
     else:
         return False
+
+
+def _subordinate_ids_for_request(request):
+    """Direct-report employee PKs for the signed-in user."""
+    return list(get_subordinates(request).values_list("pk", flat=True))
+
+
+def filter_projects_for_user(queryset, request):
+    """
+    Restrict projects when the user lacks ``project.view_project``.
+
+    Visible if the user (or a direct report) is a project manager, or is
+    assigned on any task as manager/member. Peers outside that set are excluded.
+    """
+    if request.user.has_perm("project.view_project"):
+        return queryset
+    employee = request.user.employee_get
+    subordinate_ids = _subordinate_ids_for_request(request)
+    return queryset.filter(
+        Q(managers=employee)
+        | Q(managers__in=subordinate_ids)
+        | Q(task__task_members=employee)
+        | Q(task__task_managers=employee)
+        | Q(task__task_members__in=subordinate_ids)
+        | Q(task__task_managers__in=subordinate_ids)
+    ).distinct()
+
+
+def filter_tasks_for_user(queryset, request):
+    """Restrict tasks when the user lacks ``project.view_task``."""
+    if request.user.has_perm("project.view_task"):
+        return queryset
+    employee = request.user.employee_get
+    subordinate_ids = _subordinate_ids_for_request(request)
+    return queryset.filter(
+        Q(task_members=employee)
+        | Q(task_managers=employee)
+        | Q(task_members__in=subordinate_ids)
+        | Q(task_managers__in=subordinate_ids)
+        | Q(project__managers=employee)
+        | Q(project__managers__in=subordinate_ids)
+    ).distinct()
+
+
+def filter_timesheets_for_user(queryset, request):
+    """
+    Restrict timesheets when the user lacks ``project.view_timesheet``.
+
+    Own rows, project/task manager rows, and direct reports' rows are visible.
+    Other employees' timesheets are not.
+    """
+    if request.user.has_perm("project.view_timesheet"):
+        return queryset
+    employee = request.user.employee_get
+    subordinate_ids = _subordinate_ids_for_request(request)
+    return queryset.filter(
+        Q(employee_id=employee)
+        | Q(employee_id__in=subordinate_ids)
+        | Q(task_id__task_managers=employee)
+        | Q(project_id__managers=employee)
+    ).distinct()
 
 
 @decorator_with_arguments

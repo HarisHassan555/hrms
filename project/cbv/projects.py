@@ -27,7 +27,7 @@ from horilla_views.generic.cbv.views import (
 from project.cbv.cbv_decorators import is_projectmanager_or_member_or_perms
 from project.filters import ProjectFilter
 from project.forms import ProjectForm
-from project.methods import any_project_manager
+from project.methods import any_project_manager, filter_projects_for_user
 from project.models import Project
 
 
@@ -182,14 +182,7 @@ class ProjectsList(HorillaListView):
             else False
         )
         queryset = queryset.filter(is_active=active)
-        if not self.request.user.has_perm("project.view_project"):
-            employee = self.request.user.employee_get
-            task_filter = queryset.filter(
-                Q(task__task_members=employee) | Q(task__task_managers=employee)
-            )
-            project_filter = queryset.filter(Q(managers=employee))
-            queryset = task_filter | project_filter
-        return queryset.distinct()
+        return filter_projects_for_user(queryset, self.request)
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -389,14 +382,7 @@ class ProjectCardView(HorillaCardView):
             else False
         )
         queryset = queryset.filter(is_active=active)
-        if not self.request.user.has_perm("project.view_project"):
-            employee = self.request.user.employee_get
-            task_filter = queryset.filter(
-                Q(task__task_members=employee) | Q(task__task_managers=employee)
-            )
-            project_filter = queryset.filter(Q(managers=employee))
-            queryset = task_filter | project_filter
-        return queryset.distinct()
+        return filter_projects_for_user(queryset, self.request)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

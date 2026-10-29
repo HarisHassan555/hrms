@@ -35,20 +35,16 @@ class ProjectsDueInMonth(HorillaListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if not self.request.user.has_perm("project.view_project"):
-            employee = self.request.user.employee_get
-            task_filter = queryset.filter(
-                Q(task__task_members=employee) | Q(task__task_manager=employee)
-            )
-            project_filter = queryset.filter(Q(manager=employee))
-            queryset = task_filter | project_filter
-            today = datetime.date.today()
-            first_day = today.replace(day=1)
-            last_day = calendar.monthrange(today.year, today.month)[1]
-            last_day_of_month = today.replace(day=last_day)
-            queryset = queryset.filter(
-                Q(end_date__gte=first_day) & Q(end_date__lte=last_day_of_month)
-            ).exclude(status="expired")
+        from project.methods import filter_projects_for_user
+
+        queryset = filter_projects_for_user(queryset, self.request)
+        today = datetime.date.today()
+        first_day = today.replace(day=1)
+        last_day = calendar.monthrange(today.year, today.month)[1]
+        last_day_of_month = today.replace(day=last_day)
+        queryset = queryset.filter(
+            Q(end_date__gte=first_day) & Q(end_date__lte=last_day_of_month)
+        ).exclude(status="expired")
         return queryset
 
     def __init__(self, **kwargs: Any) -> None:

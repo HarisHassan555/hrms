@@ -1139,7 +1139,7 @@
             const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
             const textColor = isDark ? '#e2e8f0' : '#334155';
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-            const COLORS = ['#E54F38','#22c55e','#f59e0b','#ef4444','#3b82f6','#a855f7','#06b6d4','#ec4899','#14b8a6','#f97316'];
+            const COLORS = (window.HORILLA_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
 
             const emptyHtml = (msg) => `<div class="rd-empty"><img src="/static/images/ui/application.png" alt="">${msg}</div>`;
 
@@ -1387,7 +1387,7 @@
                     // rather than rendering a misleading 100% pie.
                     const hasRealSource = data.sources.some(s => s.key !== 'not_set');
                     if (!data.sources.length || !hasRealSource) { document.querySelector("#chart-source-hire").innerHTML = emptyHtml('{% trans "No source data available yet"|escapejs %}'); return; }
-                    const sourceColors = { 'Application Form': '#3b82f6', 'Inside Software': '#E54F38', 'Referral': '#22c55e', 'Other': '#94a3b8' };
+                    const sourceColors = { 'Application Form': '#93C5FD', 'Inside Software': '#A5B4FC', 'Referral': '#86EFAC', 'Other': '#CBD5E1' };
                     renderChart('source-hire', document.querySelector("#chart-source-hire"), {
                         series: data.sources.map(s => s.count),
                         chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit',

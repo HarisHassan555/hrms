@@ -60,12 +60,17 @@ FROM python:3.12-slim AS production
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    WKHTMLTOPDF_PATH=/usr/local/bin/wkhtmltopdf
 
 # Install only runtime dependencies
 #
 # `upgrade` first -- see the builder stage's comment. This is the stage
 # Trivy actually scans, so it is the one the CI gate needs.
+#
+# wkhtmltopdf is not packaged for Debian trixie; install the upstream
+# bookworm .deb (needed by pdfkit for payslips / mail PDF attachments).
+ARG WKHTMLTOPDF_DEB_URL=https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
@@ -79,8 +84,22 @@ RUN apt-get update \
         libxslt1.1 \
         libffi8 \
         curl \
+        ca-certificates \
+        fontconfig \
+        fonts-dejavu-core \
+        fonts-liberation \
+        libx11-6 \
+        libxcb1 \
+        libxext6 \
+        libxrender1 \
+        xfonts-75dpi \
+        xfonts-base \
         netcat-openbsd \
         gettext \
+    && curl -fsSL -o /tmp/wkhtmltox.deb "${WKHTMLTOPDF_DEB_URL}" \
+    && dpkg -i /tmp/wkhtmltox.deb \
+    && rm -f /tmp/wkhtmltox.deb \
+    && wkhtmltopdf --version \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

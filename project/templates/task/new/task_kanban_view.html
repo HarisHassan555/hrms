@@ -93,9 +93,11 @@
                         {% for task in stage.tasks.all|dictsort:"sequence" %}
                             {% if task in tasks %}
                                 <div
-                                    class="oh-kanban__card task"
+                                    class="oh-kanban__card task{% if task.is_update_locked %} task--locked{% endif %}"
                                     data-task-id="{{task.id}}"
-                                    style="opacity: 1; min-height: 85px"
+                                    data-task-locked="{% if task.is_update_locked %}true{% else %}false{% endif %}"
+                                    style="opacity: 1; min-height: 85px{% if task.is_update_locked %}; cursor: default{% endif %}"
+                                    {% if task.is_update_locked %}title="{% trans 'Completed or expired tasks cannot be moved or have their status changed.' %}"{% endif %}
                                 >
                                     <div
                                         class="oh-kanban__card-head"
@@ -179,27 +181,36 @@
                                                     for="id_{{task.id}}_task_status"
                                                 >{% trans "Status" %}
                                                 </label>
-                                                <select
-                                                    class="oh-table__editable-input w-100 ml-2"
-                                                    id="id_{{task.id}}_task_status"
-                                                    hx-get="{% url 'update-project-task-status' task.id %}?view=card"
-                                                    hx-trigger="change"
-                                                    hx-swap="afterend"
-                                                    tabindex="-1"
-                                                    aria-hidden="true"
-                                                    name="status"
-                                                >
-                                                    {% for option in task.TASK_STATUS %}
-                                                        <option
-                                                            value="{{option.0}}"
-                                                            {% if option.0 == task.status %}
-                                                                selected
-                                                            {% endif %}
-                                                        >
-                                                            {{ option.1 }}
-                                                        </option>
-                                                    {% endfor %}
-                                                </select>
+                                                {% if task.is_update_locked %}
+                                                    <span
+                                                        class="oh-table__editable-input w-100 ml-2"
+                                                        id="id_{{task.id}}_task_status"
+                                                        style="display: inline-block; opacity: 0.75; cursor: not-allowed;"
+                                                        title="{% trans 'Completed or expired tasks cannot be moved or have their status changed.' %}"
+                                                    >{{ task.get_status_display }}</span>
+                                                {% else %}
+                                                    <select
+                                                        class="oh-table__editable-input w-100 ml-2"
+                                                        id="id_{{task.id}}_task_status"
+                                                        hx-get="{% url 'update-project-task-status' task.id %}?view=card"
+                                                        hx-trigger="change"
+                                                        hx-swap="afterend"
+                                                        tabindex="-1"
+                                                        aria-hidden="true"
+                                                        name="status"
+                                                    >
+                                                        {% for option in task.TASK_STATUS %}
+                                                            <option
+                                                                value="{{option.0}}"
+                                                                {% if option.0 == task.status %}
+                                                                    selected
+                                                                {% endif %}
+                                                            >
+                                                                {{ option.1 }}
+                                                            </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>

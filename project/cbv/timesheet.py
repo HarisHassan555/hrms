@@ -34,7 +34,12 @@ from project.cbv.projects import DynamicProjectCreationFormView
 from project.cbv.tasks import DynamicTaskCreateFormView
 from project.filters import TimeSheetFilter
 from project.forms import TimeSheetForm
-from project.methods import any_project_manager, any_task_manager, any_task_member
+from project.methods import (
+    any_project_manager,
+    any_task_manager,
+    any_task_member,
+    filter_timesheets_for_user,
+)
 from project.models import Project, Task, TimeSheet
 
 
@@ -268,14 +273,7 @@ class TimeSheetList(HorillaListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if not self.request.user.has_perm("project.view_timesheet"):
-            employee = self.request.user.employee_get
-            queryset = queryset.filter(
-                Q(task_id__task_managers=employee)
-                | Q(project_id__managers=employee)
-                | Q(employee_id=employee)
-            ).distinct()
-        return queryset
+        return filter_timesheets_for_user(queryset, self.request)
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -776,14 +774,7 @@ class TimeSheetCardView(HorillaCardView):
                 "task_id",
             )
         )
-        if not self.request.user.has_perm("project.view_timesheet"):
-            employee = self.request.user.employee_get
-            queryset = queryset.filter(
-                Q(task_id__task_managers=employee)
-                | Q(project_id__managers=employee)
-                | Q(employee_id=employee)
-            ).distinct()
-        return queryset
+        return filter_timesheets_for_user(queryset, self.request)
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
