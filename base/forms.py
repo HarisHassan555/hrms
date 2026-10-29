@@ -2851,6 +2851,13 @@ class MailTemplateForm(ModelForm):
             "Candidate|Job position": "instance.get_job_position",
             "Candidate|Email": "instance.get_email",
             "Candidate|Interview Table": "instance.get_interview|safe",
+            "Candidate|Email address": "instance.email",
+            "Candidate|Mobile": "instance.mobile",
+            "Candidate|Mobile (display)": "candidate_mobile",
+            "Onboarding|Portal URL": "portal",
+            "Onboarding|Portal URL (alias)": "onboarding_portal_url",
+            "Onboarding|Portal path": "instance.get_onboarding_portal_path",
+            "Sender|Department": "self.get_department",
         }
         return mail_data
 

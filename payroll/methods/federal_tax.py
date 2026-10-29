@@ -1,101 +1,47 @@
 """
 federal_tax.py
 
+Default sandboxed tax code template for filing statuses with use_py enabled.
+Uses slab + rate + fixed-amount semantics (same as DB TaxBracket).
 """
 
 CODE = '''
 """
-federal_tax.py
+Income tax calculation (slab + rate + fixed amount)
 """
 
-YEARLY_TAXABLE_INCOME = 189000.52
+YEARLY_TAXABLE_INCOME = 3600000
 
 
 def calculate_federal_tax(yearly_income: int, **kwargs) -> float:
     """
-    Federal Tax calculation method
+    Annual income tax for salaried persons.
 
-    yearly_income: The early converted 'based on' amount
-
-    eg: yearly_income-> 189000 then taxable_amount-> 39312.0 (yearly)
+    Formula for the matching slab:
+        fixed_amount + (yearly_income - income_exceeds) * tax_rate / 100
     """
-
-    def filter_brackets(brackets: list) -> list:
-        """
-        This method to filter out the actual brackets/brackets range
-        """
-        # brackets that contains actual bracket range, calculated_rate, and diff amount
-        filterd_brackets = []
-        for bracket in brackets:
-            if bracket["max"] > bracket["min"]:
-
-                # bracket: {'rate': 12, 'min': 11000, 'max': 44725}
-
-                # finding diff amount and adding to the bracket
-                bracket["diff"] = bracket["max"] - bracket["min"]
-                # find bracket rate from the difference and adding to bracket
-                bracket["calculated_rate"] = (bracket["rate"] / 100) * bracket["diff"]
-
-                # bracket: {'rate': 12, 'min': 11000, 'max': 44725, 'diff': 33725, 'calculated_rate': 4047.0}
-
-                filterd_brackets.append(bracket)
-                continue
-            # returning valid filtered brackets
-            return filterd_brackets
-        # returning valid filtered brackets
-        return filterd_brackets
-
-    # filter_brackets method/function will sort out the brackets
-
-    # for example for the 189000 yearly income come in the 32% group,
-    # so the final the max considered as min(231250,189000) which is 189000
+    # (income_exceeds, does_not_exceed, tax_rate_%, fixed_amount)
     brackets = [
-        {"rate": 10, "min": 0, "max": min(11000, yearly_income)},
-        {"rate": 12, "min": 11000, "max": min(44725, yearly_income)},
-        {"rate": 22, "min": 44725, "max": min(95375, yearly_income)},
-        {"rate": 24, "min": 95375, "max": min(182100, yearly_income)},
-        {"rate": 32, "min": 182100, "max": min(231250, yearly_income)},
-        {"rate": 35, "min": 231250, "max": min(578125, yearly_income)},
-        {"rate": 37, "min": 578125, "max": max(578125, yearly_income)},
+        (0, 600000, 0, 0),
+        (600000, 1200000, 1, 0),
+        (1200000, 2200000, 11, 6000),
+        (2200000, 3200000, 20, 116000),
+        (3200000, 4100000, 25, 316000),
+        (4100000, 5600000, 29, 541000),
+        (5600000, 7000000, 32, 976000),
+        (7000000, None, 35, 1424000),
     ]
 
-    # filtering the brackets to actual range
-    brackets = filter_brackets(brackets=brackets)
+    income = float(yearly_income or 0)
+    if income <= 0:
+        return 0.0
 
-    # finding yearly taxable amount
-    taxable_amount = sum(bracket["calculated_rate"] for bracket in brackets)
+    for exceeds, does_not_exceed, rate, fixed in brackets:
+        upper = does_not_exceed if does_not_exceed is not None else float("inf")
+        if income > exceeds and income <= upper:
+            return fixed + (income - exceeds) * (rate / 100.0)
 
-    """
-    use formated_result method to print the table
-    """
-    # formated_result(brackets=brackets, taxable_amount=taxable_amount)
-
-    # returning the taxable amount later on the yearly taxable amount-
-    # is converted to daily and calculate federal tax for the total days between the
-    # Payslip period
-    return taxable_amount
-
-
-def formated_result(brackets: dict, taxable_amount: float) -> None:
-    """
-    It will print the brackets such a formated way
-    """
-    col_width = 7
-    print("----------------------Brackets----------------------")
-    print(
-        f"|{'Rate':<{col_width}}  |{'Min':<{col_width}} |{'Max':<{col_width}}  |{'Taxable':<{col_width}}  |{'Bracket Tax':<{col_width}} |"
-    )
-
-    for bracket in brackets:
-        print(
-            f"|{bracket['rate']:<{col_width}}% |{bracket['min']:<{col_width}} | {bracket['max']:<{col_width}} | {bracket['diff']:<{col_width}} | {round(bracket['calculated_rate'],2):<{col_width + 3}} |"
-        )
-
-    print(f"|             YEARLY TAXABLE INCOME    | {taxable_amount}    |")
-    print("----------------------------------------------------")
-
-
-month_taxable = calculate_federal_tax(YEARLY_TAXABLE_INCOME)
-print("YEARLY TAXABLE AMOUNT", month_taxable)
-
+    # Above the last closed slab — apply the open-ended top bracket.
+    exceeds, _upper, rate, fixed = brackets[-1]
+    return fixed + (income - exceeds) * (rate / 100.0)
 '''

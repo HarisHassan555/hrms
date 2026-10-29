@@ -13,9 +13,10 @@
         <table class="fixed-table w-full border-collapse">
             <thead class="sticky top-0 bg-primary-50 text-left z-[1]">
                 <tr class="border-b border-dark-50">
+                    <th class="text-xs font-semibold uppercase tracking-wide text-primary-700 text-left p-3">{% trans "Income Exceeds" %}</th>
+                    <th class="text-xs font-semibold uppercase tracking-wide text-primary-700 text-left p-3">{% trans "Does Not Exceed" %}</th>
                     <th class="text-xs font-semibold uppercase tracking-wide text-primary-700 text-left p-3">{% trans "Tax Rate (%)" %}</th>
-                    <th class="text-xs font-semibold uppercase tracking-wide text-primary-700 text-left p-3">{% trans "Min. Income" %}</th>
-                    <th class="text-xs font-semibold uppercase tracking-wide text-primary-700 text-left p-3">{% trans "Max. Income" %}</th>
+                    <th class="text-xs font-semibold uppercase tracking-wide text-primary-700 text-left p-3">{% trans "Fixed Amount" %}</th>
                     {% if perms.payroll.change_taxbracket or perms.payroll.delete_taxbracket %}
                         <th class="text-xs font-semibold uppercase tracking-wide text-primary-700 text-center p-3">{% trans "Actions" %}</th>
                     {% endif %}
@@ -24,16 +25,19 @@
             <tbody>
                 {% for tax_bracket in tax_brackets %}
                     <tr class="border-b border-dark-50 last:border-b-0 hover:bg-primary-50/40 transition-colors {% cycle 'bg-white' 'bg-dark-50/20' %}">
+                        <td class="text-sm text-left p-3 text-dark-600 font-medium">
+                            {{ tax_bracket.min_income|stringformat:".2f"|currency_symbol_position }}
+                        </td>
+                        <td class="text-sm text-left p-3 text-dark-600 font-medium">
+                            {{ tax_bracket.get_display_max_income|stringformat:".2f"|currency_symbol_position }}
+                        </td>
                         <td class="text-sm text-left p-3">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700">
                                 {{ tax_bracket.tax_rate|stringformat:".2f" }}%
                             </span>
                         </td>
                         <td class="text-sm text-left p-3 text-dark-600 font-medium">
-                            {{ tax_bracket.min_income|stringformat:".2f"|currency_symbol_position }}
-                        </td>
-                        <td class="text-sm text-left p-3 text-dark-600 font-medium">
-                            {{ tax_bracket.get_display_max_income|stringformat:".2f"|currency_symbol_position }}
+                            {{ tax_bracket.fixed_amount|default_if_none:0|stringformat:".2f"|currency_symbol_position }}
                         </td>
                         {% if perms.payroll.change_taxbracket or perms.payroll.delete_taxbracket %}
                             <td class="text-sm text-center p-3">

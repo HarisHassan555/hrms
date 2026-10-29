@@ -339,7 +339,12 @@ def sanitize_mail_template_placeholders(body, allowed_template_words):
 
 
 def get_public_request_host(request) -> str:
-    """Host for absolute URLs, honoring reverse-proxy forwarded headers."""
+    """
+    Host for absolute URLs, honoring reverse-proxy forwarded headers.
+
+    Reads META directly so outbound mail links can follow the browser host
+    even when that host is not listed in ALLOWED_HOSTS (e.g. LAN IP).
+    """
     if request is None:
         return ""
     forwarded_host = request.META.get("HTTP_X_FORWARDED_HOST")
@@ -349,6 +354,9 @@ def get_public_request_host(request) -> str:
         if forwarded_port and ":" not in host:
             host = f"{host}:{forwarded_port}"
         return host
+    http_host = (request.META.get("HTTP_HOST") or "").strip()
+    if http_host:
+        return http_host
     try:
         return request.get_host()
     except Exception:
@@ -368,6 +376,11 @@ def get_public_request_scheme(request) -> str:
 
 def get_public_site_origin(request) -> str:
     """Return ``scheme://host`` for links in outbound email."""
+    host = get_public_request_host(request)
+    scheme = get_public_request_scheme(request)
+    if host and scheme:
+        return f"{scheme}://{host}"
+
     from urllib.parse import urlparse
 
     if request is not None:
@@ -378,11 +391,6 @@ def get_public_site_origin(request) -> str:
                 return f"{parsed.scheme}://{parsed.netloc}"
         except Exception:
             pass
-
-    host = get_public_request_host(request)
-    scheme = get_public_request_scheme(request)
-    if host and scheme:
-        return f"{scheme}://{host}"
 
     public_url = (getattr(settings, "HORILLA_PUBLIC_URL", None) or "").strip()
     if public_url:
@@ -408,7 +416,6 @@ def get_public_site_origin(request) -> str:
             return f"https://{allowed.split(':')[0]}"
     return ""
 
-
 def request_site_origin(request) -> str:
     """Return ``scheme://host`` for the current HTTP request."""
     return get_public_site_origin(request)
@@ -424,12 +431,25 @@ def build_safe_template_request(request):
 
     Exposes ``scheme`` and ``get_host`` so mail templates can build absolute
     URLs (e.g. candidate portal links) without the full Django request object.
+
+    Uses the current application host (localhost, LAN IP, or forwarded public
+    host) so portal links match the URL the admin is browsing.
     """
+    scheme = get_public_request_scheme(request) if request is not None else ""
+    host = get_public_request_host(request) if request is not None else ""
+    if not scheme or not host:
+        from urllib.parse import urlparse
+
+        origin = get_public_site_origin(request)
+        parsed = urlparse(origin)
+        scheme = scheme or parsed.scheme or ""
+        host = host or parsed.netloc or ""
+
     if request is None:
         return SimpleNamespace(
             method="",
             path="",
-            scheme="",
+            scheme=scheme,
             user=SimpleNamespace(
                 id=None,
                 username="",
@@ -437,7 +457,7 @@ def build_safe_template_request(request):
                 is_staff=False,
                 is_superuser=False,
             ),
-            get_host=lambda: "",
+            get_host=lambda: host,
         )
 
     user = getattr(request, "user", None)
@@ -448,9 +468,6 @@ def build_safe_template_request(request):
         is_staff=bool(getattr(user, "is_staff", False)),
         is_superuser=bool(getattr(user, "is_superuser", False)),
     )
-
-    scheme = get_public_request_scheme(request)
-    host = get_public_request_host(request)
 
     return SimpleNamespace(
         method=getattr(request, "method", ""),

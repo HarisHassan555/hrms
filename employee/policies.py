@@ -56,7 +56,7 @@ def view_policies(request):
     """
     Method is used render template to view all the policy records
     """
-    policies = _visible_policies(request, Policy.objects.all())
+    policies = _visible_policies(request, Policy.objects.all().order_by("-id"))
     return render(
         request,
         "policies/view_policies.html",
@@ -148,7 +148,7 @@ def search_policies(request):
     This method is used to search in policies
     """
     policies = _visible_policies(
-        request, PolicyFilter(request.GET).qs.prefetch_related("slides")
+        request, PolicyFilter(request.GET).qs.prefetch_related("slides").order_by("-id")
     )
     return render(
         request,
@@ -205,7 +205,7 @@ def delete_policies(request):
     except ValueError:
         messages.error(request, _("Policies Not Found"))
     if request.META.get("HTTP_HX_REQUEST"):
-        policies_qs = _visible_policies(request, Policy.objects.all())
+        policies_qs = _visible_policies(request, Policy.objects.all().order_by("-id"))
         response = render(
             request,
             "policies/records.html",

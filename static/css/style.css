@@ -45,7 +45,10 @@
 }
 
 .note-modal-backdrop {
-    z-index: 1020;
+    z-index: 1100 !important;
+}
+.note-modal {
+    z-index: 1110 !important;
 }
 
 .note-editing-area {
@@ -480,9 +483,7 @@ form label {
     z-index: 9 !important;
 }
 
-.note-modal-backdrop {
-    display: none !important;
-}
+/* Kept interactive; stacking is handled by the global z-index rules above. */
 
 .lastTh {
     position: sticky;

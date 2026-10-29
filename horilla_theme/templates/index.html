@@ -17,19 +17,19 @@
         <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/apple-touch-icon.png' %}{% endif %}"
+            href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}"
         >
         <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/favicon-32x32.png' %}{% endif %}"
+            href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}"
         >
         <link
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/favicon-16x16.png' %}{% endif %}"
+            href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}"
         >
 
         {% comment %} defer, not removed: tailwind.css below is a periodically
@@ -71,7 +71,7 @@
            happily cache. {% endcomment %}
         <link
             rel="stylesheet"
-            href="{% static 'horilla_theme/assets/css/v1_styles.css' %}?v=14"
+            href="{% static 'horilla_theme/assets/css/v1_styles.css' %}?v=15"
         >
         <link
             rel="stylesheet"
@@ -84,7 +84,7 @@
         <link rel="stylesheet" href="{% static 'build/css/pivottable.min.css' %}">
         {% with theme=theme_obj %}
             <style>
-                /* ── Centralized design tokens ─────────────────────────────────────
+                /* -- Centralized design tokens -------------------------------------
                    The company/theme palette and shared semantic colors are exposed
                    ONCE here as CSS custom properties so components reference
                    var(--primary-600) / var(--status-success) etc. instead of
@@ -195,13 +195,13 @@
                     background: {{ theme.primary_600|default:"#E54F38" }};
                 }
 
-                /* ── Theme-aware Tailwind primary-* utilities ─────────────────────
+                /* -- Theme-aware Tailwind primary-* utilities ---------------------
                    tailwind.css compiles every primary-* utility to the STATIC
                    default red, so any view using `text-primary-600`,
                    `bg-primary-600`, `border-primary-600`, etc. ignored the
                    selected company theme. Re-map each compiled utility to the
                    chosen theme shade. This block loads after tailwind.css and
-                   global.css, so it wins by source order at equal specificity —
+                   global.css, so it wins by source order at equal specificity �
                    deliberately WITHOUT !important, so state utilities layered on
                    top (e.g. hover:text-white, hover:bg-*) still win on hover. */
                 .border-primary-300 { border-color: {{ theme.primary_300|default:"#FCEDEB" }}; }
@@ -234,13 +234,13 @@
                     border-color: {{ theme.primary_600|default:"#E54F38" }} !important;
                 }
 
-                /* ── List-view row selection follows the theme ────────────────────
+                /* -- List-view row selection follows the theme --------------------
                    Applies to every list view across all modules (the shared
                    .highlight-selected row class + .custom-checkbox row/select-all
                    checkboxes). Selection tint uses a translucent theme color so
                    the row content stays readable; if color-mix is unsupported the
                    rule is ignored and the base highlight still applies. Row-status
-                   left borders (validated/rejected/…) are semantic and untouched. */
+                   left borders (validated/rejected/�) are semantic and untouched. */
                 .highlight-selected {
                     background: color-mix(in srgb, {{ theme.primary_600|default:"#E54F38" }} 12%, transparent) !important;
                 }

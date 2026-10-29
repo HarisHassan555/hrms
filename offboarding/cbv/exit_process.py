@@ -396,13 +396,15 @@ class OffboardingPipelineNav(HorillaNavView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if self.request.user.has_perm("offboarding.create_offboarding"):
+        # Django's default add perm is add_<model>, not create_<model>.
+        # The old string never matched, so Create never appeared for perm users.
+        if self.request.user.has_perm("offboarding.add_offboarding"):
             self.create_attrs = f"""
                 class="oh-btn oh-btn--secondary"
                 hx-get="{reverse_lazy("create-offboarding")}"
-                hx-target="#objectDetailsModalTarget"
+                hx-target="#genericModalBody"
                 data-toggle="oh-modal-toggle"
-                data-target="#objectDetailsModal"
+                data-target="#genericModal"
             """
 
         self.view_types = [
@@ -574,6 +576,17 @@ class PipeLineTabView(HorillaTabView):
             self.tabs.append(tab)
 
         context["tabs"] = self.tabs
+        # Empty-state CTA: theme horilla_tabs.html renders this when tabs=[].
+        # Needed because Create Offboarding used to live only on the (removed)
+        # page-level Nav / per-tab Nav that never mounts without a pipeline.
+        if self.request.user.has_perm("offboarding.add_offboarding"):
+            context["empty_create_label"] = _("Create Offboarding")
+            context["empty_create_attrs"] = f"""
+                hx-get="{reverse_lazy("create-offboarding")}"
+                hx-target="#genericModalBody"
+                data-toggle="oh-modal-toggle"
+                data-target="#genericModal"
+            """
         return context
 
 
@@ -1138,8 +1151,9 @@ class OffboardingEmployeeList(HorillaListView):
                     f"get_{task.pk}_task",
                 )
             )
+        # has_perm expects "app_label.codename" — "perms.offboarding...." never matches.
         if self.request.user.has_perm(
-            "perms.offboarding.add_offboardingtask"
+            "offboarding.add_offboardingtask"
         ) or any_manager(self.request.user.employee_get):
             context["columns"].append(
                 (

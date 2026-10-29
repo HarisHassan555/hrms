@@ -12,8 +12,19 @@ ONBOARDING_COMPLETE_PROFILE_PORTAL_TEMPLATE_TITLE = (
     "[Onboarding] Complete Profile Portal — Login & Details"
 )
 
-# Fixed base for portal links in mail templates (local dev). Path/token stays dynamic.
-HARDCODED_MAIL_BASE_URL = "http://localhost:8000"
+# Relative template fragment for recruitment portal login (host comes from request).
+RECRUITMENT_CANDIDATE_LOGIN_PATH = "/recruitment/candidate-login/"
+_RECRUITMENT_LOGIN_HREF_TEMPLATE = (
+    "{{ request.scheme }}://{{ request.get_host }}"
+    f"{RECRUITMENT_CANDIDATE_LOGIN_PATH}"
+)
+
+
+def mail_request_base_url(request) -> str:
+    """Base URL matching the current application host (localhost, LAN, etc.)."""
+    from base.methods import get_public_site_origin
+
+    return (get_public_site_origin(request) or "").rstrip("/")
 
 
 def build_onboarding_portal_absolute_url(
@@ -48,6 +59,11 @@ def build_onboarding_portal_absolute_url(
             return ""
         token = secrets.token_hex(15)
         OnboardingPortal.objects.create(candidate_id=candidate, token=token)
+        # Clear reverse OneToOne cache so get_onboarding_portal_path sees the new row.
+        try:
+            del candidate.onboarding_portal
+        except AttributeError:
+            pass
     else:
         token = portal_row.token
         if refresh:
@@ -58,7 +74,10 @@ def build_onboarding_portal_absolute_url(
             portal_row.profile = None
             portal_row.save(update_fields=["token", "used", "count", "profile"])
 
-    return f"{HARDCODED_MAIL_BASE_URL.rstrip('/')}/onboarding/user-creation/{token}"
+    base = mail_request_base_url(request)
+    if not base:
+        return f"/onboarding/user-creation/{token}"
+    return f"{base}/onboarding/user-creation/{token}"
 
 
 def build_candidate_mail_template_context(
@@ -94,6 +113,8 @@ def mail_body_needs_onboarding_portal(body: str) -> bool:
     return (
         "onboarding portal" in lowered
         or "get_onboarding_portal_path" in lowered
+        or "onboarding_portal_url" in lowered
+        or "{{portal}}" in lowered.replace(" ", "")
         or "onboarding/user-creation" in lowered
         or ONBOARDING_COMPLETE_PROFILE_PORTAL_TEMPLATE_TITLE.lower() in lowered
     )
@@ -141,9 +162,9 @@ def recruitment_candidate_portal_template_body() -> str:
         '<div style="margin: 18px 0; padding: 16px; background: #f9fafb; border-left: 4px solid #4f46e5; border-radius: 8px;">'
         '<p style="margin: 0 0 8px 0; font-size: 14px; color: #111827;">'
         "<strong>Portal link:</strong> "
-        f'<a href="{HARDCODED_MAIL_BASE_URL}/recruitment/candidate-login/" target="_blank" '
+        f'<a href="{_RECRUITMENT_LOGIN_HREF_TEMPLATE}" target="_blank" '
         'style="color: #4f46e5; text-decoration: none;">'
-        f"{HARDCODED_MAIL_BASE_URL}/recruitment/candidate-login/"
+        f"{_RECRUITMENT_LOGIN_HREF_TEMPLATE}"
         "</a></p>"
         '<p style="margin: 0 0 8px 0; font-size: 14px; color: #111827;">'
         "<strong>Username (email):</strong> {{instance.email}}</p>"
@@ -179,13 +200,13 @@ def onboarding_complete_profile_portal_template_body() -> str:
         '<div style="margin: 18px 0; padding: 16px; background: #f9fafb; border-left: 4px solid hsl(8, 77%, 56%); border-radius: 8px;">'
         '<p style="margin: 0 0 8px 0; font-size: 14px; color: #111827;">'
         "<strong>Portal link:</strong> "
-        f'<a href="{HARDCODED_MAIL_BASE_URL}{{{{ instance.get_onboarding_portal_path }}}}" target="_blank" '
+        '<a href="{{ portal }}" target="_blank" '
         'style="color: hsl(8, 77%, 56%); text-decoration: none;">'
-        f"{HARDCODED_MAIL_BASE_URL}{{{{ instance.get_onboarding_portal_path }}}}</a></p>"
+        "{{ portal }}</a></p>"
         '<p style="margin: 0 0 8px 0; font-size: 14px; color: #111827;">'
         "<strong>Email (for your account):</strong> {{instance.email}}</p>"
         '<p style="margin: 0 0 8px 0; font-size: 14px; color: #111827;">'
-        "<strong>Mobile number:</strong> {% firstof candidate_mobile instance.mobile instance.phone %}</p>"
+        "<strong>Mobile number:</strong> {{ candidate_mobile }}</p>"
         '<p style="margin: 0; font-size: 14px; color: #111827;">'
         "<strong>How to access:</strong> Open the personal link above. You will create your "
         "password on first visit — this is not the recruitment candidate portal.</p>"
@@ -203,12 +224,27 @@ def onboarding_complete_profile_portal_template_body() -> str:
 def _is_legacy_onboarding_portal_template_body(body: str) -> bool:
     if not body:
         return True
-    marker = f"{HARDCODED_MAIL_BASE_URL}{{{{ instance.get_onboarding_portal_path }}}}"
-    if marker not in body and "get_onboarding_portal_path" not in body:
+    # Canonical body uses the full absolute URL from mail context.
+    if "{{ portal }}" not in body and "{{portal}}" not in body.replace(" ", ""):
         return True
-    if "onboarding_portal_url" in body and "get_onboarding_portal_path" not in body:
+    if "get_onboarding_portal_path" in body:
         return True
     if "{% else %}" in body:
+        return True
+    # Older seeds baked an absolute host into the body instead of {{ portal }}.
+    if "localhost" in body.lower() and "{{ portal }}" not in body:
+        return True
+    return False
+
+
+def _is_legacy_recruitment_portal_template_body(body: str) -> bool:
+    if not body:
+        return True
+    if _RECRUITMENT_LOGIN_HREF_TEMPLATE not in body:
+        return True
+    # Absolute hosts from older migrations must be replaced with request-based tags.
+    lowered = body.lower()
+    if "localhost" in lowered or "192.168." in lowered:
         return True
     return False
 
@@ -225,9 +261,7 @@ def ensure_recruitment_candidate_portal_mail_template():
         title=RECRUITMENT_CANDIDATE_PORTAL_TEMPLATE_TITLE,
         defaults={"body": canonical},
     )
-    if not created and f"{HARDCODED_MAIL_BASE_URL}/recruitment/candidate-login/" not in (
-        template.body or ""
-    ):
+    if not created and _is_legacy_recruitment_portal_template_body(template.body):
         template.body = canonical
         template.save(update_fields=["body"])
     return template

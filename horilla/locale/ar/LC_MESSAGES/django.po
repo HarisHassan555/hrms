@@ -13737,8 +13737,8 @@ msgstr "الموارد البشرية"
 msgid "Please login to access the dashboard."
 msgstr "يرجى تسجيل الدخول للوصول إلى لوحة التحكم."
 
-msgid "e.g. adam.luis@horilla.com"
-msgstr "مثال: adam.luis@horilla.com"
+msgid "e.g. adam.luis@dsg.com"
+msgstr "مثال: adam.luis@dsg.com"
 
 msgid "Sign In"
 msgstr "تسجيل الدخول"
@@ -24225,8 +24225,8 @@ msgstr "تأكيد كلمة المرور الجديدة"
 msgid "Reset my password"
 msgstr "إعادة تعيين كلمة المرور الخاصة بي"
 
-msgid "Registration Success - OpenHRMS Dashboard"
-msgstr "تم التسجيل بنجاح - لوحة معلومات OpenHRMS"
+msgid "Registration Success - DSG Dashboard"
+msgstr "تم التسجيل بنجاح - لوحة معلومات DSG"
 
 msgid "Forget Password Mail Send Successfully"
 msgstr "تم إرسال بريد استعادة كلمة المرور بنجاح"

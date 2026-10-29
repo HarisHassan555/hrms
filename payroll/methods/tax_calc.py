@@ -7,6 +7,7 @@ based on their contract details and income information.
 
 import datetime
 import logging
+import math
 
 from payroll.methods.methods import (
     compute_yearly_taxable_amount,
@@ -21,6 +22,53 @@ from payroll.models.models import Contract
 from payroll.models.tax_models import TaxBracket
 
 logger = logging.getLogger(__name__)
+
+
+def calculate_bracket_annual_tax(yearly_income: float, filing) -> float:
+    """
+    Resolve annual tax from DB brackets for a filing status.
+
+    Uses slab semantics matching income-tax calculators:
+
+        fixed_amount + (yearly_income - min_income) * tax_rate / 100
+
+    Only the single matching bracket (income exceeds min, does not exceed max)
+    is applied. Brackets with no upper limit use an infinite max.
+    """
+    if yearly_income is None or yearly_income <= 0:
+        return 0.0
+
+    tax_brackets = TaxBracket.objects.filter(filing_status_id=filing).order_by(
+        "min_income"
+    )
+    if not tax_brackets.exists():
+        return 0.0
+
+    income = float(yearly_income)
+    matching = None
+    for bracket in tax_brackets:
+        upper = bracket.max_income if bracket.max_income is not None else math.inf
+        if income > float(bracket.min_income) and income <= float(upper):
+            matching = bracket
+            break
+
+    # Income at or below the first threshold (e.g. 0) → no tax.
+    if matching is None:
+        first = tax_brackets.first()
+        if first and income <= float(first.min_income):
+            return 0.0
+        # Above every defined max — apply the last (open-ended) bracket if any.
+        last = tax_brackets.last()
+        if last and (
+            last.max_income is None
+            or last.max_income == math.inf
+            or income > float(last.max_income)
+        ):
+            matching = last
+        else:
+            return 0.0
+
+    return matching.calculate_annual_tax(income)
 
 
 def calculate_taxable_amount(**kwargs):
@@ -45,10 +93,9 @@ def calculate_taxable_amount(**kwargs):
     contract = Contract.objects.filter(
         employee_id=employee, contract_status="active"
     ).first()
-    filing = contract.filing_status
+    filing = contract.filing_status if contract else None
     if not filing:
         return 0
-    federal_tax_for_period = 0
     tax_brackets = TaxBracket.objects.filter(filing_status_id=filing).order_by(
         "min_income"
     )
@@ -69,28 +116,18 @@ def calculate_taxable_amount(**kwargs):
     check_start_date = datetime.date(year, 1, 1)
     check_end_date = datetime.date(year, 12, 31)
     total_days = (check_end_date - check_start_date).days + 1
-    yearly_income = income / num_days * total_days
+    # Monthly wage contracts annualize as 12 × period income (matches
+    # salaried income-tax calculators). Other wage types keep day proration.
+    is_monthly = bool(contract and contract.wage_type == "monthly")
+    if is_monthly:
+        yearly_income = float(income) * 12
+    else:
+        yearly_income = income / num_days * total_days
     yearly_income = compute_yearly_taxable_amount(income, yearly_income)
     yearly_income = round(yearly_income, 2)
     federal_tax = 0
     if filing is not None and not filing.use_py:
-        brackets = [
-            {
-                "rate": item["tax_rate"],
-                "min": item["min_income"],
-                "max": min(item["max_income"], yearly_income),
-            }
-            for item in tax_brackets.values("tax_rate", "min_income", "max_income")
-        ]
-        filterd_brackets = []
-        for bracket in brackets:
-            if bracket["max"] > bracket["min"]:
-                bracket["diff"] = bracket["max"] - bracket["min"]
-                bracket["calculated_rate"] = (bracket["rate"] / 100) * bracket["diff"]
-                filterd_brackets.append(bracket)
-                continue
-            break
-        federal_tax = sum(bracket["calculated_rate"] for bracket in filterd_brackets)
+        federal_tax = calculate_bracket_annual_tax(yearly_income, filing)
 
     elif filing.use_py:
         try:
@@ -100,8 +137,11 @@ def calculate_taxable_amount(**kwargs):
 
     federal_tax_for_period = 0
     if federal_tax and (tax_brackets.exists() or filing.use_py):
-        daily_federal_tax = federal_tax / total_days
-        federal_tax_for_period = daily_federal_tax * num_days
+        if is_monthly:
+            federal_tax_for_period = federal_tax / 12.0
+        else:
+            daily_federal_tax = federal_tax / total_days
+            federal_tax_for_period = daily_federal_tax * num_days
 
     federal_tax_for_period = convert_year_tax_to_period(
         federal_tax_for_period=federal_tax_for_period,

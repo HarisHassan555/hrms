@@ -15,7 +15,7 @@ urlpatterns = [
     ),
     path(
         "create-filing-status/",
-        federal_tax.FederalTaxFormView.as_view(),
+        federal_tax.TaxBracketCreateForm.as_view(),
         name="create-filing-status",
     ),
     path(

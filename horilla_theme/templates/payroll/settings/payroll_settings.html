@@ -6,12 +6,10 @@
 </style>
 <div class="col-span-12">
     <form
+        id="formatting-payroll-form"
         action="{% url 'payroll-settings' %}"
         method="post"
-        hx-post="{% url 'payroll-settings' %}"
-        hx-swap="none"
-        data-settings-native="true"
-        hx-on-htmx-after-request="setTimeout(reloadMessage, 70);"
+        onsubmit="event.preventDefault(); var btn = document.getElementById('formatting-localization-save'); if (btn) { saveFormattingLocalizationAll(btn); } return false;"
     >
         {% csrf_token %}
 
@@ -38,9 +36,6 @@
                 </p>
                 {{ currency_form.position }}
             </div>
-            <button class="h-[36px] btn self-end" type="submit">
-                {% trans 'Save' %}
-            </button>
         </div>
     </form>
 </div>

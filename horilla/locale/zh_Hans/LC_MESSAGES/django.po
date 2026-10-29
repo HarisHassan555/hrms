@@ -15420,7 +15420,7 @@ msgstr ""
 msgid "Please login to access the dashboard."
 msgstr "请登录以访问仪表板。"
 
-msgid "e.g. adam.luis@horilla.com"
+msgid "e.g. adam.luis@dsg.com"
 msgstr ""
 
 msgid "Sign In"
@@ -27887,7 +27887,7 @@ msgstr "确认新密码"
 msgid "Reset my password"
 msgstr "重置密码"
 
-msgid "Registration Success - OpenHRMS Dashboard"
+msgid "Registration Success - DSG Dashboard"
 msgstr ""
 
 #, fuzzy

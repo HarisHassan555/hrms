@@ -51,4 +51,5 @@ class PortalMailTemplateCatalogTests(TestCase):
         ensure_onboarding_complete_profile_portal_mail_template()
         legacy.refresh_from_db()
         self.assertIn("Onboarding Portal — Complete Profile Details", legacy.body)
-        self.assertIn("get_onboarding_portal_path", legacy.body)
+        self.assertIn("{{ portal }}", legacy.body)
+        self.assertNotIn("get_onboarding_portal_path", legacy.body)

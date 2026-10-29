@@ -1515,6 +1515,7 @@ $(document).on("htmx:afterSwap", function () {
         this.removeAttribute("required");
         $source.summernote({
             height: 300,
+            dialogsInBody: true,
             codeviewFilter: false,
             codeviewIframeFilter: false,
             callbacks: {
@@ -1569,6 +1570,7 @@ function initializeSummernote(candId, searchWords) {
         this.removeAttribute("required");
     });
     $body.summernote({
+        dialogsInBody: true,
         hint: {
             mentions: mentions,
             match: /\B\{(\w*)$/,

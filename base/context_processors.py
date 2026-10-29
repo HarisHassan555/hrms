@@ -245,7 +245,7 @@ def doc_base_url(request):
     white-labelled deployments.
     """
     return {
-        "DOC_BASE_URL": getattr(settings, "DOC_BASE_URL", "https://www.horilla.com")
+        "DOC_BASE_URL": getattr(settings, "DOC_BASE_URL", "")
     }
 
 

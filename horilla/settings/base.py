@@ -42,6 +42,30 @@ USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", default=True)
 HORILLA_ENV = env("HORILLA_ENV", default="")
 REDIS_URL = env("REDIS_URL", default=None)
 
+# docker/entrypoint.sh replaces known-insecure SECRET_KEY values with a
+# persisted key at media/.generated_secret_key for the web process. ``manage.py``
+# invoked via ``docker compose exec`` skips the entrypoint, so it would keep the
+# compose default and mint password-reset tokens the live server rejects.
+# Prefer the generated file whenever the env value is still a shipped default.
+_GENERATED_SECRET_KEY_FILE = BASE_DIR / "media" / ".generated_secret_key"
+_SHIPPED_INSECURE_SECRET_KEYS = frozenset(
+    {
+        "django-insecure-default-key",
+        "dev-secret-key-change-in-production",
+        "change-me",
+        "django-insecure-j8op9)1q8$1&0^s&p*_0%d#pr@w9qj@1o=3#@d=a(^@9@zd@%j",
+    }
+)
+if (
+    SECRET_KEY in _SHIPPED_INSECURE_SECRET_KEYS
+    or SECRET_KEY.startswith("django-insecure-")
+    or SECRET_KEY.startswith("change-me")
+) and _GENERATED_SECRET_KEY_FILE.is_file():
+    _generated = _GENERATED_SECRET_KEY_FILE.read_text(encoding="utf-8").strip()
+    if _generated:
+        SECRET_KEY = _generated
+
+
 # Physical table name prefix for HRMS models (e.g. dsg_hr_base_company).
 # Set to empty string to disable. Framework/vendor tables are never prefixed.
 DB_TABLE_PREFIX = env("DB_TABLE_PREFIX", default="dsg_hr_")

@@ -1,5 +1,9 @@
+/* Above .oh-modal (1021) so link/image dialogs stay clickable inside app modals */
 .note-modal-backdrop{
-    z-index: 1020 !important;
+    z-index: 1100 !important;
+}
+.note-modal{
+    z-index: 1110 !important;
 }
 .fullscreen .note-editing-area{
     background-color: $white;

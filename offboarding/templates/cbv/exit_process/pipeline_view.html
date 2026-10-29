@@ -12,12 +12,32 @@
     {% include "generic/components.html" %}
 
     {% comment %}
-    No page-level Nav here, matching /recruitment/cbv-pipeline/: that page
-    renders its tab view alone and lets each tab's own Nav carry the title,
-    Create button and Search+Filter. OffboardingPipelineNav's title/Create/
-    view-type controls now live on OffboardingPipelineTabNav (the per-tab
-    Nav) instead.
+    Page header carries Create Offboarding. Per-tab Nav
+    (OffboardingPipelineTabNav) still owns Add Employee / Search / Actions
+    once a pipeline exists. Without this header, an empty Exit Process page
+    had no Create at all — tab Nav only mounts when an Offboarding row exists.
     {% endcomment %}
+    <div class="oh-wrapper mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-xl font-semibold text-slate-900 m-0">{% trans "Exit Process" %}</h1>
+            <p class="text-sm text-slate-500 m-0 mt-1">
+                {% trans "Manage offboarding pipelines, stages, and exiting employees." %}
+            </p>
+        </div>
+        {% if perms.offboarding.add_offboarding %}
+            <button
+                type="button"
+                class="oh-btn oh-btn--secondary"
+                hx-get="{% url 'create-offboarding' %}"
+                hx-target="#genericModalBody"
+                data-toggle="oh-modal-toggle"
+                data-target="#genericModal"
+            >
+                <ion-icon name="add-outline" class="me-1"></ion-icon>
+                {% trans "Create Offboarding" %}
+            </button>
+        {% endif %}
+    </div>
     <div
         class="oh-wrapper"
         id="{{view_container_id}}"

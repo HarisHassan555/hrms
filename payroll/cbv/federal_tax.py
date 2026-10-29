@@ -34,34 +34,42 @@ from payroll.models.models import FilingStatus
 from payroll.models.tax_models import TaxBracket
 
 
+def get_or_create_default_filing_status():
+    """
+    Ensure at least one filing-status group exists so tax slabs can be created.
+    """
+    filing = FilingStatus.objects.order_by("id").first()
+    if filing:
+        return filing
+    return FilingStatus.objects.create(
+        filing_status="Income Tax",
+        based_on="basic_pay",
+        use_py=False,
+        description="",
+    )
+
+
 @method_decorator(login_required, name="dispatch")
-@method_decorator(permission_required("payroll.add_filingstatus"), name="dispatch")
+@method_decorator(permission_required("payroll.change_filingstatus"), name="dispatch")
 class FederalTaxFormView(HorillaFormView):
     """
-    form view for create button
+    Update filing-status group name only (create uses TaxBracketCreateForm).
     """
 
     form_class = FilingStatusForm
     model = FilingStatus
-    template_name = "cbv/federal_tax/form_inherit.html"
-    new_display_title = _("Create Filing Status")
+    new_display_title = _("Update Filing Status")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.form.instance.pk:
             self.form_class.verbose_name = _("Update Filing Status")
-
         return context
 
     def form_valid(self, form: FilingStatusForm) -> HttpResponse:
         if form.is_valid():
-            if form.instance.pk:
-                message = _("Filing Status Updated Successfully")
-            else:
-                message = _("Filing StatusCreated Successfully")
             form.save()
-
-            messages.success(self.request, _(message))
+            messages.success(self.request, _("Filing Status Updated Successfully"))
             return self.HttpResponse("<script>location.reload();</script>")
         return super().form_valid(form)
 
@@ -100,48 +108,84 @@ class FilingStatusDetailView(HorillaDetailedView):
 @method_decorator(permission_required("payroll.add_taxbracket"), name="dispatch")
 class TaxBracketCreateForm(HorillaFormView):
     """
-    from view for create and edit tax brackets
+    Create / edit a tax slab with only:
+    Income Exceeds, Does Not Exceed, Tax Rate (%), Fixed Amount.
     """
 
     model = TaxBracket
     form_class = TaxBracketForm
-    new_display_title = _("Create Tax Bracket")
+    new_display_title = _("Create Filing Status")
+
+    def _is_page_create(self) -> bool:
+        return "create-filing-status" in (self.request.path or "")
 
     def dispatch(self, request, *args, **kwargs):
         filing_status_id = kwargs.get("filing_status_id")
-        if (
-            filing_status_id
-            and not FilingStatus.objects.filter(id=filing_status_id).exists()
-        ):
+        if filing_status_id and not FilingStatus.objects.filter(
+            id=filing_status_id
+        ).exists():
             messages.error(self.request, "Filing status not found.")
-            return redirect("filing-status-list")
+            return redirect("filing-status-view")
+        # Page-level Create has no filing_status_id — attach to default group.
+        if not kwargs.get("pk") and not filing_status_id:
+            filing = get_or_create_default_filing_status()
+            self.kwargs["filing_status_id"] = filing.pk
         return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        filing_status_id = self.kwargs.get("filing_status_id")
+        if filing_status_id and not self.kwargs.get("pk"):
+            initial["filing_status_id"] = filing_status_id
+        return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.form.instance.pk:
-            tax_bracket = TaxBracket.find(self.form.instance.pk)
-            filing_status_id = tax_bracket.filing_status_id.id
-            self.form_class.verbose_name = _("Update Tax Bracket")
+            title = (
+                _("Update Filing Status")
+                if self._is_page_create()
+                else _("Update Tax Bracket")
+            )
+            self.form_class.verbose_name = title
+            self.new_display_title = title
         else:
             filing_status_id = self.kwargs.get("filing_status_id")
             filling = FilingStatus.objects.filter(id=filing_status_id).first()
             if not filling:
-                context["form"] = self.form
-                return context
+                filling = get_or_create_default_filing_status()
+                self.kwargs["filing_status_id"] = filling.pk
             self.form.fields["filing_status_id"].initial = filling
             context["is_create"] = True
+            title = (
+                _("Create Filing Status")
+                if self._is_page_create()
+                else _("Create Tax Bracket")
+            )
+            self.form_class.verbose_name = title
+            self.new_display_title = title
 
         context["form"] = self.form
         return context
 
     def form_valid(self, form: TaxBracketForm) -> HttpResponse:
         if form.is_valid():
-            max_income = self.form.cleaned_data.get("max_income")
+            max_income = form.cleaned_data.get("max_income")
             if not max_income:
                 messages.info(self.request, _("The maximum income will be infinite"))
-                self.form.instance.max_income = math.inf
-            if form.instance.pk:
+                form.instance.max_income = math.inf
+
+            filing_status = form.cleaned_data.get("filing_status_id")
+            if not filing_status:
+                fs_id = self.kwargs.get("filing_status_id")
+                if fs_id:
+                    form.instance.filing_status_id_id = fs_id
+                    filing_status = FilingStatus.objects.filter(id=fs_id).first()
+
+            is_update = bool(form.instance.pk)
+            form.save()
+
+            if is_update:
                 messages.success(
                     self.request, _("The tax bracket has been updated successfully.")
                 )
@@ -149,14 +193,16 @@ class TaxBracketCreateForm(HorillaFormView):
                 messages.success(
                     self.request, _("The tax bracket was created successfully.")
                 )
-            filing_status_id = self.form.cleaned_data.get("filing_status_id")
+
+            # Page Create modal: close + reload. Nested create: refresh brackets.
+            if self._is_page_create() or not filing_status:
+                return self.HttpResponse("<script>location.reload();</script>")
+
             context = {
-                "filing_status_id": filing_status_id.id,
+                "filing_status_id": filing_status.id,
                 "form_instance": form.instance.pk,
             }
-            template = "cbv/federal_tax/tax_bracket.html"
-            html = render_to_string(template, context)
-            form.save()
+            html = render_to_string("cbv/federal_tax/tax_bracket.html", context)
             return HttpResponse(html)
         return super().form_valid(form)
 
@@ -174,6 +220,7 @@ class TaxBracketNavView(HorillaNavView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.search_url = f"{reverse_lazy('filing-status-search')}"
+        # Create opens the simple 4-field tax slab form.
         self.create_attrs = f"""
             data-toggle="oh-modal-toggle"
             data-target="#objectCreateModal"
@@ -273,9 +320,10 @@ class TaxBracketListView(HorillaListView):
     template_name = "cbv/federal_tax/tax_bracket_list.html"
 
     columns = [
+        (_("Income Exceeds"), "min_income"),
+        (_("Does Not Exceed"), "get_display_max_income"),
         (_("Tax Rate (%)"), "tax_rate"),
-        (_("Min. Income"), "min_income"),
-        (_("Max. Income"), "get_display_max_income"),
+        (_("Fixed Amount"), "fixed_amount"),
     ]
 
     filter_keys_to_remove = ["filing_status_id"]

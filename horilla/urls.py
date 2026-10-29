@@ -135,6 +135,15 @@ def metrics(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Browsers auto-request /favicon.ico; always serve the DSG brand mark.
+    path(
+        "favicon.ico",
+        RedirectView.as_view(
+            url=f"{django_settings.STATIC_URL}images/ui/dsglogo.png",
+            permanent=False,
+        ),
+        name="favicon",
+    ),
     # django.contrib.auth.urls is here for the password_reset_* routes its forms
     # and mails reverse. Its /accounts/login/ renders registration/login.html,
     # which Horilla does not ship, so that one URL 500s — send it to the real

@@ -9,12 +9,10 @@
 </style>
 <div class="col-span-12" id="setting-badge-id-prefix">
     <form
+        id="formatting-prefix-form"
         action="{% url 'initial-prefix' %}"
         method="post"
-        hx-post="{% url 'initial-prefix' %}"
-        hx-swap="none"
-        data-settings-native="true"
-        hx-on-htmx-after-request="setTimeout(reloadMessage, 70);"
+        onsubmit="event.preventDefault(); var btn = document.getElementById('formatting-localization-save'); if (btn) { saveFormattingLocalizationAll(btn); } return false;"
     >
         {% csrf_token %}
 
@@ -25,14 +23,13 @@
         <p class="text-xs text-gray-500 mt-1 pb-2">
             {% trans "Prefix added to every auto-generated employee badge ID (e.g. PEP0001)." %}
         </p>
-        <div class="prefix flex gap-2">
+        <div class="prefix">
             {{ prefix_form.badge_id_prefix }}
             {% if prefix_form.badge_id_prefix.errors %}
                 <div class="text-danger">
                     {{ prefix_form.badge_id_prefix.errors|join:", " }}
                 </div>
             {% endif %}
-            <button class="btn" type="submit">{% trans "Save" %}</button>
         </div>
     </form>
 </div>

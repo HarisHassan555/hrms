@@ -114,9 +114,9 @@
                             <tr>
                                 <td style="padding: 10px; font-size: 14px; line-height: 1.6; text-align: left; color: #111827">
                                     <p style="margin: 0 0 8px 0"><strong>{% trans 'Portal link' %}:</strong><br>
-                                    <a href="http://localhost:8000{{ instance.get_onboarding_portal_path }}" style="color: {{ theme_obj.primary_600 }}; word-break: break-all">http://localhost:8000{{ instance.get_onboarding_portal_path }}</a></p>
+                                    <a href="{{ portal }}" style="color: {{ theme_obj.primary_600 }}; word-break: break-all">{{ portal }}</a></p>
                                     <p style="margin: 0 0 8px 0"><strong>{% trans 'Email (for your account)' %}:</strong> {{ instance.email }}</p>
-                                    <p style="margin: 0 0 8px 0"><strong>{% trans 'Mobile number' %}:</strong> {{ instance.mobile }}</p>
+                                    <p style="margin: 0 0 8px 0"><strong>{% trans 'Mobile number' %}:</strong> {% firstof candidate_mobile instance.mobile %}</p>
                                     <p style="margin: 0"><strong>{% trans 'How to access' %}:</strong> {% trans 'Open the personal link above. You will create your password on first visit.' %}</p>
                                 </td>
                             </tr>
@@ -133,7 +133,7 @@
                 <tr>
                     <td style="padding: 15px" align="center">
                         <a
-                            href="http://localhost:8000{{ instance.get_onboarding_portal_path }}"
+                            href="{{ portal }}"
                             style="background-color: {{ theme_obj.primary_600 }}; color: #fff; border-radius: 10px; display: inline-block; padding: 15px 25px; text-decoration: none; font-weight: bold"
                         >{% trans 'Complete Profile' %}</a>
                     </td>

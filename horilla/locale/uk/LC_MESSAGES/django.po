@@ -13851,8 +13851,8 @@ msgstr "HR"
 msgid "Please login to access the dashboard."
 msgstr "Будь ласка, увійдіть для доступу до панелі приладів."
 
-msgid "e.g. adam.luis@horilla.com"
-msgstr "напр. adam.luis@horilla.com"
+msgid "e.g. adam.luis@dsg.com"
+msgstr "напр. adam.luis@dsg.com"
 
 msgid "Sign In"
 msgstr "Вхід"
@@ -24434,8 +24434,8 @@ msgstr "Підтвердити новий пароль"
 msgid "Reset my password"
 msgstr "Скинути мій пароль"
 
-msgid "Registration Success - OpenHRMS Dashboard"
-msgstr "Реєстрація успішна — панель OpenHRMS"
+msgid "Registration Success - DSG Dashboard"
+msgstr "Реєстрація успішна — панель DSG"
 
 msgid "Forget Password Mail Send Successfully"
 msgstr "Лист для відновлення пароля успішно надіслано"
