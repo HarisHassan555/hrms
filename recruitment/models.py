@@ -1876,6 +1876,14 @@ class RecruitmentGeneralSetting(HorillaModel):
 
     candidate_self_tracking = models.BooleanField(default=False)
     show_overall_rating = models.BooleanField(default=False)
+    application_acknowledgment_email = models.BooleanField(
+        default=True,
+        verbose_name=_("Application acknowledgment email"),
+        help_text=_(
+            "Send a thank-you email automatically when a candidate submits "
+            "the public application form."
+        ),
+    )
     company_id = models.OneToOneField(
         Company, on_delete=models.CASCADE, null=True, blank=True, unique=True
     )
