@@ -24,19 +24,19 @@ from horilla.export_safety import FORMULA_TRIGGERS, neutralize_formula
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Style tokens — Horilla primary (coral / #E54F38)
+# Style tokens — DSG primary (indigo / #4F46E5)
 # ---------------------------------------------------------------------------
-COLOR_PRIMARY = "E54F38"
-COLOR_PRIMARY_DARK = "CE4732"
-COLOR_PRIMARY_SOFT = "FCEDEB"
-COLOR_SLATE = "595959"
-COLOR_TEXT = "333333"
-COLOR_ROW_ALT = "FEF6F5"
+COLOR_PRIMARY = "4F46E5"
+COLOR_PRIMARY_DARK = "4338CA"
+COLOR_PRIMARY_SOFT = "EEF2FF"
+COLOR_SLATE = "475569"
+COLOR_TEXT = "0F172A"
+COLOR_ROW_ALT = "F8FAFC"
 COLOR_WHITE = "FFFFFF"
-COLOR_BORDER = "F7C8C1"
-COLOR_KPI_VALUE = "AC3B2A"
-COLOR_FILTER_BG = "FFF4CE"
-COLOR_FILTER_BORDER = "E8B84B"
+COLOR_BORDER = "E2E8F0"
+COLOR_KPI_VALUE = "3730A3"
+COLOR_FILTER_BG = "EEF2FF"
+COLOR_FILTER_BORDER = "C7D2FE"
 
 
 def _table_from_payload(
@@ -992,7 +992,7 @@ def _chart_palette_hex() -> list[str]:
 
         return list(PALETTE_HEX)
     except Exception:
-        return ["E54F38", "2563EB", "15803D", "7C3AED", "0D9488", "F59E0B"]
+        return ["4F46E5", "0EA5E9", "14B8A6", "22C55E", "6366F1", "94A3B8"]
 
 
 def _add_native_chart(

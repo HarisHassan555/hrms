@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
-            --as-indigo: var(--primary-600, #E54F38);
+            --as-indigo: var(--primary-600, #4F46E5);
             --as-green: #22c55e;
             --as-amber: #f59e0b;
             --as-red: #ef4444;
@@ -861,7 +861,7 @@
             const textColor = isDark ? '#e2e8f0' : '#334155';
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
             const cardBg = isDark ? '#242424' : '#ffffff';
-            const COLORS = (window.HORILLA_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
+            const COLORS = (window.DSG_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
             const emptyHtml = (msg) => `<div class="as-empty"><img src="/static/images/ui/application.png" alt="">${msg}</div>`;
             const fmt = v => Number(v).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
             const assetAllocationUrl = "{% url 'asset-request-allocation-view' %}";

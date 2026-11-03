@@ -7,8 +7,10 @@ from typing import Callable
 from . import admin_team_seeder, asset_seeder, attendance_seeder, employee_seeder, leave_seeder
 from . import (
     organization_seeder,
+    pakistan_attendance_leave_seeder,
     pakistan_helpdesk_seeder,
     pakistan_org_seeder,
+    pakistan_payroll_seeder,
     pakistan_pms_seeder,
     pakistan_profile_seeder,
     pakistan_project_seeder,
@@ -92,6 +94,22 @@ SEEDERS = OrderedDict(
                 "pakistan_helpdesk",
                 "DSG PK tickets, types, dept managers, FAQs, claims",
                 pakistan_helpdesk_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_attendance_leave",
+            Seeder(
+                "pakistan_attendance_leave",
+                "DSG PK attendance history + leave requests & balances",
+                pakistan_attendance_leave_seeder.seed,
+            ),
+        ),
+        (
+            "pakistan_payroll",
+            Seeder(
+                "pakistan_payroll",
+                "DSG PK payroll master data, PKR, tax, payslips",
+                pakistan_payroll_seeder.seed,
             ),
         ),
         (

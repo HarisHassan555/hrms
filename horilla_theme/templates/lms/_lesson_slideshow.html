@@ -1,0 +1,98 @@
+{% load i18n basefilters %}
+{% if slides %}
+    <div class="lms-media-stage" data-lms-slideshow data-lms-fullscreen-root>
+        <div class="lms-media-stage__toolbar">
+            <span class="lms-media-stage__label">{% trans "Slideshow" %}</span>
+            <div class="lms-media-stage__actions">
+                <span class="lms-media-stage__counter">
+                    <span data-lms-slide-current>1</span> / {{ slides|length }}
+                </span>
+                <button type="button" class="lms-media-btn" data-lms-fullscreen title="{% trans 'Fullscreen' %}">
+                    {% trans "Fullscreen" %}
+                </button>
+            </div>
+        </div>
+        <div class="lms-media-stage__viewport">
+            {% for slide in slides %}
+                <section
+                    class="lms-slide {% if not forloop.first %}is-hidden{% endif %}"
+                    data-slide-index="{{ forloop.counter0 }}"
+                    aria-hidden="{% if forloop.first %}false{% else %}true{% endif %}"
+                >
+                    <div class="lms-slide__inner">
+                        {% if slide.title %}
+                            <h3 class="lms-slide__title">{{ slide.title }}</h3>
+                        {% endif %}
+                        {% if slide.body %}
+                            <div class="lms-slide__body">
+                                {{ slide.body|linebreaksbr }}
+                            </div>
+                        {% endif %}
+                        {% if slide.image %}
+                            <img
+                                src="{{ slide.image.url }}"
+                                alt="{{ slide.title|default:lesson.title }}"
+                                class="lms-slide__image"
+                                loading="lazy"
+                            />
+                        {% endif %}
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+        <div class="lms-media-stage__nav">
+            <button type="button" class="lms-media-btn" data-lms-prev>{% trans "Previous" %}</button>
+            <div class="lms-media-dots" role="tablist" aria-label="{% trans 'Slides' %}">
+                {% for slide in slides %}
+                    <button
+                        type="button"
+                        class="lms-media-dot {% if forloop.first %}is-active{% endif %}"
+                        data-dot-index="{{ forloop.counter0 }}"
+                        aria-label="{% blocktrans with num=forloop.counter %}Slide {{ num }}{% endblocktrans %}"
+                    ></button>
+                {% endfor %}
+            </div>
+            <button type="button" class="lms-media-btn lms-media-btn--primary" data-lms-next>{% trans "Next" %}</button>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var root = document.currentScript && document.currentScript.previousElementSibling;
+            if (!root || !root.hasAttribute("data-lms-slideshow")) return;
+            var slides = root.querySelectorAll(".lms-slide");
+            var dots = root.querySelectorAll("[data-dot-index]");
+            var currentEl = root.querySelector("[data-lms-slide-current]");
+            var index = 0;
+
+            function show(i) {
+                if (!slides.length) return;
+                index = (i + slides.length) % slides.length;
+                slides.forEach(function (slide, idx) {
+                    var active = idx === index;
+                    slide.classList.toggle("is-hidden", !active);
+                    slide.setAttribute("aria-hidden", active ? "false" : "true");
+                });
+                dots.forEach(function (dot, idx) {
+                    dot.classList.toggle("is-active", idx === index);
+                });
+                if (currentEl) currentEl.textContent = String(index + 1);
+            }
+
+            var prev = root.querySelector("[data-lms-prev]");
+            var next = root.querySelector("[data-lms-next]");
+            if (prev) prev.addEventListener("click", function () { show(index - 1); });
+            if (next) next.addEventListener("click", function () { show(index + 1); });
+            dots.forEach(function (dot) {
+                dot.addEventListener("click", function () {
+                    show(parseInt(dot.getAttribute("data-dot-index"), 10) || 0);
+                });
+            });
+
+            document.addEventListener("keydown", function (event) {
+                if (!root.offsetParent) return;
+                if (event.key === "ArrowRight") show(index + 1);
+                if (event.key === "ArrowLeft") show(index - 1);
+            });
+        })();
+    </script>
+{% endif %}

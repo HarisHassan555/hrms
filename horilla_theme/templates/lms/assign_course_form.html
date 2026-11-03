@@ -1,0 +1,51 @@
+{% load i18n widget_tweaks %}
+
+<form
+    id="lmsAssignCourseForm"
+    hx-post="{% url 'lms-enrollment-assign' %}"
+    hx-target="#genericModalBody"
+    hx-swap="innerHTML"
+    hx-encoding="multipart/form-data"
+    novalidate
+>
+    {% csrf_token %}
+    <div class="oh-modal__dialog-header">
+        <h2 class="oh-modal__dialog-title">{{ title }}</h2>
+        <button
+            type="button"
+            class="oh-modal__close--custom"
+            onclick="$(this).closest('.oh-modal--show').removeClass('oh-modal--show')"
+            aria-label="{% trans 'Close' %}"
+        >
+            <ion-icon name="close-outline"></ion-icon>
+        </button>
+    </div>
+    <div class="oh-modal__dialog-body">
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+            <label class="oh-label required-star" for="{{ form.course.id_for_label }}">{% trans "Course" %}</label>
+            {{ form.course|add_class:"form-control" }}
+            {{ form.course.errors }}
+        </div>
+        <div class="mb-3">
+            <label class="oh-label required-star">{% trans "Employees" %}</label>
+            {{ form.employees }}
+            {{ form.employees.errors }}
+        </div>
+        <div class="mb-3">
+            <label class="oh-label" for="{{ form.due_at.id_for_label }}">{% trans "Deadline" %}</label>
+            {{ form.due_at|add_class:"form-control" }}
+            {{ form.due_at.errors }}
+        </div>
+        <div class="mb-3">
+            <label class="oh-label" for="{{ form.notes.id_for_label }}">{% trans "Notes" %}</label>
+            {{ form.notes }}
+            {{ form.notes.errors }}
+        </div>
+        <div class="d-flex flex-row-reverse">
+            <button type="submit" class="oh-btn oh-btn--secondary mt-2">
+                {% trans "Assign course" %}
+            </button>
+        </div>
+    </div>
+</form>

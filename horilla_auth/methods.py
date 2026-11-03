@@ -4,6 +4,35 @@ Shared helper methods for HorillaUser account provisioning.
 
 import secrets
 import string
+import uuid
+
+SYSTEM_BOT_USERNAME = "DSG Bot"
+_LEGACY_BOT_USERNAMES = ("Horilla Bot",)
+
+
+def get_or_create_system_bot():
+    """
+    Return the automation/system bot user used for background writes.
+
+    Prefers ``DSG Bot``; migrates a legacy ``Horilla Bot`` username when found.
+    """
+    from horilla_auth.models import HorillaUser
+
+    bot = HorillaUser.objects.filter(username=SYSTEM_BOT_USERNAME).first()
+    if bot:
+        return bot
+
+    for legacy in _LEGACY_BOT_USERNAMES:
+        bot = HorillaUser.objects.filter(username=legacy).first()
+        if bot:
+            bot.username = SYSTEM_BOT_USERNAME
+            bot.save(update_fields=["username"])
+            return bot
+
+    return HorillaUser.objects.create_user(
+        username=SYSTEM_BOT_USERNAME,
+        password=str(uuid.uuid4()),
+    )
 
 
 def generate_unique_fallback_username() -> str:

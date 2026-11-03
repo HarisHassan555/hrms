@@ -122,23 +122,23 @@
                 .select2-container--default
                 .select2-selection--multiple
                 .select2-selection__choice {
-                    background-color: {{ theme.primary_600|default:"#E54F38" }};
+                    background-color: {{ theme.primary_600|default:"#4F46E5" }};
                 }
 
                 .oh-titlebar__tag--custom{
-                    background-color: {{ theme.primary_600|default:"#E54F38" }} !important;
+                    background-color: {{ theme.primary_600|default:"#4F46E5" }} !important;
                     color: {{ theme_obj.secondary_100|default:"#F0F0F0" }} !important;
                 }
 
                 .usertablist li button.active,
                 .usertablist li button:hover{
-                    border: 1px solid {{ theme_obj.primary_600|default:"#E54F38" }};
+                    border: 1px solid {{ theme_obj.primary_600|default:"#4F46E5" }};
                 }
 
                 .myform input:focus, .myform select:focus, .myform textarea:focus,
                 .oh-input:focus, .oh-input:focus-visible, .oh-select:focus, .oh-select:focus-visible
                 {
-                    border: 1px solid {{ theme_obj.primary_600|default:"#E54F38" }} !important;
+                    border: 1px solid {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
                 }
 
                 {% comment %} .oh-activity-sidebar {
@@ -151,25 +151,25 @@
                 .oh-btn--secondary:focus-visible,
                 .oh-switch .oh-switch__checkbox:checked:hover
                 {
-                    background-color: {{ theme_obj.primary_800 | default:"#AC3B2A" }};
+                    background-color: {{ theme_obj.primary_800 | default:"#3730A3" }};
                 }
 
                 /* Primary 300 background */
                 .sidebox ul li a:after,
                 .sidebox ul li a:hover,
                 .oh-accordion-header:hover {
-                    background-color: {{ theme.primary_300|default:"#FCEDEB" }};
+                    background-color: {{ theme.primary_300|default:"#EEF2FF" }};
                 }
 
                 /* Accordion base */
                 .oh-accordion-header {
-                    background-color: {{ theme.primary_200|default:"#FEF6F5" }};
-                    color: {{ theme.primary_600|default:"#E54F38" }};
+                    background-color: {{ theme.primary_200|default:"#EEF2FF" }};
+                    color: {{ theme.primary_600|default:"#4F46E5" }};
                 }
 
                 .oh-tabs__movable-header,
                 .oh-tabs__movable:hover {
-                    background-color: {{ theme.primary_100|default:"#FEF6F5" }};
+                    background-color: {{ theme.primary_100|default:"#EEF2FF" }};
                 }
 
                 /* Text color */
@@ -182,17 +182,17 @@
                 .oh-chrome-breadcrumb__link:hover,
                 .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__text,
                 .oh-chrome-breadcrumb__item--current .oh-chrome-breadcrumb__link {
-                    color: {{ theme.primary_600|default:"#E54F38" }};
+                    color: {{ theme.primary_600|default:"#4F46E5" }};
                 }
 
                 /* Pill tab group (.mytab): global.css hardcodes the default red
                    for both the outer border and the active tab's fill. */
                 .mytab {
-                    border-color: {{ theme.primary_600|default:"#E54F38" }};
+                    border-color: {{ theme.primary_600|default:"#4F46E5" }};
                 }
 
                 .mytab .tab-button.active {
-                    background: {{ theme.primary_600|default:"#E54F38" }};
+                    background: {{ theme.primary_600|default:"#4F46E5" }};
                 }
 
                 /* -- Theme-aware Tailwind primary-* utilities ---------------------
@@ -204,23 +204,23 @@
                    global.css, so it wins by source order at equal specificity -
                    deliberately WITHOUT !important, so state utilities layered on
                    top (e.g. hover:text-white, hover:bg-*) still win on hover. */
-                .border-primary-300 { border-color: {{ theme.primary_300|default:"#FCEDEB" }}; }
-                .border-primary-500 { border-color: {{ theme.primary_500|default:"#F7C8C1" }}; }
-                .border-primary-600 { border-color: {{ theme.primary_600|default:"#E54F38" }}; }
+                .border-primary-300 { border-color: {{ theme.primary_300|default:"#EEF2FF" }}; }
+                .border-primary-500 { border-color: {{ theme.primary_500|default:"#C7D2FE" }}; }
+                .border-primary-600 { border-color: {{ theme.primary_600|default:"#4F46E5" }}; }
                 .bg-primary-50 { background-color: {{ theme.primary_50|default:"#f5f7fb" }}; }
                 .bg-primary-100 { background-color: {{ theme.primary_100|default:"#eaf1ff" }}; }
                 .bg-primary-200 { background-color: {{ theme.primary_200|default:"#d9e5ff" }}; }
                 .bg-primary-300 { background-color: {{ theme.primary_300|default:"#c4d7ff" }}; }
-                .bg-primary-500 { background-color: {{ theme.primary_500|default:"#F7C8C1" }}; }
-                .bg-primary-600 { background-color: {{ theme.primary_600|default:"#E54F38" }}; }
-                .text-primary-600 { color: {{ theme.primary_600|default:"#E54F38" }}; }
-                .hover\:border-primary-600:hover { border-color: {{ theme.primary_600|default:"#E54F38" }}; }
-                .hover\:bg-primary-200:hover { background-color: {{ theme.primary_200|default:"#FEF6F5" }}; }
-                .hover\:bg-primary-600:hover { background-color: {{ theme.primary_600|default:"#E54F38" }}; }
-                .hover\:bg-primary-700:hover { background-color: {{ theme.primary_700|default:"#ce4732" }}; }
-                .hover\:bg-primary-800:hover { background-color: {{ theme.primary_800|default:"#AC3B2A" }}; }
-                .hover\:text-primary-600:hover { color: {{ theme.primary_600|default:"#E54F38" }}; }
-                .focus\:border-primary-600:focus { border-color: {{ theme.primary_600|default:"#E54F38" }}; }
+                .bg-primary-500 { background-color: {{ theme.primary_500|default:"#C7D2FE" }}; }
+                .bg-primary-600 { background-color: {{ theme.primary_600|default:"#4F46E5" }}; }
+                .text-primary-600 { color: {{ theme.primary_600|default:"#4F46E5" }}; }
+                .hover\:border-primary-600:hover { border-color: {{ theme.primary_600|default:"#4F46E5" }}; }
+                .hover\:bg-primary-200:hover { background-color: {{ theme.primary_200|default:"#EEF2FF" }}; }
+                .hover\:bg-primary-600:hover { background-color: {{ theme.primary_600|default:"#4F46E5" }}; }
+                .hover\:bg-primary-700:hover { background-color: {{ theme.primary_700|default:"#4338CA" }}; }
+                .hover\:bg-primary-800:hover { background-color: {{ theme.primary_800|default:"#3730A3" }}; }
+                .hover\:text-primary-600:hover { color: {{ theme.primary_600|default:"#4F46E5" }}; }
+                .focus\:border-primary-600:focus { border-color: {{ theme.primary_600|default:"#4F46E5" }}; }
 
                 /* Quick filter pills (Offline/Online etc., generic/quick_actions.html)
                    submit and get swapped out of the DOM immediately on click, so a
@@ -231,7 +231,7 @@
                 .oh-row-status-indication:focus,
                 .oh-row-status-indication:active {
                     outline: none;
-                    border-color: {{ theme.primary_600|default:"#E54F38" }} !important;
+                    border-color: {{ theme.primary_600|default:"#4F46E5" }} !important;
                 }
 
                 /* -- List-view row selection follows the theme --------------------
@@ -242,7 +242,7 @@
                    rule is ignored and the base highlight still applies. Row-status
                    left borders (validated/rejected/â¦) are semantic and untouched. */
                 .highlight-selected {
-                    background: color-mix(in srgb, {{ theme.primary_600|default:"#E54F38" }} 12%, transparent) !important;
+                    background: color-mix(in srgb, {{ theme.primary_600|default:"#4F46E5" }} 12%, transparent) !important;
                 }
                 .highlight-selected .stickyleft,
                 .highlight-selected .stickyleft-second,
@@ -252,7 +252,7 @@
                        underneath them, the same way the unselected row's solid
                        white background does -- a translucent tint here would
                        let scrolled-under text bleed through visually. */
-                    background: color-mix(in srgb, {{ theme.primary_600|default:"#E54F38" }} 12%, white) !important;
+                    background: color-mix(in srgb, {{ theme.primary_600|default:"#4F46E5" }} 12%, white) !important;
                 }
                 /* Some rows (e.g. cancelled leave requests, see
                    is_attendance_request_cancelled in leave/models.py) set an
@@ -282,11 +282,11 @@
                     background-color: color-mix(in srgb, rgb(255, 166, 0) 15.8%, #444444);
                 }
                 input[type="checkbox"].custom-checkbox:checked {
-                    background-color: {{ theme.primary_600|default:"#E54F38" }} !important;
-                    border-color: {{ theme.primary_600|default:"#E54F38" }} !important;
+                    background-color: {{ theme.primary_600|default:"#4F46E5" }} !important;
+                    border-color: {{ theme.primary_600|default:"#4F46E5" }} !important;
                 }
                 input[type="checkbox"].custom-checkbox:hover {
-                    border-color: {{ theme.primary_600|default:"#E54F38" }} !important;
+                    border-color: {{ theme.primary_600|default:"#4F46E5" }} !important;
                 }
                 /* All checkboxes/radios (both list-table variants: .custom-checkbox
                    drawn boxes AND native .oh-input__checkbox / .list-table-row)
@@ -297,7 +297,7 @@
                 input[type="checkbox"].oh-input__checkbox,
                 input[type="checkbox"].list-table-row,
                 input[type="checkbox"].bulk-list-table-row {
-                    accent-color: {{ theme.primary_600|default:"#E54F38" }} !important;
+                    accent-color: {{ theme.primary_600|default:"#4F46E5" }} !important;
                 }
             </style>
         {% endwith %}

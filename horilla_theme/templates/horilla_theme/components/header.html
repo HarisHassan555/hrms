@@ -82,7 +82,7 @@
                         id="tourLauncherBtn"
                         type="button"
                         title="{% trans 'Take a tour' %}"
-                        onclick="if(window.horillaTour){window.horillaTour.toggle();}"
+                        onclick="if(window.dsgTour){window.dsgTour.toggle();}"
                         class="oh-chrome-icon-btn oh-chrome-icon-btn--has-badge hidden md:inline-flex"
                     >
                         <i class="fas fa-circle-question"></i>
@@ -182,7 +182,7 @@
             {% trans "All Notifications" %}
         </h3>
         <button
-            class="text-primary-600 text-xs flex justify-center font-semibold hover:text-[#ac3b2a] transition duration-300"
+            class="text-primary-600 text-xs flex justify-center font-semibold hover:text-[#3730A3] transition duration-300"
             hx-post="{% url 'delete-all-notifications' %}"
             hx-target="#sidebarModalBody"
         >

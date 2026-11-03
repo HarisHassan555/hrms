@@ -32,9 +32,9 @@ class CourseListView(HorillaListView):
         (_("Title"), "title"),
         (_("Code"), "code"),
         (_("Category"), "category_col"),
-        (_("Status"), "get_status_display"),
         (_("Difficulty"), "get_difficulty_display"),
-        (_("Duration (min)"), "duration_minutes"),
+        (_("Status"), "get_status_display"),
+        (_("Open enroll"), "open_enroll_col"),
     ]
 
     header_attrs = {
@@ -57,7 +57,7 @@ class CourseListView(HorillaListView):
                     "attrs": """
                         class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
                         href="{get_builder_url}"
-                        title="Modules and lessons"
+                        title="Chapters and lessons"
                     """,
                 }
             )

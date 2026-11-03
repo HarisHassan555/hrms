@@ -7,9 +7,9 @@
 
 html.vristo-theme {
   /* Brand (Vristo default primary) */
-  --vristo-primary: #4361ee;
-  --vristo-primary-dark: #3a4ecc;
-  --vristo-primary-light: #eaf1ff;
+  --vristo-primary: #4F46E5;
+  --vristo-primary-dark: #4338CA;
+  --vristo-primary-light: #EEF2FF;
   --vristo-success: #00ab55;
   --vristo-danger: #e7515a;
   --vristo-warning: #e2a03f;
@@ -144,19 +144,19 @@ html.vristo-theme.dark .oh-sticky-table__th {
 
 /* Compiled tailwind.css uses rgb(var(--color-primary-*)); pin Vristo RGB. */
 html.vristo-theme {
-  --color-primary-50: 245 247 251;
-  --color-primary-100: 234 241 255;
-  --color-primary-200: 217 229 255;
-  --color-primary-300: 196 215 255;
-  --color-primary-400: 168 192 255;
-  --color-primary-500: 107 140 255;
-  --color-primary-600: 67 97 238;
-  --color-primary-700: 58 78 204;
-  --color-primary-800: 47 62 184;
-  --color-primary-900: 30 42 128;
+  --color-primary-50: 248 250 252;
+  --color-primary-100: 238 242 255;
+  --color-primary-200: 224 231 255;
+  --color-primary-300: 199 210 254;
+  --color-primary-400: 165 180 252;
+  --color-primary-500: 129 140 248;
+  --color-primary-600: 79 70 229;
+  --color-primary-700: 67 56 202;
+  --color-primary-800: 55 48 163;
+  --color-primary-900: 49 46 129;
 }
 
-/* Neutralize Color Theme peach/amber fills (Coral #FFF5F1, Amber #fffbeb). */
+/* Neutralize Color Theme peach/amber fills (Coral #EEF2FF, Amber #fffbeb). */
 html.vristo-theme .bg-primary-50,
 html.vristo-theme .hover\:bg-primary-50:hover {
   background-color: var(--vristo-body-bg) !important;

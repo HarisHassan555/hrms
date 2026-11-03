@@ -1,0 +1,83 @@
+{% load generic_template_filters %}
+
+<div id="formContainer">
+    {% include "generic/horilla_form.html" %}
+</div>
+
+<style>
+    #genericModalBody .lms-q-hidden {
+        display: none !important;
+    }
+</style>
+
+<script>
+(function () {
+    function setVisible($el, visible) {
+        if (!$el || !$el.length) return;
+        $el.toggleClass("lms-q-hidden", !visible);
+        if (visible) {
+            $el.show();
+        } else {
+            $el.hide();
+        }
+    }
+
+    function toggleQuestionAnswerFields() {
+        var $form = $("#genericModalBody form").first();
+        if (!$form.length) {
+            $form = $("#formContainer form").first();
+        }
+        if (!$form.length) return;
+
+        var type = $form.find("[name='question_type']").first().val() || "";
+        var isMcq = type === "mcq";
+        var isTrueFalse = type === "true_false";
+
+        setVisible($("#id_true_false_answer_parent_div"), isTrueFalse);
+        setVisible($("#id_choice_1_parent_div"), isMcq);
+        setVisible($("#id_choice_2_parent_div"), isMcq);
+        setVisible($("#id_choice_3_parent_div"), isMcq);
+        setVisible($("#id_choice_4_parent_div"), isMcq);
+        setVisible($("#id_correct_choice_parent_div"), isMcq);
+    }
+
+    window.lmsToggleQuestionAnswerFields = toggleQuestionAnswerFields;
+
+    $(document)
+        .off("change.lmsQuestionType", "#genericModalBody [name='question_type'], #formContainer [name='question_type']")
+        .on(
+            "change.lmsQuestionType",
+            "#genericModalBody [name='question_type'], #formContainer [name='question_type']",
+            function () {
+                toggleQuestionAnswerFields();
+            }
+        );
+
+    $(document)
+        .off("select2:select.lmsQuestionType")
+        .on("select2:select.lmsQuestionType", "#genericModalBody [name='question_type'], #formContainer [name='question_type']", function () {
+            toggleQuestionAnswerFields();
+        });
+
+    $(document)
+        .off("htmx:afterSwap.lmsQuestionType")
+        .on("htmx:afterSwap.lmsQuestionType", function (evt) {
+            var target = evt && evt.target ? evt.target : null;
+            if (!target) return;
+            if (
+                target.id === "genericModalBody" ||
+                (target.querySelector && target.querySelector("[name='question_type']"))
+            ) {
+                setTimeout(toggleQuestionAnswerFields, 0);
+            }
+        });
+
+    // Run now (HTMX script insert) and after ready.
+    toggleQuestionAnswerFields();
+    $(function () {
+        toggleQuestionAnswerFields();
+    });
+    setTimeout(toggleQuestionAnswerFields, 50);
+    setTimeout(toggleQuestionAnswerFields, 200);
+})();
+</script>

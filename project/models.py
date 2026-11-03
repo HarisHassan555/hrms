@@ -586,7 +586,7 @@ class Task(HorillaModel):
         bar_color = (
             "var(--md-red, #ef4444)"
             if percent >= 100
-            else "var(--primary-600, #e54f38)"
+            else "var(--primary-600, #4F46E5)"
         )
         return format_html(
             """

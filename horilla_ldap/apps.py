@@ -1,11 +1,12 @@
 from django.apps import AppConfig
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 class HorillaLdapConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "horilla_ldap"
-    verbose_name = "LDAP"
+    verbose_name = _("LDAP")
 
     def ready(self):
         from django.urls import include, path

@@ -4,6 +4,28 @@
 {% block content %}
     <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
     <style>
+        .lms-builder-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .lms-builder-toolbar__btn {
+            height: 32px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+            background: #FFFFFF;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .lms-builder-toolbar__btn:hover {
+            background: #F8FAFC;
+        }
         .lms-builder-module {
             border: 1px solid var(--md-border, #E2E8F0);
             border-radius: 12px;
@@ -20,7 +42,59 @@
             background: var(--md-page, #F8FAFC);
             border-bottom: 1px solid var(--md-border-light, #F1F5F9);
         }
-        .lms-builder-lesson {
+        .lms-builder-module.is-collapsed .lms-builder-module__head {
+            border-bottom: 0;
+        }
+        .lms-builder-module__meta {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+        .lms-builder-collapse-btn {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            background: #FFFFFF;
+            color: #475569;
+            cursor: pointer;
+            padding: 0;
+        }
+        .lms-builder-collapse-btn:hover {
+            background: #F1F5F9;
+        }
+        .lms-builder-collapse-btn ion-icon {
+            font-size: 18px;
+            transition: transform 160ms ease;
+        }
+        .lms-builder-module.is-collapsed > .lms-builder-module__head .lms-builder-collapse-btn ion-icon,
+        .lms-builder-test-block.is-collapsed .lms-builder-collapse-btn ion-icon {
+            transform: rotate(-90deg);
+        }
+        .lms-builder-module__title,
+        .lms-builder-test__title {
+            min-width: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        .lms-builder-module__title:hover .lms-builder-module__name,
+        .lms-builder-test__title:hover .lms-builder-test__name {
+            color: #4338CA;
+        }
+        .lms-builder-module__body {
+            display: block;
+        }
+        .lms-builder-module.is-collapsed .lms-builder-module__body {
+            display: none;
+        }
+        .lms-builder-lesson,
+        .lms-builder-test {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -31,11 +105,46 @@
         .lms-builder-lesson:last-child {
             border-bottom: 0;
         }
+        .lms-builder-test-block:last-child .lms-builder-test {
+            border-bottom: 0;
+        }
+        .lms-builder-test-block.is-collapsed:last-child .lms-builder-test {
+            border-bottom: 0;
+        }
+        .lms-builder-test {
+            background: #EEF2FF;
+        }
+        .lms-builder-test__meta {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+        .lms-builder-test-block .lms-builder-collapse-btn {
+            width: 28px;
+            height: 28px;
+            background: #FFFFFF;
+        }
+        .lms-builder-test__body {
+            display: block;
+        }
+        .lms-builder-test-block.is-collapsed .lms-builder-test__body {
+            display: none;
+        }
         .lms-builder-empty {
             padding: 24px;
             text-align: center;
             color: var(--md-text-secondary, #475569);
             font-size: 14px;
+        }
+        .lms-builder-questions {
+            padding: 8px 20px 16px 36px;
+            background: #F8FAFC;
+            border-bottom: 1px solid var(--md-border-light, #F1F5F9);
+        }
+        .lms-builder-test-block:last-child .lms-builder-questions {
+            border-bottom: 0;
         }
     </style>
 
@@ -48,22 +157,20 @@
                     {% if course.code %}<span class="text-secondary-500">· {{ course.code }}</span>{% endif %}
                 </div>
             </div>
-            <div class="md-header__actions">
-                <a href="{% url 'lms-courses' %}" class="md-btn-customize">{% trans "Back to courses" %}</a>
-                {% if can_edit %}
+            {% if can_edit %}
+                <div class="md-header__actions">
                     <button
                         type="button"
-                        class="md-btn-customize"
-                        style="background: var(--md-indigo, #4F46E5); color: #fff; border-color: transparent;"
+                        class="oh-btn oh-btn--secondary"
                         data-toggle="oh-modal-toggle"
                         data-target="#genericModal"
                         hx-get="{% url 'lms-module-create' course_id=course.pk %}"
                         hx-target="#genericModalBody"
                     >
-                        {% trans "Add module" %}
+                        {% trans "Add chapter" %}
                     </button>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
 
         <button
@@ -75,9 +182,177 @@
             hx-swap="innerHTML"
         ></button>
 
-        <div id="lmsBuilderBody" hx-get="{% url 'lms-course-builder-panel' course_id=course.pk %}" hx-trigger="load" hx-swap="innerHTML">
+        <div
+            id="lmsBuilderBody"
+            data-course-id="{{ course.pk }}"
+            hx-get="{% url 'lms-course-builder-panel' course_id=course.pk %}"
+            hx-trigger="load"
+            hx-swap="innerHTML"
+        >
             <div class="lms-builder-empty">{% trans "Loading…" %}</div>
         </div>
     </div>
     <script src="{% static 'cbv/deleteFunc.js' %}"></script>
+    <script>
+        (function () {
+            function setQuestionFieldVisible($el, visible) {
+                if (!$el || !$el.length) return;
+                $el.toggleClass("lms-q-hidden", !visible);
+                if (visible) $el.show();
+                else $el.hide();
+            }
+            window.lmsToggleQuestionAnswerFields = function () {
+                var $form = $("#genericModalBody form").first();
+                if (!$form.length) return;
+                var type = $form.find("[name='question_type']").first().val() || "";
+                var isMcq = type === "mcq";
+                var isTrueFalse = type === "true_false";
+                setQuestionFieldVisible($("#id_true_false_answer_parent_div"), isTrueFalse);
+                setQuestionFieldVisible($("#id_choice_1_parent_div"), isMcq);
+                setQuestionFieldVisible($("#id_choice_2_parent_div"), isMcq);
+                setQuestionFieldVisible($("#id_choice_3_parent_div"), isMcq);
+                setQuestionFieldVisible($("#id_choice_4_parent_div"), isMcq);
+                setQuestionFieldVisible($("#id_correct_choice_parent_div"), isMcq);
+            };
+            $(document)
+                .off("change.lmsQuestionTypeBuilder", "#genericModalBody [name='question_type']")
+                .on("change.lmsQuestionTypeBuilder", "#genericModalBody [name='question_type']", function () {
+                    window.lmsToggleQuestionAnswerFields();
+                });
+            $(document).on("htmx:afterSwap.lmsQuestionTypeBuilder", "#genericModalBody", function () {
+                setTimeout(function () {
+                    if ($("#genericModalBody [name='question_type']").length) {
+                        window.lmsToggleQuestionAnswerFields();
+                    }
+                }, 0);
+            });
+        })();
+    </script>
+    <script>
+        (function () {
+            var body = document.getElementById("lmsBuilderBody");
+            if (!body) return;
+            var storageKey = "lms-builder-collapsed-" + (body.getAttribute("data-course-id") || "0");
+
+            function emptyState() {
+                return { chapters: [], tests: [] };
+            }
+
+            function readState() {
+                try {
+                    var raw = localStorage.getItem(storageKey);
+                    var parsed = raw ? JSON.parse(raw) : emptyState();
+                    if (Array.isArray(parsed)) {
+                        return { chapters: parsed.map(String), tests: [] };
+                    }
+                    return {
+                        chapters: Array.isArray(parsed.chapters) ? parsed.chapters.map(String) : [],
+                        tests: Array.isArray(parsed.tests) ? parsed.tests.map(String) : []
+                    };
+                } catch (e) {
+                    return emptyState();
+                }
+            }
+
+            function writeState(state) {
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(state));
+                } catch (e) {}
+            }
+
+            function setCollapsed(el, collapsed, toggleSelector) {
+                if (!el) return;
+                el.classList.toggle("is-collapsed", !!collapsed);
+                var btn = el.querySelector(toggleSelector);
+                if (btn) btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+            }
+
+            function persistFromDom() {
+                var state = emptyState();
+                body.querySelectorAll("[data-lms-chapter].is-collapsed").forEach(function (el) {
+                    var id = el.getAttribute("data-module-id");
+                    if (id) state.chapters.push(String(id));
+                });
+                body.querySelectorAll("[data-lms-test].is-collapsed").forEach(function (el) {
+                    var id = el.getAttribute("data-test-id");
+                    if (id) state.tests.push(String(id));
+                });
+                writeState(state);
+            }
+
+            function applySavedState() {
+                var state = readState();
+                body.querySelectorAll("[data-lms-chapter]").forEach(function (el) {
+                    var id = el.getAttribute("data-module-id");
+                    setCollapsed(
+                        el,
+                        state.chapters.indexOf(String(id)) !== -1,
+                        "[data-lms-chapter-toggle]"
+                    );
+                });
+                body.querySelectorAll("[data-lms-test]").forEach(function (el) {
+                    var id = el.getAttribute("data-test-id");
+                    setCollapsed(
+                        el,
+                        state.tests.indexOf(String(id)) !== -1,
+                        "[data-lms-test-toggle]"
+                    );
+                });
+            }
+
+            function setAll(collapsed) {
+                body.querySelectorAll("[data-lms-chapter]").forEach(function (el) {
+                    setCollapsed(el, collapsed, "[data-lms-chapter-toggle]");
+                });
+                body.querySelectorAll("[data-lms-test]").forEach(function (el) {
+                    setCollapsed(el, collapsed, "[data-lms-test-toggle]");
+                });
+                persistFromDom();
+            }
+
+            body.addEventListener("click", function (event) {
+                var testToggle = event.target.closest("[data-lms-test-toggle]");
+                if (testToggle && body.contains(testToggle)) {
+                    event.preventDefault();
+                    var testEl = testToggle.closest("[data-lms-test]");
+                    if (!testEl) return;
+                    setCollapsed(
+                        testEl,
+                        !testEl.classList.contains("is-collapsed"),
+                        "[data-lms-test-toggle]"
+                    );
+                    persistFromDom();
+                    return;
+                }
+                var chapterToggle = event.target.closest("[data-lms-chapter-toggle]");
+                if (chapterToggle && body.contains(chapterToggle)) {
+                    event.preventDefault();
+                    var moduleEl = chapterToggle.closest("[data-lms-chapter]");
+                    if (!moduleEl) return;
+                    setCollapsed(
+                        moduleEl,
+                        !moduleEl.classList.contains("is-collapsed"),
+                        "[data-lms-chapter-toggle]"
+                    );
+                    persistFromDom();
+                    return;
+                }
+                if (event.target.closest("[data-lms-collapse-all]")) {
+                    event.preventDefault();
+                    setAll(true);
+                    return;
+                }
+                if (event.target.closest("[data-lms-expand-all]")) {
+                    event.preventDefault();
+                    setAll(false);
+                }
+            });
+
+            document.body.addEventListener("htmx:afterSwap", function (event) {
+                if (event.target === body) applySavedState();
+            });
+
+            applySavedState();
+        })();
+    </script>
 {% endblock %}

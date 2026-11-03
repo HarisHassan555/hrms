@@ -1,8 +1,22 @@
-{% extends "lms/_page_shell.html" %}
-{% load i18n %}
+{% extends "index.html" %}
+{% load static i18n %}
 
-{% block lms_body %}
-    <p class="text-sm text-secondary-600">
-        {% trans "Assign courses to employees or departments. Department assignment creates one enrollment per employee in that department." %}
-    </p>
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    <div class="md-dashboard">
+        <div class="md-header">
+            <div>
+                <h1>{% trans "Assignments" %}</h1>
+                <div class="md-header__description">
+                    {% trans "Assign catalog courses to employees with optional deadlines. Learners can also self-enroll when a course allows it." %}
+                </div>
+            </div>
+        </div>
+
+        <div class="oh-inner-sidebar-content border border-[#E2E8F0] rounded-xl bg-white p-2 mb-4">
+            <div hx-get="{% url 'lms-enrollment-nav' %}" hx-trigger="load"></div>
+            <div class="oh-wrapper" id="lmsEnrollmentListContainer"></div>
+        </div>
+    </div>
+    <script src="{% static 'cbv/deleteFunc.js' %}"></script>
 {% endblock %}

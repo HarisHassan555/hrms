@@ -1,0 +1,58 @@
+{% load i18n %}
+{% include "lms/_lms_catalog_styles.html" %}
+
+{% if not cards %}
+    <div class="lms-empty">
+        <p class="font-semibold text-[#0F172A] mb-1">{% trans "Nothing in your learning list yet" %}</p>
+        <p class="mb-4">{% trans "Browse the catalog and enroll in a course, or wait for an assignment from HR." %}</p>
+        <a href="{% url 'lms-catalog' %}" class="lms-btn lms-btn--primary">{% trans "Explore catalog" %}</a>
+    </div>
+{% else %}
+    <div class="lms-grid">
+        {% for card in cards %}
+            {% with e=card.enrollment course=card.enrollment.course_id %}
+                <article class="lms-card">
+                    <div class="lms-card__banner {% if forloop.counter|divisibleby:2 %}lms-card__banner--alt{% endif %}"></div>
+                    <div class="lms-card__body">
+                        <div class="lms-card__meta">
+                            {% if course.category_id %}
+                                <span class="lms-pill lms-pill--indigo">{{ course.category_id.name }}</span>
+                            {% endif %}
+                            {% if e.source == "assigned" %}
+                                <span class="lms-pill lms-pill--amber">{% trans "Assigned" %}</span>
+                            {% else %}
+                                <span class="lms-pill">{% trans "Self-enrolled" %}</span>
+                            {% endif %}
+                            <span class="lms-pill {% if card.overdue and e.status != 'completed' %}lms-pill--amber{% elif e.status == 'completed' %}lms-pill--green{% endif %}">
+                                {% if card.overdue and e.status != "completed" %}{% trans "Overdue" %}{% else %}{{ e.get_status_display }}{% endif %}
+                            </span>
+                        </div>
+                        <h2 class="lms-card__title">
+                            <a href="{% url 'lms-player' enrollment_id=e.pk %}">{{ course.title }}</a>
+                        </h2>
+                        {% if e.due_at %}
+                            <p class="lms-card__stats mb-0">
+                                {% blocktrans with due=e.due_at|date:"d M Y" %}Due {{ due }}{% endblocktrans %}
+                            </p>
+                        {% endif %}
+                        <div>
+                            <div class="flex justify-between text-xs text-[#64748B] mb-1">
+                                <span>{% trans "Progress" %}</span>
+                                <span>{{ e.progress_percentage }}%</span>
+                            </div>
+                            <div class="lms-progress"><span style="width: {{ e.progress_percentage }}%;"></span></div>
+                        </div>
+                        <div class="lms-card__footer">
+                            <a href="{% url 'lms-player' enrollment_id=e.pk %}" class="lms-btn lms-btn--primary">
+                                {% if e.status == "completed" %}{% trans "Review" %}{% else %}{% trans "Continue" %}{% endif %}
+                            </a>
+                            <a href="{% url 'lms-course-detail' pk=course.pk %}" class="lms-btn lms-btn--secondary">
+                                {% trans "Overview" %}
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            {% endwith %}
+        {% endfor %}
+    </div>
+{% endif %}

@@ -571,7 +571,7 @@
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
             const cardBg = isDark ? '#242424' : '#ffffff';
             // Soft pastel palette (same language as Needs Your Attention cards)
-            const COLORS = (window.HORILLA_CHART_COLORS || [
+            const COLORS = (window.DSG_CHART_COLORS || [
                 '#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE'
             ]);
             const ANIM = { enabled: true, easing: 'easeinout', speed: 700, animateGradually: { enabled: true, delay: 80 }, dynamicAnimation: { enabled: true, speed: 500 } };
@@ -1405,7 +1405,7 @@
                     {# keyed on the API's stable series keys, not on the translated labels #}
                     const sc = Object.assign(
                         { active: '#86EFAC', inactive: '#FCA5A5' },
-                        window.HORILLA_CHART_STATUS || {}
+                        window.DSG_CHART_STATUS || {}
                     );
                     const statusKeys = data.keys || ['active', 'inactive'];
                     renderChart('employee-status', document.querySelector("#chart-employee-status"), {
@@ -1888,7 +1888,7 @@
                             hired: '#86EFAC',
                             cancelled: '#FCA5A5',
                         },
-                        window.HORILLA_CHART_STAGE || {}
+                        window.DSG_CHART_STAGE || {}
                     );
                     const maxCount = Math.max(...data.stages.map(s => s.count), 1);
                     const total = data.total_candidates || data.stages.reduce((a, s) => a + (s.count || 0), 0) || 1;

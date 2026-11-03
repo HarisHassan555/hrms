@@ -1,5 +1,5 @@
 """
-LMS sidebar — primary navigation for Learning module.
+LMS sidebar — catalog-first Learning navigation.
 """
 
 from django.urls import reverse_lazy
@@ -11,31 +11,11 @@ ACCESSIBILITY = "lms.sidebar.learning_menu_accessibility"
 
 SUBMENUS = [
     {
-        "menu": _("Dashboard"),
-        "redirect": reverse_lazy("lms-dashboard"),
-        "accessibility": "lms.sidebar.hr_admin_accessibility",
+        "menu": _("Catalog"),
+        "redirect": reverse_lazy("lms-catalog"),
+        "accessibility": "lms.sidebar.catalog_accessibility",
         "match_prefixes": [
-            "/learning/dashboard/",
-        ],
-    },
-    {
-        "menu": _("Courses"),
-        "redirect": reverse_lazy("lms-courses"),
-        "accessibility": "lms.sidebar.hr_admin_accessibility",
-        "match_prefixes": [
-            "/learning/courses/",
-            "/learning/courses/list/",
-            "/learning/courses/create/",
-        ],
-    },
-    {
-        "menu": _("Categories"),
-        "redirect": reverse_lazy("lms-categories"),
-        "accessibility": "lms.sidebar.hr_admin_accessibility",
-        "match_prefixes": [
-            "/learning/categories/",
-            "/learning/categories/list/",
-            "/learning/categories/create/",
+            "/learning/catalog/",
         ],
     },
     {
@@ -44,10 +24,35 @@ SUBMENUS = [
         "accessibility": "lms.sidebar.my_learning_accessibility",
         "match_prefixes": [
             "/learning/my-learning/",
+            "/learning/player/",
         ],
     },
     {
-        "menu": _("Enrollments"),
+        "menu": _("Dashboard"),
+        "redirect": reverse_lazy("lms-dashboard"),
+        "accessibility": "lms.sidebar.hr_admin_accessibility",
+        "match_prefixes": [
+            "/learning/dashboard/",
+        ],
+    },
+    {
+        "menu": _("Manage courses"),
+        "redirect": reverse_lazy("lms-courses"),
+        "accessibility": "lms.sidebar.hr_admin_accessibility",
+        "match_prefixes": [
+            "/learning/courses/",
+        ],
+    },
+    {
+        "menu": _("Categories"),
+        "redirect": reverse_lazy("lms-categories"),
+        "accessibility": "lms.sidebar.hr_admin_accessibility",
+        "match_prefixes": [
+            "/learning/categories/",
+        ],
+    },
+    {
+        "menu": _("Assignments"),
         "redirect": reverse_lazy("lms-enrollments"),
         "accessibility": "lms.sidebar.hr_admin_accessibility",
         "match_prefixes": [
@@ -66,14 +71,18 @@ SUBMENUS = [
 
 
 def learning_menu_accessibility(request, menu, user_perms, *args, **kwargs):
-    """Show Learning in the sidebar when the user can access at least one area."""
     return hr_admin_accessibility(request, menu, user_perms, *args, **kwargs) or (
         my_learning_accessibility(request, menu, user_perms, *args, **kwargs)
     )
 
 
+def catalog_accessibility(request, submenu, user_perms, *args, **kwargs):
+    return my_learning_accessibility(
+        request, submenu, user_perms, *args, **kwargs
+    ) or hr_admin_accessibility(request, submenu, user_perms, *args, **kwargs)
+
+
 def hr_admin_accessibility(request, submenu, user_perms, *args, **kwargs):
-    """HR / L&D: manage catalog, assignments, and reports."""
     user = request.user
     return (
         user.has_perm("lms.view_course")
@@ -85,7 +94,6 @@ def hr_admin_accessibility(request, submenu, user_perms, *args, **kwargs):
 
 
 def my_learning_accessibility(request, submenu, user_perms, *args, **kwargs):
-    """Any user linked to an employee record (learner)."""
     if not request.user.is_authenticated:
         return False
     try:

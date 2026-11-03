@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
-            --pm-indigo: var(--primary-600, #E54F38);
+            --pm-indigo: var(--primary-600, #4F46E5);
             --pm-green: #22c55e;
             --pm-amber: #f59e0b;
             --pm-red: #ef4444;
@@ -1011,8 +1011,8 @@
             const textColor = isDark ? '#e2e8f0' : '#334155';
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
             const cardBg = isDark ? '#242424' : '#ffffff';
-            const COLORS = (window.HORILLA_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
-            const statusColors = { 'Not Started': '#94a3b8', 'On Track': '#22c55e', 'Behind': '#f59e0b', 'At Risk': '#ef4444', 'Closed': '#E54F38' };
+            const COLORS = (window.DSG_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
+            const statusColors = { 'Not Started': '#94a3b8', 'On Track': '#22c55e', 'Behind': '#f59e0b', 'At Risk': '#ef4444', 'Closed': '#4F46E5' };
             const emptyHtml = (msg) => `<div class="pm-empty"><img src="/static/images/ui/application.png" alt="">${msg}</div>`;
             const objectiveDetailUrl = "{% url 'objective-detailed-view' obj_id=0 %}";
             const objectiveDetailUrlFor = id => id ? objectiveDetailUrl.replace('/0/', '/' + id + '/') : '#';
@@ -1373,10 +1373,10 @@
                                 }
                             }}
                         },
-                        colors: ['#E54F38'],
+                        colors: ['#4F46E5'],
                         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 95, 100] } },
                         stroke: { curve: 'smooth', width: 3 },
-                        dataLabels: { enabled: true, formatter: v => v + '%', style: { fontSize: '11px', colors: ['#E54F38'] }, background: { enabled: false } },
+                        dataLabels: { enabled: true, formatter: v => v + '%', style: { fontSize: '11px', colors: ['#4F46E5'] }, background: { enabled: false } },
                         xaxis: { categories: data.months.map(m => m.month), labels: { style: { colors: textColor, fontSize: '11px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
                         yaxis: { min: 0, max: 100, labels: { style: { colors: textColor }, formatter: v => v + '%' } },
                         grid: { borderColor: gridColor, strokeDashArray: 4 },

@@ -1,0 +1,416 @@
+{% extends "index.html" %}
+{% load static i18n basefilters %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    <style>
+        .lms-player-layout {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: minmax(0, 1fr);
+        }
+        @media (min-width: 1100px) {
+            .lms-player-layout {
+                grid-template-columns: minmax(0, 1fr) 280px;
+            }
+        }
+        .lms-player-main {
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 12px;
+            min-width: 0;
+        }
+        .lms-media-stage {
+            display: flex;
+            flex-direction: column;
+            background: #0F172A;
+            border-radius: 10px;
+            overflow: hidden;
+            min-height: calc(100vh - 220px);
+            height: calc(100vh - 220px);
+            width: 100%;
+        }
+        .lms-media-stage:fullscreen,
+        .lms-media-stage:-webkit-full-screen {
+            min-height: 100vh;
+            height: 100vh;
+            border-radius: 0;
+        }
+        .lms-media-stage__toolbar,
+        .lms-media-stage__nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.92);
+            color: #E2E8F0;
+            flex-shrink: 0;
+        }
+        .lms-media-stage__label,
+        .lms-media-stage__counter {
+            font-size: 12px;
+            font-weight: 600;
+            color: #CBD5E1;
+        }
+        .lms-media-stage__actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .lms-media-stage__viewport {
+            flex: 1 1 auto;
+            position: relative;
+            min-height: 0;
+            background: #020617;
+        }
+        .lms-media-stage__viewport iframe,
+        .lms-media-stage__viewport .lms-video-frame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .lms-slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 40px;
+            overflow: auto;
+            background: radial-gradient(circle at top left, #1E293B, #020617 55%);
+            color: #F8FAFC;
+        }
+        .lms-slide.is-hidden {
+            display: none;
+        }
+        .lms-slide__inner {
+            width: min(920px, 100%);
+            text-align: left;
+        }
+        .lms-slide__title {
+            font-size: clamp(28px, 4vw, 42px);
+            line-height: 1.2;
+            font-weight: 700;
+            margin: 0 0 16px;
+            color: #FFFFFF;
+        }
+        .lms-slide__body {
+            font-size: clamp(16px, 2vw, 22px);
+            line-height: 1.55;
+            color: #E2E8F0;
+        }
+        .lms-slide__image {
+            display: block;
+            max-width: 100%;
+            max-height: 48vh;
+            margin: 20px auto 0;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        .lms-media-btn {
+            height: 36px;
+            padding: 0 14px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1E293B;
+            color: #F8FAFC;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .lms-media-btn:hover {
+            background: #334155;
+        }
+        .lms-media-btn--primary {
+            background: #4F46E5;
+            border-color: transparent;
+        }
+        .lms-media-btn--primary:hover {
+            background: #4338CA;
+        }
+        .lms-media-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .lms-media-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            border: 0;
+            padding: 0;
+            background: #475569;
+            cursor: pointer;
+        }
+        .lms-media-dot.is-active {
+            background: #A5B4FC;
+            width: 18px;
+        }
+        .lms-player-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-top: 14px;
+            padding: 4px 4px 2px;
+        }
+    </style>
+
+    <div class="md-dashboard">
+        <div class="md-header">
+            <div>
+                <h1>{{ lesson.title }}</h1>
+                <div class="md-header__description">
+                    {{ module.title }} · {{ lesson.get_type_display }}
+                </div>
+            </div>
+        </div>
+
+        <div class="lms-player-layout">
+            <div class="lms-player-main">
+                {% if lesson.type == "video" and youtube_video_id %}
+                    <div class="lms-media-stage" data-lms-fullscreen-root data-lms-video-stage>
+                        <div class="lms-media-stage__toolbar">
+                            <span class="lms-media-stage__label">{% trans "Video" %}</span>
+                            <button type="button" class="lms-media-btn" data-lms-fullscreen title="{% trans 'Fullscreen' %}">
+                                {% trans "Fullscreen" %}
+                            </button>
+                        </div>
+                        <div class="lms-media-stage__viewport">
+                            <div
+                                id="lms-yt-player"
+                                class="lms-video-frame"
+                                data-youtube-id="{{ youtube_video_id }}"
+                                data-progress-url="{% url 'lms-player-video-progress' enrollment_id=enrollment.pk lesson_id=lesson.pk %}"
+                                title="{{ lesson.title }}"
+                            ></div>
+                        </div>
+                    </div>
+                {% elif lesson.type == "video" and video_embed_url %}
+                    <div class="lms-media-stage" data-lms-fullscreen-root>
+                        <div class="lms-media-stage__toolbar">
+                            <span class="lms-media-stage__label">{% trans "Video" %}</span>
+                            <button type="button" class="lms-media-btn" data-lms-fullscreen title="{% trans 'Fullscreen' %}">
+                                {% trans "Fullscreen" %}
+                            </button>
+                        </div>
+                        <div class="lms-media-stage__viewport">
+                            <iframe
+                                class="lms-video-frame"
+                                src="{{ video_embed_url }}"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                allowfullscreen
+                                title="{{ lesson.title }}"
+                            ></iframe>
+                        </div>
+                    </div>
+                {% elif lesson.type == "video" %}
+                    <p class="text-sm text-[#64748B] p-4">
+                        {% trans "This video lesson has no playable URL yet. Edit the lesson and paste a YouTube link." %}
+                    </p>
+                {% elif lesson.type == "pdf" and lesson.file_path %}
+                    <div class="lms-media-stage" data-lms-fullscreen-root>
+                        <div class="lms-media-stage__toolbar">
+                            <span class="lms-media-stage__label">{% trans "Document" %}</span>
+                            <button type="button" class="lms-media-btn" data-lms-fullscreen>{% trans "Fullscreen" %}</button>
+                        </div>
+                        <div class="lms-media-stage__viewport">
+                            <iframe src="{{ lesson.file_path }}" title="{{ lesson.title }}"></iframe>
+                        </div>
+                    </div>
+                {% elif lesson.type == "text" %}
+                    <div class="p-4 oh-richtext leading-relaxed text-sm text-[#0F172A]" style="min-height: 320px;">
+                        {{ lesson.content|linebreaksbr }}
+                    </div>
+                {% elif lesson.type == "slideshow" %}
+                    {% if slides %}
+                        {% include "lms/_lesson_slideshow.html" with slides=slides lesson=lesson %}
+                    {% else %}
+                        <p class="text-sm text-[#64748B] p-4">{% trans "No slides in this lesson." %}</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-sm text-[#64748B] p-4">{% trans "No content available for this lesson." %}</p>
+                {% endif %}
+
+                {% if lesson.description and lesson.type == "text" %}
+                    <p class="text-sm text-[#475569] mt-2 mb-0 px-1">{{ lesson.description }}</p>
+                {% endif %}
+
+                <div class="lms-player-footer">
+                    {% if completed %}
+                        <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-[#DCFCE7] text-[#15803D]">
+                            {% trans "Completed" %}
+                        </span>
+                    {% else %}
+                        {% if lesson.type == "video" and youtube_video_id and not video_watch_complete %}
+                            <p class="text-sm text-[#64748B] m-0" data-lms-watch-hint>
+                                {% trans "Finish watching the video to unlock Mark complete." %}
+                            </p>
+                        {% endif %}
+                        <form method="post" action="{% url 'lms-player-complete-lesson' enrollment_id=enrollment.pk lesson_id=lesson.pk %}" data-lms-complete-form>
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="inline-flex items-center h-10 px-4 rounded-lg bg-[#4F46E5] text-white text-sm font-semibold border-0 hover:bg-[#4338CA] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#4F46E5]"
+                                data-lms-complete-btn
+                                {% if lesson.type == "video" and youtube_video_id and not video_watch_complete %}disabled{% endif %}
+                            >
+                                {% trans "Mark complete" %}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <aside class="hidden lg:block">
+                <div class="bg-white border border-[#E2E8F0] rounded-xl p-4 sticky top-4">
+                    <div class="text-xs font-semibold text-[#64748B] mb-3 uppercase tracking-wide">{% trans "Outline" %}</div>
+                    {% include "lms/_player_outline_compact.html" %}
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            document.querySelectorAll("[data-lms-fullscreen]").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var root = btn.closest("[data-lms-fullscreen-root]");
+                    if (!root) return;
+                    if (document.fullscreenElement || document.webkitFullscreenElement) {
+                        if (document.exitFullscreen) document.exitFullscreen();
+                        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                        return;
+                    }
+                    if (root.requestFullscreen) root.requestFullscreen();
+                    else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen();
+                });
+            });
+        })();
+    </script>
+    {% if lesson.type == "video" and youtube_video_id and not completed %}
+    <script>
+        (function () {
+            var mount = document.getElementById("lms-yt-player");
+            if (!mount) return;
+
+            var videoId = mount.getAttribute("data-youtube-id");
+            var progressUrl = mount.getAttribute("data-progress-url");
+            var csrfToken = (document.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "";
+            var completeBtn = document.querySelector("[data-lms-complete-btn]");
+            var watchHint = document.querySelector("[data-lms-watch-hint]");
+            var watchUnlocked = {{ video_watch_complete|yesno:"true,false" }};
+            var lastPostedPct = 0;
+            var pollTimer = null;
+            var player = null;
+
+            function getCookie(name) {
+                var match = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1") + "=([^;]*)"));
+                return match ? decodeURIComponent(match[1]) : "";
+            }
+            if (!csrfToken) csrfToken = getCookie("csrftoken");
+
+            function unlockComplete() {
+                watchUnlocked = true;
+                if (completeBtn) completeBtn.disabled = false;
+                if (watchHint) watchHint.style.display = "none";
+            }
+
+            function postProgress(percentage, position, force) {
+                var pct = Math.max(0, Math.min(100, Number(percentage) || 0));
+                if (!force && pct < lastPostedPct + 2 && pct < 95) return;
+                lastPostedPct = Math.max(lastPostedPct, pct);
+                fetch(progressUrl, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify({
+                        percentage: pct,
+                        position: position == null ? null : Number(position)
+                    })
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data && data.watch_complete) unlockComplete();
+                    })
+                    .catch(function () {});
+            }
+
+            function sampleProgress(force) {
+                if (!player || typeof player.getDuration !== "function") return;
+                var duration = player.getDuration() || 0;
+                var current = player.getCurrentTime() || 0;
+                if (duration <= 0) return;
+                var pct = (current / duration) * 100;
+                if (pct >= 95) {
+                    postProgress(100, current, true);
+                    unlockComplete();
+                } else {
+                    postProgress(pct, current, !!force);
+                }
+            }
+
+            function onStateChange(event) {
+                if (!window.YT || !YT.PlayerState) return;
+                if (event.data === YT.PlayerState.PLAYING) {
+                    if (pollTimer) clearInterval(pollTimer);
+                    pollTimer = setInterval(function () { sampleProgress(false); }, 3000);
+                } else if (
+                    event.data === YT.PlayerState.PAUSED ||
+                    event.data === YT.PlayerState.BUFFERING
+                ) {
+                    sampleProgress(true);
+                } else if (event.data === YT.PlayerState.ENDED) {
+                    if (pollTimer) clearInterval(pollTimer);
+                    postProgress(100, null, true);
+                    unlockComplete();
+                }
+            }
+
+            function createPlayer() {
+                player = new YT.Player("lms-yt-player", {
+                    videoId: videoId,
+                    width: "100%",
+                    height: "100%",
+                    playerVars: {
+                        rel: 0,
+                        modestbranding: 1,
+                        playsinline: 1,
+                        enablejsapi: 1,
+                        origin: window.location.origin
+                    },
+                    events: {
+                        onReady: function () {
+                            if (watchUnlocked) unlockComplete();
+                        },
+                        onStateChange: onStateChange
+                    }
+                });
+            }
+
+            window.onYouTubeIframeAPIReady = function () {
+                createPlayer();
+            };
+
+            if (window.YT && window.YT.Player) {
+                createPlayer();
+            } else {
+                var tag = document.createElement("script");
+                tag.src = "https://www.youtube.com/iframe_api";
+                var firstScript = document.getElementsByTagName("script")[0];
+                firstScript.parentNode.insertBefore(tag, firstScript);
+            }
+        })();
+    </script>
+    {% endif %}
+{% endblock %}

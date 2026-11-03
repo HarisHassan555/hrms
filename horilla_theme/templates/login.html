@@ -14,34 +14,41 @@
         <link rel="stylesheet" href="{% static '/build/css/style.min.css' %}">
         <style>
             :root {
-                --theme-primary-100: {{ login_theme.primary_100|default:"#eaf1ff" }};
-                --theme-primary-200: {{ login_theme.primary_200|default:"#d9e5ff" }};
-                --theme-primary-300: {{ login_theme.primary_300|default:"#c4d7ff" }};
-                --theme-primary-500: {{ login_theme.primary_500|default:"#6b8cff" }};
-                --theme-primary-600: {{ login_theme.primary_600|default:"#4361ee" }};
-                --theme-primary-700: {{ login_theme.primary_700|default:"#3a4ecc" }};
-                --theme-primary-800: {{ login_theme.primary_800|default:"#2f3eb8" }};
+                --theme-primary-100: {{ login_theme.primary_100|default:"#EEF2FF" }};
+                --theme-primary-200: {{ login_theme.primary_200|default:"#E0E7FF" }};
+                --theme-primary-300: {{ login_theme.primary_300|default:"#C7D2FE" }};
+                --theme-primary-500: {{ login_theme.primary_500|default:"#818CF8" }};
+                --theme-primary-600: {{ login_theme.primary_600|default:"#4F46E5" }};
+                --theme-primary-700: {{ login_theme.primary_700|default:"#4338CA" }};
+                --theme-primary-800: {{ login_theme.primary_800|default:"#3730A3" }};
                 --color-primary: var(--theme-primary-600);
                 --color-primary-hover: var(--theme-primary-700);
                 --color-primary-active: var(--theme-primary-800);
                 --color-primary-soft: var(--theme-primary-100);
-                --color-primary-muted: var(--theme-primary-200);
-                --color-primary-border: var(--theme-primary-500);
                 --color-page-background: #F8FAFC;
                 --color-surface: #FFFFFF;
                 --color-surface-secondary: #F8FAFC;
-                --color-surface-muted: #F1F5F9;
                 --color-text-primary: #0F172A;
                 --color-text-secondary: #475569;
                 --color-text-muted: #94A3B8;
-                --color-border-focus: var(--color-primary);
-                --color-focus-ring: color-mix(in srgb, var(--color-primary) 18%, transparent);
+                --color-border: #E2E8F0;
+                --color-border-focus: #6366F1;
+                --color-focus-ring: color-mix(in srgb, var(--color-primary) 15%, transparent);
+                --color-danger: #DC2626;
+                --color-danger-soft: #FEE2E2;
+                --color-danger-border: #FECACA;
+                --color-success: #15803D;
+                --color-success-soft: #DCFCE7;
+                --color-success-border: #BBF7D0;
+                --color-warning: #B45309;
+                --color-warning-soft: #FEF3C7;
+                --color-warning-border: #FDE68A;
                 --radius-sm: 6px;
                 --radius-md: 8px;
                 --radius-lg: 12px;
                 --radius-xl: 16px;
                 --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-                --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+                --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08);
             }
 
             * {
@@ -51,127 +58,65 @@
             body {
                 min-height: 100vh;
                 margin: 0;
-                background:
-                    radial-gradient(circle at 18% 14%, var(--color-primary-muted) 0, transparent 34%),
-                    linear-gradient(135deg, var(--color-primary-soft) 0%, var(--color-page-background) 46%, #FFFFFF 100%);
+                background-color: var(--color-page-background);
+                background-image:
+                    linear-gradient(to right, rgba(226, 232, 240, 0.35) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(226, 232, 240, 0.35) 1px, transparent 1px);
+                background-size: 48px 48px;
                 color: var(--color-text-primary);
                 font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
                 font-size: 14px;
+                -webkit-font-smoothing: antialiased;
             }
 
             .login-page {
                 min-height: 100vh;
-                display: grid;
-                place-items: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 padding: 32px 24px;
             }
 
             .login-card {
-                width: min(100%, 960px);
-                min-height: 640px;
-                display: grid;
-                grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
-                overflow: hidden;
-                border: 1px solid color-mix(in srgb, var(--color-primary-border) 38%, #E2E8F0);
+                width: min(100%, 440px);
+                padding: 40px 36px;
+                border: 1px solid var(--color-border);
                 border-radius: var(--radius-xl);
                 background: var(--color-surface);
-                box-shadow: var(--shadow-lg);
-            }
-
-            .login-brand-panel {
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                padding: 48px;
-                overflow: hidden;
-                background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
-                color: #FFFFFF;
-            }
-
-            .login-brand-panel::before {
-                content: "";
-                position: absolute;
-                width: 520px;
-                height: 520px;
-                right: -220px;
-                bottom: -180px;
-                border: 1px solid rgba(255, 255, 255, 0.11);
-                background: color-mix(in srgb, var(--theme-primary-300) 12%, transparent);
-                border-radius: 44% 56% 52% 48%;
-                transform: rotate(-18deg);
-            }
-
-            .login-brand-panel::after {
-                content: "";
-                position: absolute;
-                inset: 0;
-                opacity: 0.14;
-                background-image:
-                    linear-gradient(135deg, transparent 0 46%, rgba(255,255,255,0.55) 48% 50%, transparent 52% 100%),
-                    linear-gradient(45deg, transparent 0 46%, rgba(255,255,255,0.4) 48% 50%, transparent 52% 100%);
-                background-size: 42px 42px;
-            }
-
-            .login-brand-content {
-                position: relative;
-                z-index: 1;
-                max-width: 360px;
+                box-shadow: var(--shadow-md);
             }
 
             .login-brand-lockup {
                 display: inline-flex;
                 align-items: center;
-                gap: 10px;
+                gap: 12px;
+                max-width: 100%;
                 margin-bottom: 28px;
-                font-size: 13px;
-                font-weight: 700;
-                letter-spacing: 0;
             }
 
             .login-logo-mark {
-                width: 32px;
-                height: 32px;
+                width: 44px;
+                height: 44px;
+                flex-shrink: 0;
                 display: grid;
                 place-items: center;
                 border-radius: var(--radius-md);
-                background: rgba(255, 255, 255, 0.14);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-primary-100) 32%, transparent);
+                background: var(--color-surface);
+                border: 1px solid var(--color-border);
+                box-shadow: var(--shadow-sm);
             }
 
             .login-logo-mark img {
-                width: 22px;
-                height: 22px;
+                width: 28px;
+                height: 28px;
                 object-fit: contain;
             }
 
-            .login-brand-title {
-                margin: 0 0 12px;
-                font-size: 24px;
-                line-height: 32px;
+            .login-brand-name {
+                font-size: 15px;
                 font-weight: 700;
-                letter-spacing: 0;
-            }
-
-            .login-brand-copy {
-                margin: 0;
-                color: rgba(255, 255, 255, 0.76);
-                font-size: 14px;
-                line-height: 1.7;
-            }
-
-            .login-form-panel {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 48px 56px;
-                background: var(--color-surface);
-            }
-
-            .login-form-shell {
-                width: 100%;
-                max-width: 360px;
+                color: var(--color-text-primary);
+                line-height: 1.3;
             }
 
             .login-title {
@@ -180,7 +125,7 @@
                 font-size: 24px;
                 line-height: 32px;
                 font-weight: 700;
-                letter-spacing: 0;
+                letter-spacing: -0.02em;
             }
 
             .login-subtitle {
@@ -190,13 +135,58 @@
                 line-height: 1.5;
             }
 
+            .login-alert-stack {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            .login-alert {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-md);
+                font-size: 13px;
+                line-height: 1.45;
+                border: 1px solid transparent;
+            }
+
+            .login-alert ion-icon {
+                flex-shrink: 0;
+                font-size: 18px;
+                margin-top: 1px;
+            }
+
+            .login-alert--error,
+            .login-alert.error {
+                color: var(--color-danger);
+                background: var(--color-danger-soft);
+                border-color: var(--color-danger-border);
+            }
+
+            .login-alert--warning,
+            .login-alert.warning {
+                color: var(--color-warning);
+                background: var(--color-warning-soft);
+                border-color: var(--color-warning-border);
+            }
+
+            .login-alert--success,
+            .login-alert.success {
+                color: var(--color-success);
+                background: var(--color-success-soft);
+                border-color: var(--color-success-border);
+            }
+
             .login-field {
                 margin-bottom: 16px;
             }
 
             .login-label {
                 display: block;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 color: #334155;
                 font-size: 13px;
                 font-weight: 600;
@@ -226,11 +216,15 @@
                 background: var(--color-surface);
                 color: var(--color-text-primary);
                 font-size: 14px;
-                transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+                transition: border-color 180ms ease, box-shadow 180ms ease;
             }
 
             .login-input::placeholder {
                 color: var(--color-text-muted);
+            }
+
+            .login-input:hover {
+                border-color: #94A3B8;
             }
 
             .login-input:focus,
@@ -279,6 +273,7 @@
                 gap: 8px;
                 color: var(--color-text-secondary);
                 white-space: nowrap;
+                cursor: pointer;
             }
 
             .login-remember input {
@@ -327,6 +322,7 @@
             .login-submit:hover,
             .login-init-button:hover {
                 background: var(--color-primary-hover);
+                border-color: var(--color-primary-hover);
                 color: #FFFFFF;
                 text-decoration: none;
             }
@@ -334,6 +330,7 @@
             .login-submit:active,
             .login-init-button:active {
                 background: var(--color-primary-active);
+                border-color: var(--color-primary-active);
             }
 
             .login-submit:focus-visible,
@@ -350,59 +347,37 @@
             }
 
             .login-init-button--secondary {
-                border-color: var(--color-primary-border);
+                border-color: #CBD5E1;
                 background: var(--color-surface);
-                color: var(--color-primary);
+                color: #334155;
                 box-shadow: none;
             }
 
             .login-init-button--secondary:hover,
             .login-init-button--secondary:focus-visible {
-                border-color: var(--color-primary);
-                background: var(--color-primary-soft);
-                color: var(--color-primary-active);
+                border-color: #94A3B8;
+                background: var(--color-surface-secondary);
+                color: var(--color-text-primary);
             }
 
-            .oh-alert-container {
-                position: fixed;
-                top: 16px;
-                right: 16px;
-                z-index: 20;
+            .login-form-footnote {
+                margin: 20px 0 0;
+                text-align: center;
+                font-size: 12px;
+                color: var(--color-text-muted);
+                line-height: 1.5;
             }
 
-            @media (max-width: 860px) {
-                .login-card {
-                    grid-template-columns: 1fr;
-                    max-width: 520px;
-                }
-
-                .login-brand-panel {
-                    min-height: 280px;
-                    padding: 32px;
-                }
-
-                .login-form-panel {
-                    padding: 32px;
-                }
-            }
-
-            @media (max-width: 520px) {
+            @media (max-width: 480px) {
                 .login-page {
                     padding: 16px;
+                    align-items: flex-start;
+                    padding-top: 24px;
                 }
 
                 .login-card {
-                    min-height: auto;
                     border-radius: var(--radius-lg);
-                }
-
-                .login-brand-panel {
-                    min-height: auto;
-                    padding: 28px 24px;
-                }
-
-                .login-form-panel {
-                    padding: 28px 24px;
+                    padding: 28px 20px;
                 }
 
                 .login-options {
@@ -418,35 +393,34 @@
         </style>
     </head>
     <body>
-        <div class="oh-alert-container">
-            {% for message in messages %}
-                <div class="oh-alert oh-alert--animated {{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-
         <main class="login-page">
             <section class="login-card" aria-labelledby="login-title">
-                <aside class="login-brand-panel" aria-label="{% trans 'Product introduction' %}">
-                    <div class="login-brand-content">
-                        <div class="login-brand-lockup">
-                            <span class="login-logo-mark" aria-hidden="true">
-                                <img src="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}" alt="">
-                            </span>
-                            <span>{{ white_label_company_name }}</span>
-                        </div>
-                        <h2 class="login-brand-title">{% trans "Unlock your HR workspace" %}</h2>
-                        <p class="login-brand-copy">
-                            {% trans "Manage people, attendance, payroll, recruitment, and daily HR operations from one secure dashboard." %}
-                        </p>
-                    </div>
-                </aside>
+                <div class="login-brand-lockup">
+                    <span class="login-logo-mark" aria-hidden="true">
+                        <img src="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}" alt="">
+                    </span>
+                    <span class="login-brand-name">{{ white_label_company_name }}</span>
+                </div>
 
-                <div class="login-form-panel">
-                    <div class="login-form-shell">
-                        <h1 class="login-title" id="login-title">{% trans "Welcome" %}</h1>
-                        <p class="login-subtitle">{% trans "Sign in to your account" %}</p>
+                <h1 class="login-title" id="login-title">{% trans "Welcome back" %}</h1>
+                        <p class="login-subtitle">{% trans "Sign in with your work credentials" %}</p>
+
+                        {% if messages %}
+                            <div class="login-alert-stack" role="status" aria-live="polite">
+                                {% for message in messages %}
+                                    <div class="login-alert {{ message.tags }}">
+                                        {% if "error" in message.tags %}
+                                            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                                        {% elif "warning" in message.tags %}
+                                            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+                                        {% else %}
+                                            <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+                                        {% endif %}
+                                        <span>{{ message }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
 
                         <form method="post" class="login-form">
                             {% csrf_token %}
@@ -456,7 +430,7 @@
                                     <span class="login-field-icon" aria-hidden="true">
                                         <ion-icon name="person-outline"></ion-icon>
                                     </span>
-                                    <input type="text" id="username" name="username" class="login-input" placeholder="{% trans 'Enter username or email' %}" autocomplete="username">
+                                    <input type="text" id="username" name="username" class="login-input" placeholder="{% trans 'Enter username or email' %}" autocomplete="username" required autofocus>
                                 </div>
                             </div>
 
@@ -466,7 +440,7 @@
                                     <span class="login-field-icon" aria-hidden="true">
                                         <ion-icon name="lock-closed-outline"></ion-icon>
                                     </span>
-                                    <input type="password" id="password" name="password" class="login-input oh-input--password" placeholder="{% trans 'Enter password' %}" autocomplete="current-password">
+                                    <input type="password" id="password" name="password" class="login-input oh-input--password" placeholder="{% trans 'Enter password' %}" autocomplete="current-password" required>
                                     <button type="button" class="login-password-toggle oh-password-input--toggle" aria-label="{% trans 'Toggle password visibility' %}">
                                         <ion-icon class="oh-passowrd-input__show-icon oh-password-input__show-icon" title="{% trans 'Show Password' %}" name="eye-outline"></ion-icon>
                                         <ion-icon class="oh-passowrd-input__hide-icon oh-password-input__hide-icon d-none" title="{% trans 'Hide Password' %}" name="eye-off-outline"></ion-icon>
@@ -487,9 +461,8 @@
                             </div>
 
                             <button type="submit" class="login-submit">
-                                {% trans "Login" %}
+                                {% trans "Sign in" %}
                             </button>
-
                         </form>
 
                         {% if initialize_database %}
@@ -507,8 +480,10 @@
                                 </div>
                             </div>
                         {% endif %}
-                    </div>
-                </div>
+
+                <p class="login-form-footnote">
+                    {% trans "Protected by your organization’s access policies." %}
+                </p>
             </section>
         </main>
 

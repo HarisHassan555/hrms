@@ -50,6 +50,7 @@ from horilla.decorators import (
 from horilla.group_by import group_by_queryset
 from horilla.http.response import HorillaRedirect
 from horilla.methods import handle_no_permission
+from horilla_auth.methods import get_or_create_system_bot
 from horilla_auth.models import HorillaUser
 from horilla_automations.methods.methods import generate_choices
 from horilla_automations.methods.serialize import serialize_form
@@ -3213,7 +3214,7 @@ def anonymous_feedback_add(request):
             if feedback.based_on == "employee":
                 try:
                     notify.send(
-                        HorillaUser.objects.filter(username="Horilla Bot").first(),
+                        get_or_create_system_bot(),
                         recipient=feedback.employee_id.employee_user_id,
                         verb=gettext_noop("You received anonymous feedback!"),
                         redirect=reverse("feedback-view"),

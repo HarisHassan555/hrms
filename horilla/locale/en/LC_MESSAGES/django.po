@@ -70,7 +70,7 @@ msgstr ""
 msgid "Default Accessibility"
 msgstr ""
 
-msgid "Limit default view access to horilla feature"
+msgid "Limit default view access to DSG features"
 msgstr ""
 
 msgid "Actions"
@@ -8393,7 +8393,7 @@ msgstr "Settings"
 msgid "gdrive"
 msgstr "Gdrive Backup"
 
-msgid "horilla-theme"
+msgid "dsg-theme"
 msgstr "Theme Customization"
 
 msgid "color-settings"
@@ -27113,7 +27113,7 @@ msgstr ""
 msgid "Document Expiry Aging"
 msgstr ""
 
-msgid "Overdue and upcoming horilla_documents expiry buckets (90-day horizon)."
+msgid "Overdue and upcoming document expiry buckets (90-day horizon)."
 msgstr ""
 
 msgid "Headcount Bridge"

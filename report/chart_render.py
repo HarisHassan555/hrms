@@ -32,12 +32,12 @@ logger = logging.getLogger(__name__)
 # duplicated literals in separate files linked only by a comment, so drift
 # between the PDF charts and the Excel charts was a matter of time.
 PALETTE_HEX = [
-    "E54F38",  # coral — brand primary
-    "2563EB",  # blue
-    "15803D",  # green
-    "7C3AED",  # violet
-    "0D9488",  # teal
-    "F59E0B",  # amber
+    "4F46E5",  # indigo — DSG brand primary
+    "0EA5E9",  # sky
+    "14B8A6",  # teal
+    "22C55E",  # green
+    "6366F1",  # indigo soft
+    "94A3B8",  # slate
 ]
 
 PALETTE = [colors.HexColor(f"#{value}") for value in PALETTE_HEX]

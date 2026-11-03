@@ -7,21 +7,21 @@
     .sr-page { padding-bottom: 32px; }
     .sr-link-btn {
         background: none; border: none; padding: 0;
-        color: var(--primary-600, #E54F38);
+        color: var(--primary-600, #4F46E5);
         font-size: 13px; cursor: pointer; text-decoration: none;
     }
     .sr-link-btn:hover { text-decoration: underline; text-underline-offset: 2px; }
 
     /* Favorite button active state — content-driven, not covered by the base button classes. */
     .sr-page .oh-btn--secondary-outline.is-on {
-        background: var(--primary-100, #FFF5F1);
-        border-color: var(--primary-600, #E54F38);
+        background: var(--primary-100, #EEF2FF);
+        border-color: var(--primary-600, #4F46E5);
     }
 
     .sr-letterhead {
         display: flex; flex-direction: column; gap: 10px;
         margin-bottom: 16px;
-        border-left: 4px solid var(--primary-600, #E54F38);
+        border-left: 4px solid var(--primary-600, #4F46E5);
     }
     .sr-letterhead__top {
         display: flex; justify-content: space-between; align-items: flex-start;
@@ -30,7 +30,7 @@
     .sr-letterhead__company { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
     .sr-letterhead__logo {
         width: 40px; height: 40px; border-radius: 8px; object-fit: contain;
-        background: var(--primary-200, #FEF6F5); border: 1px solid var(--primary-500, #F7C8C1);
+        background: var(--primary-200, #EEF2FF); border: 1px solid var(--primary-500, #C7D2FE);
         flex-shrink: 0; padding: 3px;
     }
     .sr-letterhead__name { margin: 0 0 2px; font-size: 14px; font-weight: 650; }
@@ -44,12 +44,12 @@
        the selected period. Reads as a note, not an error. */
     .sr-letterhead__note {
         margin: 0; font-size: 11.5px; line-height: 1.45; max-width: 720px;
-        color: #5C4413; background: #FFF8E8; border-left: 3px solid #E8B84B;
+        color: #3730A3; background: #EEF2FF; border-left: 3px solid #4F46E5;
         padding: 6px 10px; border-radius: 0 4px 4px 0;
     }
     .dark .sr-letterhead__note {
-        color: #f7e7b8; background: rgba(232,184,75,.12);
-        border-left-color: rgba(232,184,75,.45);
+        color: #C7D2FE; background: rgba(79, 70, 229, .12);
+        border-left-color: rgba(79, 70, 229, .45);
     }
     .sr-letterhead__note[hidden] { display: none !important; }
     .sr-page .oh-card { border-radius: 8px; }
@@ -93,16 +93,16 @@
     .sr-chips {
         display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
         padding: 10px 12px; border-radius: 8px;
-        background: #FFF8E8; border: 1px solid #F0D48A;
+        background: #EEF2FF; border: 1px solid #C7D2FE;
     }
-    .dark .sr-chips { background: rgba(232,184,75,.12); border-color: rgba(232,184,75,.35); }
+    .dark .sr-chips { background: rgba(79, 70, 229, .12); border-color: rgba(79, 70, 229, .35); }
     .sr-chips[hidden] { display: none !important; }
     .sr-chip {
         display: inline-flex; align-items: center; padding: 3px 10px;
         border-radius: 999px; background: #fff; color: hsl(0,0%,25%);
-        font-size: 12px; font-weight: 500; border: 1px solid #E8B84B;
+        font-size: 12px; font-weight: 500; border: 1px solid #C7D2FE;
     }
-    .dark .sr-chip { background: rgba(0,0,0,.25); color: #f7e7b8; border-color: rgba(232,184,75,.45); }
+    .dark .sr-chip { background: rgba(0,0,0,.25); color: #C7D2FE; border-color: rgba(79, 70, 229, .45); }
     .sr-field--dates[hidden], .sr-advanced[hidden] { display: none !important; }
 
     .sr-status {
@@ -113,7 +113,7 @@
     .sr-status--error { color: #dc2626; }
     .sr-status__dot {
         width: 8px; height: 8px; border-radius: 50%;
-        background: var(--primary-600, #E54F38);
+        background: var(--primary-600, #4F46E5);
         animation: sr-pulse 1s ease-in-out infinite;
     }
     @keyframes sr-pulse {
@@ -457,8 +457,8 @@
     const filterInputs = Array.from(document.querySelectorAll(".sr-filter-input"));
     const chartInstances = [];
 
-    const brand = getComputedStyle(document.documentElement).getPropertyValue("--primary-600").trim() || "#E54F38";
-    const brandSoft = getComputedStyle(document.documentElement).getPropertyValue("--primary-500").trim() || "#F7C8C1";
+    const brand = getComputedStyle(document.documentElement).getPropertyValue("--primary-600").trim() || "#4F46E5";
+    const brandSoft = getComputedStyle(document.documentElement).getPropertyValue("--primary-500").trim() || "#C7D2FE";
     const isDark = document.documentElement.classList.contains("dark")
         || document.body.classList.contains("dark");
 
@@ -641,7 +641,7 @@
     }
 
     function chartColors(n) {
-        const palette = [brand, "#ce4732", "#AC3B2A", "#9ca3af", brandSoft, "#6b7280", "#FBE5E1"];
+        const palette = [brand, "#4338CA", "#3730A3", "#9ca3af", brandSoft, "#6b7280", "#E0E7FF"];
         const out = [];
         for (let i = 0; i < Math.max(n, 1); i++) out.push(palette[i % palette.length]);
         return out;

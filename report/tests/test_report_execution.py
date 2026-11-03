@@ -672,14 +672,14 @@ class PivotTruncationDisclosureTests(TestCase):
 
         rows = [{"n": i} for i in range(12)]
         response = pivot_json_with_meta(rows, limit=5)
-        self.assertEqual(response["X-Horilla-Pivot-Truncated"], "1")
-        self.assertEqual(response["X-Horilla-Pivot-Limit"], "5")
+        self.assertEqual(response["X-DSG-Pivot-Truncated"], "1")
+        self.assertEqual(response["X-DSG-Pivot-Limit"], "5")
 
     def test_untruncated_response_sets_no_flag(self):
         from report.pivot_limits import pivot_json_with_meta
 
         response = pivot_json_with_meta([{"n": 1}], limit=5)
-        self.assertIsNone(response.get("X-Horilla-Pivot-Truncated"))
+        self.assertIsNone(response.get("X-DSG-Pivot-Truncated"))
 
     def test_notice_script_is_loaded_for_pivot_pages(self):
         """The banner is installed once in the shared base template rather
@@ -706,8 +706,8 @@ class PivotTruncationDisclosureTests(TestCase):
             / "pivot_safety.js"
         )
         source = script.read_text(encoding="utf-8")
-        self.assertIn("X-Horilla-Pivot-Truncated", source)
-        self.assertIn("X-Horilla-Pivot-Limit", source)
+        self.assertIn("X-DSG-Pivot-Truncated", source)
+        self.assertIn("X-DSG-Pivot-Limit", source)
 
 
 class SharedFormulaGuardTests(TestCase):
@@ -1457,7 +1457,7 @@ class ExportPolishTests(TestCase):
         from report.export import _chart_palette_hex
 
         self.assertEqual(_chart_palette_hex(), list(PALETTE_HEX))
-        self.assertIn("E54F38", PALETTE_HEX)  # brand coral
+        self.assertIn("4F46E5", PALETTE_HEX)  # brand indigo
 
     def test_chart_render_failure_is_logged_not_silent(self):
         """A failing chart returned None, which callers treat as "no data" --

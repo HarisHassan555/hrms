@@ -1,0 +1,13 @@
+{% load i18n widget_tweaks %}
+{{ slide_formset.management_form }}
+<div id="lmsSlideForms" class="flex flex-col gap-3" data-lesson-slides>
+    {% for slide_form in slide_formset %}
+        {% include "lms/_lesson_slide_form.html" with slide_form=slide_form page_index=forloop.counter %}
+    {% endfor %}
+</div>
+
+<template id="lmsSlideEmptyForm">
+    {% with slide_form=slide_formset.empty_form %}
+        {% include "lms/_lesson_slide_form.html" with slide_form=slide_form page_index="__prefix__" %}
+    {% endwith %}
+</template>

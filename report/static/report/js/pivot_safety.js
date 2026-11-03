@@ -2,7 +2,7 @@
  * Surfaces server-side row truncation on the pivot explorers.
  *
  * report/pivot_limits.py caps a pivot payload at MAX_PIVOT_ROWS and reports
- * that fact in the X-Horilla-Pivot-Truncated response header. The explorer
+ * that fact in the X-DSG-Pivot-Truncated response header. The explorer
  * pages fetch with $.getJSON, which discards headers, and nothing read it --
  * so past the cap the pivot presented the sum of the first N rows as if it
  * were the complete total. On payroll data that is silently wrong money.
@@ -60,7 +60,7 @@
         banner.className = "oh-alert oh-alert--warning";
         banner.style.cssText =
             "margin:0 0 12px;padding:10px 14px;border-radius:4px;" +
-            "background:#FFF4CE;border:1px solid #E8B84B;color:#5C4413;" +
+            "background:#EEF2FF;border:1px solid #C7D2FE;color:#3730A3;" +
             "font-size:13px;line-height:1.5;";
         banner.textContent = bannerText(limit);
         anchor.parentNode.insertBefore(banner, anchor);
@@ -73,7 +73,9 @@
         }
         var truncated;
         try {
-            truncated = xhr.getResponseHeader("X-Horilla-Pivot-Truncated");
+            truncated =
+                xhr.getResponseHeader("X-DSG-Pivot-Truncated") ||
+                xhr.getResponseHeader("X-Horilla-Pivot-Truncated");
         } catch (err) {
             // Some transports throw rather than returning null.
             return;
@@ -81,7 +83,9 @@
         if (truncated === "1") {
             var limit = null;
             try {
-                limit = xhr.getResponseHeader("X-Horilla-Pivot-Limit");
+                limit =
+                    xhr.getResponseHeader("X-DSG-Pivot-Limit") ||
+                    xhr.getResponseHeader("X-Horilla-Pivot-Limit");
             } catch (err) {
                 limit = null;
             }

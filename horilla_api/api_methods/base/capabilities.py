@@ -78,6 +78,7 @@ def build_capabilities(user):
     edit_own_profile = profile_edit.objects.filter(is_enabled=True).exists()
 
     return {
+        "product": "dsg-hrms",
         "version": __version__,
         "role": _resolve_role(user),
         "permissions": {

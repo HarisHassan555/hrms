@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+{% load static i18n %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    <div class="md-dashboard">
+        <div class="md-header">
+            <div>
+                <h1>{{ course.title }}</h1>
+                <div class="md-header__description">
+                    {% blocktrans with pct=enrollment.progress_percentage %}{{ pct }}% complete{% endblocktrans %}
+                    {% if enrollment.due_at %}
+                        · {% blocktrans with due=enrollment.due_at|date:"d M Y" %}Due {{ due }}{% endblocktrans %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="lmsPlayerProgress">
+            {% include "lms/_player_progress.html" %}
+        </div>
+    </div>
+{% endblock %}

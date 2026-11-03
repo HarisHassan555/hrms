@@ -1,0 +1,107 @@
+{% extends "index.html" %}
+{% load static i18n %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    {% include "lms/_lms_catalog_styles.html" %}
+
+    <div class="md-dashboard">
+        <div class="lms-hero">
+            <h1>{% trans "Explore courses" %}</h1>
+            <p>
+                {% trans "Browse the learning catalog. Enroll yourself in open courses, or continue where you left off." %}
+            </p>
+        </div>
+
+        <form method="get" class="lms-filters">
+            <input
+                type="search"
+                name="q"
+                value="{{ q }}"
+                class="lms-search"
+                placeholder="{% trans 'Search courses…' %}"
+                aria-label="{% trans 'Search courses' %}"
+            >
+            <select name="category" class="lms-select" aria-label="{% trans 'Category' %}">
+                <option value="">{% trans "All categories" %}</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.pk }}" {% if selected_category == cat.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <select name="difficulty" class="lms-select" aria-label="{% trans 'Difficulty' %}">
+                <option value="">{% trans "All levels" %}</option>
+                <option value="beginner" {% if selected_difficulty == "beginner" %}selected{% endif %}>{% trans "Beginner" %}</option>
+                <option value="intermediate" {% if selected_difficulty == "intermediate" %}selected{% endif %}>{% trans "Intermediate" %}</option>
+                <option value="advanced" {% if selected_difficulty == "advanced" %}selected{% endif %}>{% trans "Advanced" %}</option>
+            </select>
+            <button type="submit" class="lms-btn lms-btn--primary">{% trans "Search" %}</button>
+            {% if q or selected_category or selected_difficulty %}
+                <a href="{% url 'lms-catalog' %}" class="lms-btn lms-btn--ghost">{% trans "Clear" %}</a>
+            {% endif %}
+        </form>
+
+        {% if cards %}
+            <div class="lms-grid">
+                {% for card in cards %}
+                    {% with course=card.course enrollment=card.enrollment %}
+                        <article class="lms-card">
+                            <div class="lms-card__banner {% if forloop.counter|divisibleby:2 %}lms-card__banner--alt{% endif %}"></div>
+                            <div class="lms-card__body">
+                                <div class="lms-card__meta">
+                                    {% if course.category_id %}
+                                        <span class="lms-pill lms-pill--indigo">{{ course.category_id.name }}</span>
+                                    {% endif %}
+                                    <span class="lms-pill">{{ course.get_difficulty_display }}</span>
+                                    {% if card.enrolled %}
+                                        <span class="lms-pill lms-pill--green">{% trans "Enrolled" %}</span>
+                                    {% elif not course.allow_self_enroll %}
+                                        <span class="lms-pill lms-pill--amber">{% trans "Assignment only" %}</span>
+                                    {% endif %}
+                                </div>
+                                <h2 class="lms-card__title">
+                                    <a href="{% url 'lms-course-detail' pk=course.pk %}">{{ course.title }}</a>
+                                </h2>
+                                <p class="lms-card__desc">
+                                    {{ course.description|default:_("No description yet.") }}
+                                </p>
+                                <div class="lms-card__stats">
+                                    {% blocktrans with chapters=course.chapters_count lessons=course.lessons_count %}{{ chapters }} chapters · {{ lessons }} lessons{% endblocktrans %}
+                                    {% if course.learners_count %}
+                                        · {% blocktrans with n=course.learners_count %}{{ n }} learners{% endblocktrans %}
+                                    {% endif %}
+                                </div>
+                                {% if enrollment %}
+                                    <div class="lms-progress" aria-hidden="true">
+                                        <span style="width: {{ enrollment.progress_percentage }}%;"></span>
+                                    </div>
+                                {% endif %}
+                                <div class="lms-card__footer">
+                                    {% if enrollment %}
+                                        <a href="{% url 'lms-player' enrollment_id=enrollment.pk %}" class="lms-btn lms-btn--primary">
+                                            {% if enrollment.status == "completed" %}{% trans "Review" %}{% else %}{% trans "Continue" %}{% endif %}
+                                        </a>
+                                    {% elif employee and course.allow_self_enroll %}
+                                        <form method="post" action="{% url 'lms-self-enroll' pk=course.pk %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="lms-btn lms-btn--primary">{% trans "Enroll" %}</button>
+                                        </form>
+                                    {% endif %}
+                                    <a href="{% url 'lms-course-detail' pk=course.pk %}" class="lms-btn lms-btn--secondary">
+                                        {% trans "Details" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="lms-empty">
+                <p class="font-semibold text-[#0F172A] mb-1">{% trans "No courses found" %}</p>
+                <p class="mb-0">{% trans "Try another search, or ask HR to publish courses to the catalog." %}</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

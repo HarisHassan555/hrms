@@ -1,0 +1,35 @@
+{% load i18n %}
+<ul class="list-none m-0 p-0 space-y-2">
+    {% for chapter in outline %}
+        <li>
+            <div class="text-xs font-semibold text-[#0F172A] mb-1">
+                {{ chapter.module.title }}
+                {% if not chapter.unlocked %}<span class="text-[#94A3B8]">· {% trans "Locked" %}</span>{% endif %}
+            </div>
+            {% if chapter.unlocked %}
+                <ul class="list-none m-0 p-0 pl-2 border-l border-[#E2E8F0]">
+                    {% for row in chapter.lessons %}
+                        <li>
+                            <a
+                                href="{% url 'lms-player-lesson' enrollment_id=enrollment.pk lesson_id=row.lesson.pk %}"
+                                class="text-xs {% if row.lesson.pk == lesson.pk %}text-[#4338CA] font-semibold{% else %}text-[#475569]{% endif %} no-underline"
+                            >
+                                {% if row.completed %}✓ {% endif %}{{ row.lesson.title }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                    {% if chapter.test %}
+                        <li>
+                            <a
+                                href="{% url 'lms-player-test' enrollment_id=enrollment.pk test_id=chapter.test.pk %}"
+                                class="text-xs text-[#475569] no-underline"
+                            >
+                                {% if chapter.test_passed %}✓ {% endif %}{{ chapter.test.title }}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>

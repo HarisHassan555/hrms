@@ -1,0 +1,84 @@
+{% load i18n %}
+
+<div class="mb-4 bg-white border border-[#E2E8F0] rounded-xl p-4">
+    <div class="flex justify-between text-xs text-[#64748B] mb-1">
+        <span>{% trans "Course progress" %}</span>
+        <span>{{ enrollment.progress_percentage }}%</span>
+    </div>
+    <div class="h-2 rounded-full bg-[#F1F5F9] overflow-hidden">
+        <div class="h-full rounded-full bg-[#4F46E5]" style="width: {{ enrollment.progress_percentage }}%;"></div>
+    </div>
+</div>
+
+<div class="flex flex-col gap-3">
+    {% for chapter in outline %}
+        <div class="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden {% if not chapter.unlocked %}opacity-60{% endif %}">
+            <div class="px-5 py-3 bg-[#F8FAFC] border-b border-[#F1F5F9] flex items-center justify-between gap-3">
+                <div class="text-sm font-semibold text-[#0F172A]">
+                    {{ chapter.module.title }}
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if chapter.requirements_met %}
+                        <span class="text-xs font-semibold text-[#15803D]">{% trans "Done" %}</span>
+                    {% elif not chapter.unlocked %}
+                        <span class="text-xs font-semibold text-[#64748B]">{% trans "Locked" %}</span>
+                    {% else %}
+                        <span class="text-xs font-semibold text-[#0369A1]">{% trans "Open" %}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if chapter.unlocked %}
+                <div class="divide-y divide-[#F1F5F9]">
+                    {% for row in chapter.lessons %}
+                        <a
+                            href="{% url 'lms-player-lesson' enrollment_id=enrollment.pk lesson_id=row.lesson.pk %}"
+                            class="flex items-center justify-between gap-3 px-5 py-3 no-underline hover:bg-[#F8FAFC]"
+                        >
+                            <div>
+                                <div class="text-sm text-[#0F172A]">{{ row.lesson.title }}</div>
+                                <div class="text-xs text-[#64748B]">{{ row.lesson.get_type_display }}</div>
+                            </div>
+                            {% if row.completed %}
+                                <span class="text-xs font-semibold text-[#15803D]">{% trans "Completed" %}</span>
+                            {% else %}
+                                <span class="text-xs text-[#4F46E5] font-semibold">{% trans "Open" %}</span>
+                            {% endif %}
+                        </a>
+                    {% empty %}
+                        <div class="px-5 py-3 text-xs text-[#64748B]">{% trans "No lessons in this chapter." %}</div>
+                    {% endfor %}
+                    {% if chapter.test %}
+                        <a
+                            href="{% url 'lms-player-test' enrollment_id=enrollment.pk test_id=chapter.test.pk %}"
+                            class="flex items-center justify-between gap-3 px-5 py-3 no-underline hover:bg-[#EEF2FF] bg-[#F8FAFC]"
+                        >
+                            <div>
+                                <div class="text-sm text-[#0F172A]">{{ chapter.test.title }}</div>
+                                <div class="text-xs text-[#64748B]">
+                                    {% if chapter.test.is_compulsory %}
+                                        {% blocktrans with score=chapter.test.pass_score %}Compulsory · Pass {{ score }}%{% endblocktrans %}
+                                    {% else %}
+                                        {% trans "Optional test" %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if chapter.test_passed %}
+                                <span class="text-xs font-semibold text-[#15803D]">{% trans "Passed" %}</span>
+                            {% else %}
+                                <span class="text-xs text-[#4F46E5] font-semibold">{% trans "Take test" %}</span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="px-5 py-4 text-sm text-[#64748B]">
+                    {% trans "Complete the previous chapter to unlock." %}
+                </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <div class="bg-white border border-[#E2E8F0] rounded-xl p-6 text-center text-sm text-[#64748B]">
+            {% trans "This course has no chapters yet." %}
+        </div>
+    {% endfor %}
+</div>

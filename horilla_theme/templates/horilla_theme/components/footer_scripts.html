@@ -65,10 +65,10 @@
 </script>
 <script src="{% static 'horilla_theme/assets/js/footerScripts.js' %}?v=4"></script>
 
-<!-- Product tour engine (horilla_tour) -->
+<!-- Product tour engine -->
 {% if request.user.is_authenticated %}
 <script>
-  window.HORILLA_TOUR = {
+  window.DSG_TOUR = {
     page: "{{ request.resolver_match.url_name|default:'' }}",
     path: "{{ request.path|escapejs }}",
     activeUrl: "{% url 'tour-active' %}",

@@ -1788,12 +1788,12 @@ td .oh-profile {
 
 .oh-view-btn--active {
   background-color: #fff !important;
-  border: 1px solid var(--primary-600, #E54F38) !important;
-  color: var(--primary-600, #E54F38) !important;
+  border: 1px solid var(--primary-600, #4F46E5) !important;
+  color: var(--primary-600, #4F46E5) !important;
 }
 
 .oh-view-btn--active ion-icon {
-  color: var(--primary-600, #E54F38);
+  color: var(--primary-600, #4F46E5);
 }
 
 .swal2-styled.swal2-confirm {
@@ -1811,11 +1811,11 @@ td .oh-profile {
 .oh-accordion-header {
   position: relative;
   padding: 8px 10px;
-  background: #fff5f1;
+  background: #EEF2FF;
   border: unset;
   border-radius: 5px;
   font-size: 13px;
-  color: #e54f38;
+  color: #4F46E5;
   font-weight: 600;
   margin-bottom: 10px;
 }
@@ -1960,7 +1960,7 @@ td .oh-profile {
    input just never visibly changed color on click. Restated here, after
    the base rule, so the themed color actually wins when focused. */
 .hlv-pagination input[type="number"]:focus {
-  border-color: var(--primary-600, #E54F38);
+  border-color: var(--primary-600, #4F46E5);
 }
 
 .hlv-pagination span {
@@ -2536,7 +2536,7 @@ ul.errorlist ul.errorlist {
   font-family: "Font Awesome 6 Free";
   font-weight: 600;
   font-size: 12px;
-  color: #e54f38;
+  color: #4F46E5;
   position: absolute;
   left: 0;
 }
@@ -2581,7 +2581,7 @@ ul.errorlist ul.errorlist {
 }
 
 .sideboxmain:hover:not(.sidebox-current) {
-  background-color: var(--sidebar-accent-soft, #fef6f5);
+  background-color: var(--sidebar-accent-soft, #EEF2FF);
 }
 
 .sideboxmain:hover:not(.sidebox-current) img {
@@ -2636,7 +2636,7 @@ ul.errorlist ul.errorlist {
 .sidebox ul li a:hover {
   background: rgb(227 78 56 / 10%);
   color: #e34e38;
-  /* border-right: 2px solid #e54f38; */
+  /* border-right: 2px solid #4F46E5; */
 }
 
 .sidebox ul li a:hover:after,
@@ -3271,9 +3271,9 @@ ul.errorlist ul.errorlist {
 }
 
 .oh-column-config__search:focus-within {
-  border-color: #e54f38;
+  border-color: #4F46E5;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(229, 79, 56, 0.12);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
 .oh-column-config__search ion-icon {
@@ -3415,8 +3415,8 @@ ul.errorlist ul.errorlist {
   height: 34px;
   margin: 0 2px;
   border-radius: 8px;
-  border: 1px dashed #e54f38;
-  background: rgba(229, 79, 56, 0.06);
+  border: 1px dashed #4F46E5;
+  background: rgba(79, 70, 229, 0.06);
 }
 
 .oh-column-config__empty {
@@ -3455,7 +3455,7 @@ ul.errorlist ul.errorlist {
 
 .oh-sticky-dropdown_btn.is-column-config-trigger:hover,
 .oh-sticky-dropdown_btn.is-column-config-trigger[aria-expanded="true"] {
-  color: var(--primary-600, #e54f38);
+  color: var(--primary-600, #4F46E5);
   border-color: var(--primary-500, #f0c4bc);
   background: var(--primary-100, #fff5f3);
 }
@@ -3971,8 +3971,8 @@ span.oh-activity-sidebar__a img {
 }
 
 .oh-modal__dialog--custom .oh-general__tab .oh-general__tab-link--active {
-  background-color: #e54f38;
-  border: 1px solid #e54f38;
+  background-color: #4F46E5;
+  border: 1px solid #4F46E5;
   color: #fff;
   padding: 5px 12px;
   border-radius: 23px;
@@ -4047,7 +4047,7 @@ input[type="range"]::-webkit-slider-thumb {
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background: #e54f38;
+  background: #4F46E5;
   /* 🔴 Thumb color */
   cursor: pointer;
   margin-top: -7px;
@@ -4067,7 +4067,7 @@ input[type="range"]::-moz-range-thumb {
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background: #e54f38;
+  background: #4F46E5;
   cursor: pointer;
   border: none;
 }
@@ -4083,7 +4083,7 @@ input[type="range"]::-ms-thumb {
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background: #e54f38;
+  background: #4F46E5;
   cursor: pointer;
   border: none;
 }
@@ -4274,7 +4274,7 @@ input[type="range"]::-ms-fill-upper {
 }
 
 .pvtFilterBox input[type="checkbox"].pvtFilter {
-  accent-color: #e54f38;
+  accent-color: #4F46E5;
   width: 15px;
   height: 15px;
   cursor: pointer;

@@ -2,7 +2,7 @@
 ``/health/`` identifies the product without disclosing the release.
 
 Mobile clients probe a user-typed host with this before posting credentials,
-so that a wrong host reports "not a Horilla server" instead of "invalid
+so that a wrong host reports "not a DSG HRMS server" instead of "invalid
 credentials". The endpoint must therefore stay unauthenticated and must carry
 enough for that decision -- and no more.
 
@@ -23,7 +23,7 @@ class HealthVersionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"status": "ok", "product": "horilla", "api": API_VERSION},
+            {"status": "ok", "product": "dsg-hrms", "api": API_VERSION},
         )
 
     def test_health_does_not_disclose_the_release(self):

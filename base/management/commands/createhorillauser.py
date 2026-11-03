@@ -59,12 +59,9 @@ class Command(BaseCommand):
             employee.phone = phone
             employee.save()
 
-            bot = HorillaUser.objects.filter(username="Horilla Bot").first()
-            if bot is None:
-                HorillaUser.objects.create_user(
-                    username="Horilla Bot",
-                    password=str(uuid.uuid4()),
-                )
+            from horilla_auth.methods import get_or_create_system_bot
+
+            get_or_create_system_bot()
 
             self.stdout.write(
                 self.style.SUCCESS(f'Employee "{employee}" created successfully')

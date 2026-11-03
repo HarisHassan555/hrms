@@ -4,16 +4,16 @@
 <style>
     .oh-btn--secondary,
     .oh-btn--secondary:disabled {
-        background-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        background-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
     .oh-btn--secondary:hover,
     .oh-btn--secondary:focus,
     .oh-btn--secondary:focus-visible {
-        background-color: {{ theme_obj.primary_700|default:"#3a4ecc" }} !important;
+        background-color: {{ theme_obj.primary_700|default:"#4338CA" }} !important;
     }
     .oh-btn--secondary-outline,
     .oh-btn--secondary-link {
-        color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
     .oh-btn--secondary-outline:hover,
     .oh-btn--secondary-outline:focus,
@@ -21,50 +21,50 @@
     .oh-btn--secondary-link:hover,
     .oh-btn--secondary-link:focus,
     .oh-btn--secondary-link:focus-visible {
-        color: {{ theme_obj.primary_700|default:"#3a4ecc" }} !important;
+        color: {{ theme_obj.primary_700|default:"#4338CA" }} !important;
     }
 
     .oh-titlebar__tag--custom {
-        background-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        background-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
     .oh-titlebar__tag-close {
-        background-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        background-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
     .oh-titlebar__tag-close:hover {
-        background-color: {{ theme_obj.primary_700|default:"#3a4ecc" }} !important;
+        background-color: {{ theme_obj.primary_700|default:"#4338CA" }} !important;
     }
     .oh-titlebar__tag.filter-field {
-        border-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        border-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
 
     .oh-btn--add-another {
-        background-color: {{ theme_obj.primary_500|default:"#6b8cff" }} !important;
+        background-color: {{ theme_obj.primary_500|default:"#818CF8" }} !important;
         color: #ffffff !important;
-        border: 1px solid {{ theme_obj.primary_500|default:"#6b8cff" }} !important;
+        border: 1px solid {{ theme_obj.primary_500|default:"#818CF8" }} !important;
     }
     .oh-btn--add-another:hover,
     .oh-btn--add-another:focus,
     .oh-btn--add-another:focus-visible {
-        background-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
-        border-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        background-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
+        border-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
 
     .list-checked li:before {
-        color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
 
     .oh-btn--light {
-        color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
     .oh-btn--light:hover,
     .oh-btn--light:focus,
     .oh-btn--light:focus-visible {
-        color: {{ theme_obj.primary_700|default:"#3a4ecc" }} !important;
+        color: {{ theme_obj.primary_700|default:"#4338CA" }} !important;
     }
 
     .oh-modal__dialog--custom .oh-general__tab .oh-general__tab-link--active {
-        background-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
-        border-color: {{ theme_obj.primary_600|default:"#4361ee" }} !important;
+        background-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
+        border-color: {{ theme_obj.primary_600|default:"#4F46E5" }} !important;
     }
 
     .oh-tabs__content .heightContainer,
@@ -131,29 +131,29 @@
                 white: '#FFFFFF',
 
                 primary: {
-                    50:  '{{ theme_obj.primary_50  | default:"#f5f7fb" }}',
-                    100: '{{ theme_obj.primary_100 | default:"#eaf1ff" }}',
-                    200: '{{ theme_obj.primary_200 | default:"#d9e5ff" }}',
-                    300: '{{ theme_obj.primary_300 | default:"#c4d7ff" }}',
-                    400: '{{ theme_obj.primary_400 | default:"#a8c0ff" }}',
-                    500: '{{ theme_obj.primary_500 | default:"#6b8cff" }}',
-                    600: '{{ theme_obj.primary_600 | default:"#4361ee" }}',
-                    700: '{{ theme_obj.primary_700 | default:"#3a4ecc" }}',
-                    800: '{{ theme_obj.primary_800 | default:"#2f3eb8" }}',
-                    900: '{{ theme_obj.primary_900 | default:"#1e2a80" }}',
+                    50:  '{{ theme_obj.primary_50  | default:"#F8FAFC" }}',
+                    100: '{{ theme_obj.primary_100 | default:"#EEF2FF" }}',
+                    200: '{{ theme_obj.primary_200 | default:"#E0E7FF" }}',
+                    300: '{{ theme_obj.primary_300 | default:"#C7D2FE" }}',
+                    400: '{{ theme_obj.primary_400 | default:"#A5B4FC" }}',
+                    500: '{{ theme_obj.primary_500 | default:"#818CF8" }}',
+                    600: '{{ theme_obj.primary_600 | default:"#4F46E5" }}',
+                    700: '{{ theme_obj.primary_700 | default:"#4338CA" }}',
+                    800: '{{ theme_obj.primary_800 | default:"#3730A3" }}',
+                    900: '{{ theme_obj.primary_900 | default:"#312E81" }}',
                 },
 
                 brand: {
-                    50:  '{{ theme_obj.primary_50  | default:"#f5f7fb" }}',
-                    100: '{{ theme_obj.primary_100 | default:"#eaf1ff" }}',
-                    200: '{{ theme_obj.primary_200 | default:"#d9e5ff" }}',
-                    300: '{{ theme_obj.primary_300 | default:"#c4d7ff" }}',
-                    400: '{{ theme_obj.primary_400 | default:"#a8c0ff" }}',
-                    500: '{{ theme_obj.primary_500 | default:"#6b8cff" }}',
-                    600: '{{ theme_obj.primary_600 | default:"#4361ee" }}',
-                    700: '{{ theme_obj.primary_700 | default:"#3a4ecc" }}',
-                    800: '{{ theme_obj.primary_800 | default:"#2f3eb8" }}',
-                    900: '{{ theme_obj.primary_900 | default:"#1e2a80" }}',
+                    50:  '{{ theme_obj.primary_50  | default:"#F8FAFC" }}',
+                    100: '{{ theme_obj.primary_100 | default:"#EEF2FF" }}',
+                    200: '{{ theme_obj.primary_200 | default:"#E0E7FF" }}',
+                    300: '{{ theme_obj.primary_300 | default:"#C7D2FE" }}',
+                    400: '{{ theme_obj.primary_400 | default:"#A5B4FC" }}',
+                    500: '{{ theme_obj.primary_500 | default:"#818CF8" }}',
+                    600: '{{ theme_obj.primary_600 | default:"#4F46E5" }}',
+                    700: '{{ theme_obj.primary_700 | default:"#4338CA" }}',
+                    800: '{{ theme_obj.primary_800 | default:"#3730A3" }}',
+                    900: '{{ theme_obj.primary_900 | default:"#312E81" }}',
                 },
                 info: {
                     50:  '#eaf6fc', 100: '#c9e8f7', 200: '#95d0ec', 300: '#5eb8e2',
@@ -176,9 +176,9 @@
                     100: '{{ theme_obj.secondary_100 | default:"#f1f5f9" }}',
                     200: '{{ theme_obj.secondary_200 | default:"#e2e8f0" }}',
                     300: '{{ theme_obj.secondary_300 | default:"#cbd5e1" }}',
-                    400: '{{ theme_obj.secondary_400 | default:"#a8c0ff" }}',
-                    500: '{{ theme_obj.secondary_500 | default:"#6b8cff" }}',
-                    600: '{{ theme_obj.secondary_600 | default:"#4361ee" }}',
+                    400: '{{ theme_obj.secondary_400 | default:"#A5B4FC" }}',
+                    500: '{{ theme_obj.secondary_500 | default:"#818CF8" }}',
+                    600: '{{ theme_obj.secondary_600 | default:"#4F46E5" }}',
                     700: '{{ theme_obj.secondary_700 | default:"#334155" }}',
                     800: '{{ theme_obj.secondary_800 | default:"#1e293b" }}',
                     900: '{{ theme_obj.secondary_900 | default:"#0f172a" }}',

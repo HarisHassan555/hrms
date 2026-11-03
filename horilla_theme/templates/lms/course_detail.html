@@ -1,0 +1,129 @@
+{% extends "index.html" %}
+{% load static i18n %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    {% include "lms/_lms_catalog_styles.html" %}
+
+    <div class="md-dashboard">
+        <div class="mb-4">
+            <a href="{% url 'lms-catalog' %}" class="lms-btn lms-btn--ghost" style="padding-left:0;">{% trans "← Back to catalog" %}</a>
+        </div>
+
+        <div class="lms-hero" style="margin-bottom: 24px;">
+            <div class="lms-card__meta" style="margin-bottom: 12px;">
+                {% if course.category_id %}
+                    <span class="lms-pill lms-pill--indigo">{{ course.category_id.name }}</span>
+                {% endif %}
+                <span class="lms-pill">{{ course.get_difficulty_display }}</span>
+                {% if course.allow_self_enroll %}
+                    <span class="lms-pill lms-pill--green">{% trans "Open enrollment" %}</span>
+                {% else %}
+                    <span class="lms-pill lms-pill--amber">{% trans "Assignment only" %}</span>
+                {% endif %}
+            </div>
+            <h1>{{ course.title }}</h1>
+            {% if course.code %}
+                <p class="text-xs text-[#94A3B8] mb-2">{{ course.code }}</p>
+            {% endif %}
+            <p>{{ course.description|default:_("No description provided for this course.") }}</p>
+            <p class="mt-3 text-xs text-[#64748B] mb-0">
+                {% blocktrans with chapters=course.chapters_count lessons=course.lessons_count learners=course.learners_count %}{{ chapters }} chapters · {{ lessons }} lessons · {{ learners }} enrolled{% endblocktrans %}
+            </p>
+        </div>
+
+        <div class="lms-detail-layout">
+            <div>
+                <div class="lms-panel">
+                    <h2 class="text-base font-semibold text-[#0F172A] mb-4">{% trans "Syllabus" %}</h2>
+                    {% if syllabus %}
+                        {% for item in syllabus %}
+                            <div class="lms-syllabus-item">
+                                <div class="lms-syllabus-item__head">
+                                    {% blocktrans with n=forloop.counter title=item.module.title %}Chapter {{ n }}: {{ title }}{% endblocktrans %}
+                                </div>
+                                {% for lesson in item.lessons %}
+                                    <div class="lms-syllabus-item__row">
+                                        <span>{{ lesson.title }}</span>
+                                        <span class="text-[#94A3B8]">{{ lesson.get_type_display }}</span>
+                                    </div>
+                                {% empty %}
+                                    <div class="lms-syllabus-item__row">{% trans "No lessons yet" %}</div>
+                                {% endfor %}
+                                {% if item.test %}
+                                    <div class="lms-syllabus-item__row">
+                                        <span>{{ item.test.title }}</span>
+                                        <span class="text-[#94A3B8]">
+                                            {% if item.test.is_compulsory %}{% trans "Compulsory test" %}{% else %}{% trans "Optional test" %}{% endif %}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-sm text-[#64748B] mb-0">{% trans "Syllabus coming soon." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <aside>
+                <div class="lms-panel lms-sticky-cta">
+                    <h3 class="text-sm font-semibold text-[#0F172A] mb-3">{% trans "Get started" %}</h3>
+                    {% if enrollment %}
+                        <div class="mb-3">
+                            <div class="flex justify-between text-xs text-[#64748B] mb-1">
+                                <span>{% trans "Your progress" %}</span>
+                                <span>{{ enrollment.progress_percentage }}%</span>
+                            </div>
+                            <div class="lms-progress"><span style="width: {{ enrollment.progress_percentage }}%;"></span></div>
+                        </div>
+                        <a href="{% url 'lms-player' enrollment_id=enrollment.pk %}" class="lms-btn lms-btn--primary" style="width:100%;">
+                            {% if enrollment.status == "completed" %}{% trans "Review course" %}{% else %}{% trans "Continue learning" %}{% endif %}
+                        </a>
+                        <p class="text-xs text-[#64748B] mt-3 mb-0">
+                            {% if enrollment.source == "self" %}{% trans "You enrolled from the catalog." %}{% else %}{% trans "This course was assigned to you." %}{% endif %}
+                        </p>
+                    {% elif can_self_enroll %}
+                        <form method="post" action="{% url 'lms-self-enroll' pk=course.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="lms-btn lms-btn--primary" style="width:100%;">
+                                {% trans "Enroll now" %}
+                            </button>
+                        </form>
+                        <p class="text-xs text-[#64748B] mt-3 mb-0">
+                            {% trans "Free for employees. Progress is saved to My Learning." %}
+                        </p>
+                    {% elif employee and not course.allow_self_enroll %}
+                        <p class="text-sm text-[#475569] mb-0">
+                            {% trans "This course is assignment-only. Contact HR to get enrolled." %}
+                        </p>
+                    {% else %}
+                        <p class="text-sm text-[#475569] mb-0">
+                            {% trans "Sign in with an employee profile to enroll." %}
+                        </p>
+                    {% endif %}
+
+                    {% if can_assign %}
+                        <hr class="my-4 border-[#E2E8F0]">
+                        <button
+                            type="button"
+                            class="lms-btn lms-btn--secondary"
+                            style="width:100%;"
+                            data-toggle="oh-modal-toggle"
+                            data-target="#genericModal"
+                            hx-get="{% url 'lms-enrollment-assign' %}?course={{ course.pk }}"
+                            hx-target="#genericModalBody"
+                        >
+                            {% trans "Assign to employees" %}
+                        </button>
+                        {% if can_edit %}
+                            <a href="{% url 'lms-course-builder' course_id=course.pk %}" class="lms-btn lms-btn--ghost" style="width:100%; margin-top:8px;">
+                                {% trans "Open builder" %}
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </aside>
+        </div>
+    </div>
+{% endblock %}

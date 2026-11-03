@@ -16,7 +16,7 @@
 document.addEventListener("alpine:init", function () {
   Alpine.data("horillaTailAdminLayout", function () {
     return {
-      page: "horilla",
+      page: "dsg",
       loaded: true,
       sidebarToggle: false,
       darkMode: document.documentElement.classList.contains("dark"),

@@ -1,5 +1,5 @@
 """
-Create/sync the Boss role (all permissions) and assign it to a user per company.
+Create/sync the Super User role (all permissions) and assign it to a user per company.
 
 Optionally grants Django superuser for platform-level settings and bypass rules.
 """
@@ -10,14 +10,15 @@ from django.db import transaction
 
 from base.management.commands.ensure_tenant_admin import Command as AdminCommand
 from base.models import Company, CompanyGroupAssignment
+from base.role_defaults import SUPER_USER_GROUP_NAME
 from base.signals import _sync_default_hrms_groups, _sync_export_permissions
 
-BOSS_GROUP_NAME = "Boss"
+BOSS_GROUP_NAME = SUPER_USER_GROUP_NAME
 
 
 class Command(BaseCommand):
     help = (
-        "Sync the Boss role (full application permissions) and assign it to a user "
+        "Sync the Super User role (full application permissions) and assign it to a user "
         "for every company. Use --superuser for Django superuser (maximum control)."
     )
 
@@ -40,7 +41,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--replace-roles",
             action="store_true",
-            help="Remove other company role assignments for this user before assigning Boss",
+            help="Remove other company role assignments for this user before assigning Super User",
         )
 
     @transaction.atomic

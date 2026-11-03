@@ -3,27 +3,55 @@
 {% if not modules %}
     <div class="md-chart-card">
         <div class="lms-builder-empty">
-            <p class="font-semibold text-secondary-900 mb-1">{% trans "No modules yet" %}</p>
-            <p>{% trans "Add a module, then add lessons (video, PDF, or text)." %}</p>
+            <p class="font-semibold text-secondary-900 mb-1">{% trans "No chapters yet" %}</p>
+            <p>{% trans "Add a chapter, then add lessons (video, PDF, text, or slideshow) and an optional chapter test." %}</p>
         </div>
     </div>
 {% else %}
+    <div class="lms-builder-toolbar">
+        <button type="button" class="lms-builder-toolbar__btn" data-lms-expand-all>
+            {% trans "Expand all" %}
+        </button>
+        <button type="button" class="lms-builder-toolbar__btn" data-lms-collapse-all>
+            {% trans "Collapse all" %}
+        </button>
+    </div>
     {% for module in modules %}
-        <div class="lms-builder-module" id="lmsModule{{ module.pk }}">
+        <div
+            class="lms-builder-module"
+            id="lmsModule{{ module.pk }}"
+            data-lms-chapter
+            data-module-id="{{ module.pk }}"
+        >
             <div class="lms-builder-module__head">
-                <div>
-                    <div class="text-sm font-semibold text-secondary-900">
-                        {{ module.title }}
-                        <span class="text-xs font-normal text-secondary-500 ml-2">
-                            {% blocktrans with order=module.sort_order %}Order {{ order }}{% endblocktrans %}
-                        </span>
+                <div class="lms-builder-module__meta">
+                    <button
+                        type="button"
+                        class="lms-builder-collapse-btn"
+                        data-lms-chapter-toggle
+                        aria-expanded="true"
+                        aria-controls="lmsModuleBody{{ module.pk }}"
+                        title="{% trans 'Collapse chapter' %}"
+                    >
+                        <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+                    </button>
+                    <div class="lms-builder-module__title" data-lms-chapter-toggle>
+                        <div class="text-sm font-semibold text-secondary-900 lms-builder-module__name">
+                            {% blocktrans with order=module.sort_order title=module.title %}Chapter {{ order }}: {{ title }}{% endblocktrans %}
+                        </div>
+                        <p class="text-xs text-secondary-600 mt-1 mb-0">
+                            {% blocktrans count counter=module.lesson_list|length %}{{ counter }} lesson{% plural %}{{ counter }} lessons{% endblocktrans %}
+                            {% if module.test %}
+                                · {% trans "Test" %}
+                            {% endif %}
+                            {% if module.description %}
+                                · {{ module.description|truncatechars:72 }}
+                            {% endif %}
+                        </p>
                     </div>
-                    {% if module.description %}
-                        <p class="text-xs text-secondary-600 mt-1 mb-0">{{ module.description }}</p>
-                    {% endif %}
                 </div>
                 {% if can_edit %}
-                    <div class="flex gap-2 shrink-0">
+                    <div class="flex gap-2 shrink-0 flex-wrap justify-end">
                         <button
                             type="button"
                             class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
@@ -38,7 +66,18 @@
                         <button
                             type="button"
                             class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
-                            title="{% trans 'Edit module' %}"
+                            title="{% if module.test %}{% trans 'Edit test' %}{% else %}{% trans 'Add test' %}{% endif %}"
+                            data-toggle="oh-modal-toggle"
+                            data-target="#genericModal"
+                            hx-get="{% url 'lms-chapter-test-edit' module_id=module.pk %}"
+                            hx-target="#genericModalBody"
+                        >
+                            <ion-icon name="help-circle-outline"></ion-icon>
+                        </button>
+                        <button
+                            type="button"
+                            class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                            title="{% trans 'Edit chapter' %}"
                             data-toggle="oh-modal-toggle"
                             data-target="#genericModal"
                             hx-get="{% url 'lms-module-update' course_id=course.pk pk=module.pk %}"
@@ -49,7 +88,7 @@
                         <button
                             type="button"
                             class="oh-btn oh-btn--danger oh-btn--sq-sm"
-                            title="{% trans 'Delete module' %}"
+                            title="{% trans 'Delete chapter' %}"
                             hx-get="{% url 'generic-delete' %}?model=lms.coursemodule&pk={{ module.pk }}"
                             data-toggle="oh-modal-toggle"
                             data-target="#deleteConfirmation"
@@ -61,54 +100,172 @@
                 {% endif %}
             </div>
 
-            {% if module.lesson_list %}
-                {% for lesson in module.lesson_list %}
-                    <div class="lms-builder-lesson" id="lmsLesson{{ lesson.pk }}">
-                        <div class="min-w-0">
-                            <div class="text-sm font-medium text-secondary-900">{{ lesson.title }}</div>
-                            <div class="flex flex-wrap items-center gap-2 mt-1">
-                                <span class="md-badge md-badge--blue">{{ lesson.get_type_display }}</span>
-                                {% if lesson.duration_minutes %}
+            <div class="lms-builder-module__body" id="lmsModuleBody{{ module.pk }}">
+                {% if module.lesson_list %}
+                    {% for lesson in module.lesson_list %}
+                        <div class="lms-builder-lesson" id="lmsLesson{{ lesson.pk }}">
+                            <div class="min-w-0">
+                                <div class="text-sm font-medium text-secondary-900">{{ lesson.title }}</div>
+                                <div class="flex flex-wrap items-center gap-2 mt-1">
+                                    <span class="md-badge md-badge--blue">{{ lesson.get_type_display }}</span>
                                     <span class="text-xs text-secondary-500">
-                                        {% blocktrans with mins=lesson.duration_minutes %}{{ mins }} min{% endblocktrans %}
+                                        {% blocktrans with order=lesson.sort_order %}Order {{ order }}{% endblocktrans %}
                                     </span>
-                                {% endif %}
-                                <span class="text-xs text-secondary-500">
-                                    {% blocktrans with order=lesson.sort_order %}Order {{ order }}{% endblocktrans %}
-                                </span>
+                                </div>
                             </div>
+                            {% if can_edit %}
+                                <div class="flex gap-2 shrink-0">
+                                    <button
+                                        type="button"
+                                        class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                                        data-toggle="oh-modal-toggle"
+                                        data-target="#genericModal"
+                                        hx-get="{% url 'lms-lesson-update' module_id=module.pk pk=lesson.pk %}"
+                                        hx-target="#genericModalBody"
+                                    >
+                                        <ion-icon name="create-outline"></ion-icon>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="oh-btn oh-btn--danger oh-btn--sq-sm"
+                                        hx-get="{% url 'generic-delete' %}?model=lms.lesson&pk={{ lesson.pk }}"
+                                        data-toggle="oh-modal-toggle"
+                                        data-target="#deleteConfirmation"
+                                        hx-target="#deleteConfirmationBody"
+                                    >
+                                        <ion-icon name="trash-outline"></ion-icon>
+                                    </button>
+                                </div>
+                            {% endif %}
                         </div>
-                        {% if can_edit %}
-                            <div class="flex gap-2 shrink-0">
-                                <button
-                                    type="button"
-                                    class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
-                                    data-toggle="oh-modal-toggle"
-                                    data-target="#genericModal"
-                                    hx-get="{% url 'lms-lesson-update' module_id=module.pk pk=lesson.pk %}"
-                                    hx-target="#genericModalBody"
-                                >
-                                    <ion-icon name="create-outline"></ion-icon>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="oh-btn oh-btn--danger oh-btn--sq-sm"
-                                    hx-get="{% url 'generic-delete' %}?model=lms.lesson&pk={{ lesson.pk }}"
-                                    data-toggle="oh-modal-toggle"
-                                    data-target="#deleteConfirmation"
-                                    hx-target="#deleteConfirmationBody"
-                                >
-                                    <ion-icon name="trash-outline"></ion-icon>
-                                </button>
-                            </div>
-                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="lms-builder-empty text-sm py-4">
+                        {% trans "No lessons in this chapter." %}
                     </div>
-                {% endfor %}
-            {% else %}
-                <div class="lms-builder-empty text-sm py-4">
-                    {% trans "No lessons in this module." %}
-                </div>
-            {% endif %}
+                {% endif %}
+
+                {% if module.test %}
+                    <div
+                        class="lms-builder-test-block"
+                        data-lms-test
+                        data-test-id="{{ module.test.pk }}"
+                    >
+                        <div class="lms-builder-test">
+                            <div class="lms-builder-test__meta">
+                                <button
+                                    type="button"
+                                    class="lms-builder-collapse-btn"
+                                    data-lms-test-toggle
+                                    aria-expanded="true"
+                                    aria-controls="lmsTestBody{{ module.test.pk }}"
+                                    title="{% trans 'Collapse test' %}"
+                                >
+                                    <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+                                </button>
+                                <div class="lms-builder-test__title" data-lms-test-toggle>
+                                    <div class="text-sm font-medium text-secondary-900 lms-builder-test__name">
+                                        {{ module.test.title }}
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2 mt-1">
+                                        {% if module.test.is_compulsory %}
+                                            <span class="md-badge md-badge--amber">{% trans "Compulsory" %}</span>
+                                            <span class="text-xs text-secondary-600">
+                                                {% blocktrans with score=module.test.pass_score %}Pass {{ score }}%{% endblocktrans %}
+                                            </span>
+                                        {% else %}
+                                            <span class="md-badge md-badge--slate">{% trans "Optional" %}</span>
+                                        {% endif %}
+                                        <span class="text-xs text-secondary-500">
+                                            {% blocktrans count counter=module.test_questions|length %}{{ counter }} question{% plural %}{{ counter }} questions{% endblocktrans %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if can_edit %}
+                                <div class="flex gap-2 shrink-0">
+                                    <button
+                                        type="button"
+                                        class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                                        title="{% trans 'Add question' %}"
+                                        data-toggle="oh-modal-toggle"
+                                        data-target="#genericModal"
+                                        hx-get="{% url 'lms-test-question-create' test_id=module.test.pk %}"
+                                        hx-target="#genericModalBody"
+                                    >
+                                        <ion-icon name="add-outline"></ion-icon>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                                        data-toggle="oh-modal-toggle"
+                                        data-target="#genericModal"
+                                        hx-get="{% url 'lms-chapter-test-edit' module_id=module.pk %}"
+                                        hx-target="#genericModalBody"
+                                    >
+                                        <ion-icon name="create-outline"></ion-icon>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="oh-btn oh-btn--danger oh-btn--sq-sm"
+                                        hx-get="{% url 'generic-delete' %}?model=lms.chaptertest&pk={{ module.test.pk }}"
+                                        data-toggle="oh-modal-toggle"
+                                        data-target="#deleteConfirmation"
+                                        hx-target="#deleteConfirmationBody"
+                                    >
+                                        <ion-icon name="trash-outline"></ion-icon>
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="lms-builder-test__body" id="lmsTestBody{{ module.test.pk }}">
+                            {% if module.test_questions %}
+                                <div class="lms-builder-questions">
+                                    {% for question in module.test_questions %}
+                                        <div class="flex items-center justify-between gap-2 py-2 border-b border-[#F1F5F9] last:border-0">
+                                            <div class="text-xs text-secondary-700 min-w-0">
+                                                <span class="font-medium text-secondary-900">Q{{ forloop.counter }}.</span>
+                                                {{ question.prompt|truncatechars:80 }}
+                                                <span class="text-secondary-500">· {{ question.get_question_type_display }}</span>
+                                            </div>
+                                            {% if can_edit %}
+                                                <div class="flex gap-1 shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
+                                                        data-toggle="oh-modal-toggle"
+                                                        data-target="#genericModal"
+                                                        hx-get="{% url 'lms-test-question-update' test_id=module.test.pk pk=question.pk %}"
+                                                        hx-target="#genericModalBody"
+                                                    >
+                                                        <ion-icon name="create-outline"></ion-icon>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        class="oh-btn oh-btn--danger oh-btn--sq-sm"
+                                                        hx-get="{% url 'generic-delete' %}?model=lms.testquestion&pk={{ question.pk }}"
+                                                        data-toggle="oh-modal-toggle"
+                                                        data-target="#deleteConfirmation"
+                                                        hx-target="#deleteConfirmationBody"
+                                                    >
+                                                        <ion-icon name="trash-outline"></ion-icon>
+                                                    </button>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="lms-builder-questions">
+                                    <div class="text-xs text-secondary-500 py-2">
+                                        {% trans "No questions in this test yet." %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     {% endfor %}
 {% endif %}

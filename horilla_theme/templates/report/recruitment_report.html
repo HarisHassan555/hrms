@@ -922,16 +922,16 @@
                     };
                     filterCell.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
                     // Highlight the whole Applied Filters banner (all 4 merged
-                    // columns, not just the master cell) with a soft amber box so
+                    // columns, not just the master cell) with a soft indigo box so
                     // it stands out from the plain Generated-on line below it.
                     for (let c = baseCol; c <= baseCol + 3; c++) {
                         const bannerCell = worksheet.getCell(currentRow, c);
-                        bannerCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF4CE" } };
+                        bannerCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEEF2FF" } };
                         bannerCell.border = {
-                            top: { style: "thin", color: { argb: "FFE8B84B" } },
-                            bottom: { style: "thin", color: { argb: "FFE8B84B" } },
-                            left: c === baseCol ? { style: "thin", color: { argb: "FFE8B84B" } } : undefined,
-                            right: c === baseCol + 3 ? { style: "thin", color: { argb: "FFE8B84B" } } : undefined
+                            top: { style: "thin", color: { argb: "FFC7D2FE" } },
+                            bottom: { style: "thin", color: { argb: "FFC7D2FE" } },
+                            left: c === baseCol ? { style: "thin", color: { argb: "FFC7D2FE" } } : undefined,
+                            right: c === baseCol + 3 ? { style: "thin", color: { argb: "FFC7D2FE" } } : undefined
                         };
                     }
                     worksheet.getRow(currentRow).height = 22;
@@ -1011,7 +1011,7 @@
                             pattern: 'solid',
                             fgColor: {
                                 argb: isHeader ? 'FF545454' :
-                                    isLastRow ? 'FFFFE599' :  // light yellow
+                                    isLastRow ? 'FFE0E7FF' :  // light indigo
                                     // Zebra striping: alternate white/light-gray between data
                                     // rows so long tables are easier to scan row-by-row.
                                     (rowIndex - headerRowCount) % 2 === 0 ? 'FFFFFFFF' : 'FFF5F5F5'

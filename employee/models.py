@@ -10,7 +10,6 @@ from datetime import date, datetime, timedelta
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.core.validators import RegexValidator
@@ -776,6 +775,7 @@ class Employee(models.Model):
             super().save(*args, **kwargs)
         employee = self
 
+        newly_created_user = False
         if employee.employee_user_id is None:
             # Create user if no corresponding user exists
             username = self.email
@@ -800,15 +800,24 @@ class Employee(models.Model):
                     username=username, email=self.email, password=password
                 )
             self.employee_user_id = user
-            # default permissions
-            change_ownprofile = Permission.objects.get(codename="change_ownprofile")
-            view_ownprofile = Permission.objects.get(codename="view_ownprofile")
-            user.user_permissions.add(view_ownprofile)
-            user.user_permissions.add(change_ownprofile)
+            newly_created_user = True
 
         if not hasattr(self, "employee_work_info"):
             EmployeeWorkInformation.objects.get_or_create(employee_id=self)
+            self._pending_default_employee_role = newly_created_user
             return self.save()
+
+        if getattr(self, "_pending_default_employee_role", False):
+            from base.role_defaults import assign_default_employee_role
+
+            assign_default_employee_role(
+                self.employee_user_id,
+                company=getattr(
+                    self.employee_work_info, "company_id", None
+                ),
+                replace=True,
+            )
+            self._pending_default_employee_role = False
 
         return self
 

@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
-            --ed-indigo: var(--primary-600, #E54F38);
+            --ed-indigo: var(--primary-600, #4F46E5);
             --ed-green: #22c55e;
             --ed-amber: #f59e0b;
             --ed-red: #ef4444;
@@ -760,7 +760,7 @@
             var textColor = isDark ? '#e2e8f0' : '#334155';
             var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
             var cardBg    = isDark ? '#242424' : '#ffffff';
-            var COLORS    = (window.HORILLA_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
+            var COLORS    = (window.DSG_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
 
             function emptyHtml(msg) {
                 return '<div class="ed-empty"><img src="/static/images/ui/application.png" alt="">' + msg + '</div>';

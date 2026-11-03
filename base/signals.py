@@ -242,6 +242,7 @@ _HRMS_GROUP_MIGRATE_APPS = {
     "pms",
     "biometric",
     "horilla_documents",
+    "lms",
 }
 
 # name -> permission rules
@@ -249,10 +250,35 @@ _HRMS_GROUP_MIGRATE_APPS = {
 # actions: add / view / change / delete / export, or "__all__" for every permission
 # (CRUD + custom Meta permissions such as approve_ / cancel_)
 _DEFAULT_HRMS_GROUPS = {
-    "Boss": {
+    "Super User": {
         # Tenant owner / full control: every permission in the database.
         "grant_all_permissions": True,
         "permission_sync": "replace",
+    },
+    "Employee": {
+        "permission_sync": "replace",
+        "apps": (
+            "employee",
+            "leave",
+            "attendance",
+            "payroll",
+            "helpdesk",
+            "project",
+            "pms",
+            "horilla_documents",
+            "notifications",
+        ),
+        "actions": ("view",),
+        "app_actions": {
+            "employee": ("view", "change"),
+            "leave": ("view", "add", "change"),
+            "attendance": ("view", "add", "change"),
+            "payroll": ("view",),
+            "helpdesk": ("view", "add", "change"),
+            "project": ("view", "add", "change"),
+            "pms": ("view", "add", "change"),
+            "horilla_documents": ("view", "add", "change"),
+        },
     },
     "Admin": {
         "apps": "__all__",
@@ -271,6 +297,7 @@ _DEFAULT_HRMS_GROUPS = {
             "horilla_documents",
             "helpdesk",
             "pms",
+            "lms",
         ),
         "actions": ("add", "view", "change", "delete"),
     },
@@ -306,7 +333,7 @@ _DEFAULT_HRMS_GROUPS = {
             "employee": ("view", "add", "change"),
         },
     },
-    # Recruitment hiring managers: run pipelines and drives, not HR backoffice.
+    # Reporting managers: team visibility, approvals, and hiring pipelines.
     "Manager": {
         "permission_sync": "replace",
         "model_permissions": {
@@ -328,7 +355,37 @@ _DEFAULT_HRMS_GROUPS = {
                 "resume": ("view",),
             },
             "employee": {
-                "employee": ("view",),
+                "employee": ("view", "change"),
+                "employeeworkinformation": ("view", "change"),
+            },
+            "leave": {
+                "leaverequest": ("view", "change"),
+                "availableleave": ("view",),
+                "leavetype": ("view",),
+            },
+            "attendance": {
+                "attendance": ("view", "change"),
+                "workrecords": ("view",),
+            },
+            "payroll": {
+                "payslip": ("view",),
+                "contract": ("view",),
+            },
+            "pms": {
+                "employeeobjective": ("view", "change"),
+                "employeekeyresult": ("view", "change"),
+                "feedback": ("view", "add", "change"),
+                "meetings": ("view", "add", "change"),
+                "objective": ("view",),
+                "keyresult": ("view",),
+            },
+            "project": {
+                "project": ("view", "change"),
+                "task": ("view", "change"),
+                "timesheet": ("view", "change"),
+            },
+            "helpdesk": {
+                "ticket": ("view", "change"),
             },
         },
     },
@@ -382,6 +439,7 @@ _ALL_HRMS_APP_LABELS = (
     "horilla_automations",
     "horilla_audit",
     "accessibility",
+    "lms",
 )
 
 
@@ -533,12 +591,20 @@ def _sync_export_permissions():
 def _sync_default_hrms_groups():
     """
     Create default HRMS groups if missing and attach default permissions.
-    Does not assign any users. Uses additive permission sync so later app
-    migrations can fill permissions that were not available yet.
+    Uses additive permission sync so later app migrations can fill permissions
+    that were not available yet. Also migrates legacy Boss -> Super User and
+    backfills the Employee role for users with no company role assignment.
     """
     from django.contrib.auth.models import Group
 
     from django.contrib.auth.models import Permission
+
+    from base.role_defaults import (
+        attach_employee_profile_permissions_to_group,
+        migrate_legacy_boss_group_to_super_user,
+    )
+
+    migrate_legacy_boss_group_to_super_user()
 
     for name, config in _DEFAULT_HRMS_GROUPS.items():
         group, _created = Group.objects.get_or_create(name=name)
@@ -553,12 +619,13 @@ def _sync_default_hrms_groups():
                 # Additive only — never strip permissions an admin may have customized
                 group.permissions.add(*permissions)
 
+    attach_employee_profile_permissions_to_group()
+
 
 @receiver(post_migrate)
 def create_default_hrms_groups(sender, **kwargs):
     """
-    Ensure standard HRMS auth groups exist after migrate.
-    Groups are created without assigning employees; admins can assign later.
+    Ensure standard HRMS auth groups exist after migrate and sync permissions.
     """
     if getattr(sender, "label", None) not in _HRMS_GROUP_MIGRATE_APPS:
         return

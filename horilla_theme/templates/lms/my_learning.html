@@ -1,8 +1,27 @@
-{% extends "lms/_page_shell.html" %}
-{% load i18n %}
+{% extends "index.html" %}
+{% load static i18n %}
 
-{% block lms_body %}
-    <p class="text-sm text-secondary-600">
-        {% trans "Your assigned courses, progress, and due dates will appear here." %}
-    </p>
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    {% include "lms/_lms_catalog_styles.html" %}
+
+    <div class="md-dashboard">
+        <div class="md-header">
+            <div>
+                <h1>{% trans "My Learning" %}</h1>
+                <div class="md-header__description">
+                    {% trans "Courses you enrolled in or were assigned — pick up where you left off." %}
+                </div>
+            </div>
+        </div>
+
+        <div
+            id="lmsMyLearningCards"
+            hx-get="{% url 'lms-my-learning-partial' %}"
+            hx-trigger="every 45s"
+            hx-swap="innerHTML"
+        >
+            {% include "lms/_my_learning_cards.html" %}
+        </div>
+    </div>
 {% endblock %}

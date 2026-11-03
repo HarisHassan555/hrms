@@ -1,0 +1,67 @@
+{% extends "index.html" %}
+{% load static i18n %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    <div class="md-dashboard">
+        <div class="md-header">
+            <div>
+                <h1>{{ test.title }}</h1>
+                <div class="md-header__description">
+                    {{ module.title }}
+                    {% if test.is_compulsory %}
+                        · {% blocktrans with score=test.pass_score %}Pass score {{ score }}%{% endblocktrans %}
+                    {% else %}
+                        · {% trans "Optional" %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-[#E2E8F0] rounded-xl p-5 max-w-3xl">
+            {% if already_passed %}
+                <div class="mb-4 p-3 rounded-lg bg-[#DCFCE7] text-[#15803D] text-sm font-medium">
+                    {% trans "You have already passed this test. You can retake it if you want." %}
+                </div>
+            {% endif %}
+
+            {% if not questions %}
+                <p class="text-sm text-[#64748B]">{% trans "This test has no questions yet." %}</p>
+            {% else %}
+                <form method="post" class="flex flex-col gap-5">
+                    {% csrf_token %}
+                    {% for question in questions %}
+                        <fieldset class="border border-[#E2E8F0] rounded-xl p-4 m-0">
+                            <legend class="text-sm font-semibold text-[#0F172A] px-1">
+                                Q{{ forloop.counter }}. {{ question.prompt }}
+                                <span class="text-xs font-normal text-[#64748B]">
+                                    ({{ question.points }} {% trans "pt" %})
+                                </span>
+                            </legend>
+                            <div class="flex flex-col gap-2 mt-2">
+                                {% for choice in question.choice_list %}
+                                    <label class="flex items-start gap-2 text-sm text-[#334155] cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="q_{{ question.pk }}"
+                                            value="{{ choice.pk }}"
+                                            class="mt-1"
+                                            required
+                                        />
+                                        <span>{{ choice.label }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+                    {% endfor %}
+                    <button
+                        type="submit"
+                        class="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#4F46E5] text-white text-sm font-semibold border-0 hover:bg-[#4338CA] self-start"
+                    >
+                        {% trans "Submit answers" %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

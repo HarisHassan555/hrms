@@ -396,7 +396,7 @@ def document_expiry_aging(filters: ReportFilters) -> dict:
                 emp = getattr(obj, "employee_id", None)
                 rows.append(
                     {
-                        "source": "horilla_documents.Document",
+                        "source": str(_("Documents")),
                         "title": str(obj),
                         "employee": emp.get_full_name() if emp else "",
                         "expiry": exp.isoformat(),

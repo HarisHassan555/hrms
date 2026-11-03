@@ -126,7 +126,7 @@ def audit_activity(filters: ReportFilters) -> dict:
 
 
 def document_expiry(filters: ReportFilters) -> dict:
-    """Expiring employee documents (horilla_documents) and optional assets."""
+    """Expiring employee documents and optional assets."""
     rows = []
     kpis_docs = 0
 
@@ -149,7 +149,7 @@ def document_expiry(filters: ReportFilters) -> dict:
                 emp = getattr(obj, "employee_id", None)
                 rows.append(
                     {
-                        "source": "horilla_documents.Document",
+                        "source": str(_("Documents")),
                         "title": str(obj),
                         "employee": emp.get_full_name() if emp else "",
                         "expiry": str(obj.expiry_date),

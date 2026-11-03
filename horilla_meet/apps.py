@@ -1,11 +1,12 @@
 from django.apps import AppConfig
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 class HorillaMeetConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "horilla_meet"
-    verbose_name = "Meet"
+    verbose_name = _("Meet")
 
     def ready(self):
         from django.urls import include, path

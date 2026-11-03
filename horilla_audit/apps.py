@@ -1,10 +1,12 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
+from django.utils.translation import gettext_lazy as _
 
 
 class HorillaAuditConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "horilla_audit"
+    verbose_name = _("Audit")
 
     def ready(self):
         from django.db.models.signals import post_delete, post_save

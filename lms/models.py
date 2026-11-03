@@ -1,10 +1,12 @@
 """
-LMS MVP models — catalog, enrollment, and lesson progress.
-
-Integrates with existing HRMS: base.Company, employee.Employee, horilla_auth.HorillaUser.
+LMS models — categories, courses, chapters, lessons, tests, enrollments, progress.
 """
 
+import re
+from urllib.parse import parse_qs, urlparse
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse_lazy
@@ -17,6 +19,67 @@ from employee.models import Employee
 from horilla.models import HorillaModel
 
 User = settings.AUTH_USER_MODEL
+
+
+def _lesson_slide_upload(instance, filename):
+    return f"lms/lesson_slides/{instance.lesson_id or 'new'}/{filename}"
+
+
+def normalize_video_embed_url(url: str) -> str:
+    """
+    Convert common YouTube share/watch links into iframe-ready embed URLs.
+    Leaves already-valid embed URLs and non-YouTube URLs unchanged.
+    """
+    raw = (url or "").strip()
+    if not raw:
+        return raw
+
+    parsed = urlparse(raw)
+    host = (parsed.netloc or "").lower().replace("www.", "")
+    path = parsed.path or ""
+
+    video_id = None
+    if host in {"youtu.be"}:
+        video_id = path.strip("/").split("/")[0] or None
+    elif host in {"youtube.com", "m.youtube.com", "music.youtube.com"}:
+        if path.startswith("/embed/"):
+            embed_id = path.strip("/").split("/")[-1]
+            if embed_id:
+                return f"https://www.youtube.com/embed/{embed_id}"
+            return raw
+        parts = [p for p in path.split("/") if p]
+        if parts and parts[0] in {"shorts", "live", "v"} and len(parts) >= 2:
+            video_id = parts[1]
+        elif path.startswith("/watch") or "v=" in (parsed.query or ""):
+            video_id = parse_qs(parsed.query).get("v", [None])[0]
+        if not video_id:
+            match = re.search(r"/(?:live|v)/([A-Za-z0-9_-]{6,})", path)
+            if match:
+                video_id = match.group(1)
+
+    if video_id:
+        video_id = video_id.split("?")[0].split("&")[0]
+        return f"https://www.youtube.com/embed/{video_id}"
+
+    return raw
+
+
+def extract_youtube_video_id(url: str) -> str | None:
+    """Return the YouTube video id from a watch/share/embed URL, if present."""
+    embed = normalize_video_embed_url(url or "")
+    if not embed:
+        return None
+    parsed = urlparse(embed)
+    host = (parsed.netloc or "").lower().replace("www.", "")
+    path = (parsed.path or "").strip("/")
+    if host in {"youtube.com", "m.youtube.com", "youtube-nocookie.com"} and path.startswith(
+        "embed/"
+    ):
+        video_id = path.split("/", 1)[1].split("/")[0]
+        return video_id or None
+    if host == "youtu.be":
+        return path.split("/")[0] or None
+    return None
 
 
 class CourseCategoryStatus(models.TextChoices):
@@ -40,20 +103,31 @@ class LessonType(models.TextChoices):
     VIDEO = "video", _("Video")
     PDF = "pdf", _("PDF")
     TEXT = "text", _("Text")
+    SLIDESHOW = "slideshow", _("Slideshow")
 
 
 class EnrollmentStatus(models.TextChoices):
-    ASSIGNED = "assigned", _("Assigned")
+    ASSIGNED = "assigned", _("Enrolled")
     IN_PROGRESS = "in_progress", _("In progress")
     COMPLETED = "completed", _("Completed")
     OVERDUE = "overdue", _("Overdue")
     CANCELLED = "cancelled", _("Cancelled")
 
 
+class EnrollmentSource(models.TextChoices):
+    ASSIGNED = "assigned", _("Assigned")
+    SELF = "self", _("Self-enrolled")
+
+
 class LessonProgressStatus(models.TextChoices):
     NOT_STARTED = "not_started", _("Not started")
     IN_PROGRESS = "in_progress", _("In progress")
     COMPLETED = "completed", _("Completed")
+
+
+class QuestionType(models.TextChoices):
+    MCQ = "mcq", _("Multiple choice")
+    TRUE_FALSE = "true_false", _("True / False")
 
 
 class CourseCategory(HorillaModel):
@@ -139,28 +213,22 @@ class Course(HorillaModel):
         verbose_name=_("Code"),
     )
     description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
-    thumbnail = models.CharField(
-        max_length=500,
-        blank=True,
-        null=True,
-        verbose_name=_("Thumbnail"),
-    )
     difficulty = models.CharField(
         max_length=20,
         choices=CourseDifficulty.choices,
         default=CourseDifficulty.BEGINNER,
         verbose_name=_("Difficulty"),
     )
-    duration_minutes = models.PositiveIntegerField(
-        blank=True,
-        null=True,
-        verbose_name=_("Duration (minutes)"),
-    )
     status = models.CharField(
         max_length=20,
         choices=CourseStatus.choices,
         default=CourseStatus.DRAFT,
         verbose_name=_("Status"),
+    )
+    allow_self_enroll = models.BooleanField(
+        default=True,
+        verbose_name=_("Open enrollment"),
+        help_text=_("Learners can enroll themselves from the catalog."),
     )
     published_at = models.DateTimeField(
         blank=True,
@@ -200,6 +268,23 @@ class Course(HorillaModel):
             return self.category_id.name
         return "—"
 
+    def open_enroll_col(self):
+        return _("Yes") if self.allow_self_enroll else _("No")
+
+    def is_in_catalog(self):
+        return self.is_active and self.status == CourseStatus.PUBLISHED
+
+    def chapter_count(self):
+        return self.modules.filter(is_active=True).count()
+
+    def lesson_count(self):
+        return Lesson.objects.filter(
+            module_id__course_id=self, module_id__is_active=True, is_active=True
+        ).count()
+
+    def get_catalog_url(self):
+        return reverse_lazy("lms-course-detail", kwargs={"pk": self.pk})
+
     def get_builder_url(self):
         return reverse_lazy("lms-course-builder", kwargs={"course_id": self.pk})
 
@@ -217,6 +302,8 @@ class Course(HorillaModel):
 
 
 class CourseModule(HorillaModel):
+    """Chapter within a course (UI label: Chapter)."""
+
     course_id = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
@@ -228,8 +315,8 @@ class CourseModule(HorillaModel):
     sort_order = models.PositiveIntegerField(default=0, verbose_name=_("Sort order"))
 
     class Meta:
-        verbose_name = _("Course module")
-        verbose_name_plural = _("Course modules")
+        verbose_name = _("Chapter")
+        verbose_name_plural = _("Chapters")
         ordering = ["sort_order", "id"]
         indexes = [
             models.Index(fields=["course_id"]),
@@ -256,12 +343,12 @@ class Lesson(HorillaModel):
         CourseModule,
         on_delete=models.CASCADE,
         related_name="lessons",
-        verbose_name=_("Module"),
+        verbose_name=_("Chapter"),
     )
     title = models.CharField(max_length=255, verbose_name=_("Title"))
     description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
     type = models.CharField(
-        max_length=10,
+        max_length=12,
         choices=LessonType.choices,
         verbose_name=_("Type"),
     )
@@ -278,11 +365,6 @@ class Lesson(HorillaModel):
         null=True,
         verbose_name=_("Video URL"),
     )
-    duration_minutes = models.PositiveIntegerField(
-        blank=True,
-        null=True,
-        verbose_name=_("Duration (minutes)"),
-    )
     sort_order = models.PositiveIntegerField(default=0, verbose_name=_("Sort order"))
 
     class Meta:
@@ -297,7 +379,10 @@ class Lesson(HorillaModel):
         return self.title
 
     def get_update_url(self):
-        return reverse_lazy("lms-lesson-update", kwargs={"pk": self.pk})
+        return reverse_lazy(
+            "lms-lesson-update",
+            kwargs={"module_id": self.module_id_id, "pk": self.pk},
+        )
 
     def get_delete_url(self):
         return reverse_lazy("generic-delete")
@@ -307,6 +392,130 @@ class Lesson(HorillaModel):
 
     def type_badge(self):
         return self.get_type_display()
+
+    @property
+    def embed_video_url(self):
+        return normalize_video_embed_url(self.video_url or "")
+
+
+class LessonSlide(HorillaModel):
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name="slides",
+        verbose_name=_("Lesson"),
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name=_("Sort order"))
+    title = models.CharField(
+        max_length=120, blank=True, verbose_name=_("Slide title")
+    )
+    body = models.TextField(blank=True, verbose_name=_("Slide text"))
+    image = models.ImageField(
+        upload_to=_lesson_slide_upload,
+        blank=True,
+        null=True,
+        verbose_name=_("Slide image"),
+    )
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        verbose_name = _("Lesson slide")
+        verbose_name_plural = _("Lesson slides")
+
+    def __str__(self):
+        label = self.title or _("Slide")
+        return f"{label} ({self.lesson_id})"
+
+
+class ChapterTest(HorillaModel):
+    module = models.OneToOneField(
+        CourseModule,
+        on_delete=models.CASCADE,
+        related_name="chapter_test",
+        verbose_name=_("Chapter"),
+    )
+    title = models.CharField(max_length=255, verbose_name=_("Title"))
+    is_compulsory = models.BooleanField(
+        default=False, verbose_name=_("Compulsory")
+    )
+    pass_score = models.PositiveSmallIntegerField(
+        default=70,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name=_("Pass score (%)"),
+        help_text=_("Minimum score required to unlock the next chapter when compulsory."),
+    )
+
+    class Meta:
+        verbose_name = _("Chapter test")
+        verbose_name_plural = _("Chapter tests")
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        super().clean()
+        if self.is_compulsory and self.pass_score is None:
+            raise ValidationError(
+                {"pass_score": _("Pass score is required for compulsory tests.")}
+            )
+
+    def get_update_url(self):
+        return reverse_lazy(
+            "lms-chapter-test-edit",
+            kwargs={"module_id": self.module_id},
+        )
+
+    def get_delete_url(self):
+        return reverse_lazy("generic-delete")
+
+    def get_delete_instance(self):
+        return self.pk
+
+
+class TestQuestion(HorillaModel):
+    test = models.ForeignKey(
+        ChapterTest,
+        on_delete=models.CASCADE,
+        related_name="questions",
+        verbose_name=_("Test"),
+    )
+    prompt = models.TextField(verbose_name=_("Question"))
+    question_type = models.CharField(
+        max_length=20,
+        choices=QuestionType.choices,
+        default=QuestionType.MCQ,
+        verbose_name=_("Type"),
+    )
+    sort_order = models.PositiveIntegerField(default=0, verbose_name=_("Sort order"))
+    points = models.PositiveSmallIntegerField(default=1, verbose_name=_("Points"))
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        verbose_name = _("Test question")
+        verbose_name_plural = _("Test questions")
+
+    def __str__(self):
+        return self.prompt[:60]
+
+
+class TestChoice(HorillaModel):
+    question = models.ForeignKey(
+        TestQuestion,
+        on_delete=models.CASCADE,
+        related_name="choices",
+        verbose_name=_("Question"),
+    )
+    label = models.CharField(max_length=500, verbose_name=_("Choice"))
+    is_correct = models.BooleanField(default=False, verbose_name=_("Correct"))
+    sort_order = models.PositiveIntegerField(default=0, verbose_name=_("Sort order"))
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        verbose_name = _("Test choice")
+        verbose_name_plural = _("Test choices")
+
+    def __str__(self):
+        return self.label[:60]
 
 
 class CourseEnrollment(models.Model):
@@ -333,9 +542,18 @@ class CourseEnrollment(models.Model):
         on_delete=models.PROTECT,
         related_name="lms_assignments_made",
         verbose_name=_("Assigned by"),
+        null=True,
+        blank=True,
     )
-    assigned_at = models.DateTimeField(default=timezone.now, verbose_name=_("Assigned at"))
+    source = models.CharField(
+        max_length=20,
+        choices=EnrollmentSource.choices,
+        default=EnrollmentSource.ASSIGNED,
+        verbose_name=_("Source"),
+    )
+    assigned_at = models.DateTimeField(default=timezone.now, verbose_name=_("Enrolled at"))
     due_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Due at"))
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     status = models.CharField(
         max_length=20,
         choices=EnrollmentStatus.choices,
@@ -387,6 +605,43 @@ class CourseEnrollment(models.Model):
 
     def __str__(self):
         return f"{self.employee_id} — {self.course_id}"
+
+    def is_overdue(self):
+        if self.status == EnrollmentStatus.COMPLETED:
+            return False
+        if self.status == EnrollmentStatus.CANCELLED:
+            return False
+        if not self.due_at:
+            return False
+        return timezone.now() > self.due_at
+
+    def recalculate_progress(self):
+        from lms.services.progress import recalculate_enrollment_progress
+
+        return recalculate_enrollment_progress(self)
+
+    def get_player_url(self):
+        return reverse_lazy("lms-player", kwargs={"enrollment_id": self.pk})
+
+    def status_badge(self):
+        return self.get_status_display()
+
+    def source_badge(self):
+        return self.get_source_display()
+
+    def progress_col(self):
+        return f"{self.progress_percentage}%"
+
+    def due_col(self):
+        if not self.due_at:
+            return "—"
+        return timezone.localtime(self.due_at).strftime("%d %b %Y")
+
+    def get_delete_url(self):
+        return reverse_lazy("generic-delete")
+
+    def get_delete_instance(self):
+        return self.pk
 
 
 class LessonProgress(models.Model):
@@ -447,3 +702,45 @@ class LessonProgress(models.Model):
 
     def __str__(self):
         return f"{self.enrollment_id_id} — {self.lesson_id_id}"
+
+
+class TestAttempt(models.Model):
+    enrollment = models.ForeignKey(
+        CourseEnrollment,
+        on_delete=models.CASCADE,
+        related_name="test_attempts",
+        verbose_name=_("Enrollment"),
+    )
+    test = models.ForeignKey(
+        ChapterTest,
+        on_delete=models.CASCADE,
+        related_name="attempts",
+        verbose_name=_("Test"),
+    )
+    score_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name=_("Score %"),
+    )
+    passed = models.BooleanField(default=False, verbose_name=_("Passed"))
+    answers = models.JSONField(default=dict, blank=True, verbose_name=_("Answers"))
+    started_at = models.DateTimeField(default=timezone.now, verbose_name=_("Started at"))
+    completed_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name=_("Completed at"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
+
+    class Meta:
+        verbose_name = _("Test attempt")
+        verbose_name_plural = _("Test attempts")
+        ordering = ["-completed_at", "-id"]
+        indexes = [
+            models.Index(fields=["enrollment", "test"]),
+        ]
+
+    def __str__(self):
+        return f"{self.enrollment_id} / {self.test_id}: {self.score_percent}%"

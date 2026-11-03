@@ -55,7 +55,7 @@ def user_can_add_employee(user) -> bool:
     from base.auth_backends import get_user_groups_for_company
 
     return get_user_groups_for_company(user).filter(
-        name__in=("Admin", "Boss")
+        name__in=("Admin", "Super User")
     ).exists()
 
 

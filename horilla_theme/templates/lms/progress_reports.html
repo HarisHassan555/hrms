@@ -1,11 +1,101 @@
-{% extends "lms/_page_shell.html" %}
-{% load i18n %}
+{% extends "index.html" %}
+{% load static i18n %}
 
-{% block lms_body %}
-    <p class="text-sm text-secondary-600 mb-4">
-        {% trans "Department and learner progress derived from enrollments and employee work information." %}
-    </p>
-    <p class="text-xs text-secondary-500">
-        {% trans "Example: assigned, in progress, completed, and average progress per department." %}
-    </p>
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+    <div class="md-dashboard">
+        <div class="md-header">
+            <div>
+                <h1>{% trans "Progress Reports" %}</h1>
+                <div class="md-header__description">
+                    {% trans "Completion, compulsory test scores, and deadline status." %}
+                </div>
+            </div>
+        </div>
+
+        <form method="get" class="bg-white border border-[#E2E8F0] rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="block text-xs font-semibold text-[#334155] mb-1" for="course_id">{% trans "Course" %}</label>
+                <select name="course_id" id="course_id" class="form-control" style="min-width: 220px; height: 42px;">
+                    <option value="">{% trans "All courses" %}</option>
+                    {% for course in courses %}
+                        <option value="{{ course.pk }}" {% if selected_course_id == course.pk %}selected{% endif %}>
+                            {{ course.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="oh-btn oh-btn--secondary">
+                {% trans "Apply" %}
+            </button>
+            {% if selected_course_id %}
+                <a href="{% url 'lms-progress-reports' %}" class="oh-btn oh-btn--light">{% trans "Clear" %}</a>
+            {% endif %}
+        </form>
+
+        {% if by_course %}
+            <div class="grid gap-3 mb-6" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+                {% for row in by_course %}
+                    <div class="bg-white border border-[#E2E8F0] rounded-xl p-4">
+                        <div class="text-sm font-semibold text-[#0F172A] mb-2">{{ row.course_id__title }}</div>
+                        <div class="text-xs text-[#64748B] space-y-1">
+                            <div>{% blocktrans with n=row.assigned %}{{ n }} assigned{% endblocktrans %}</div>
+                            <div>{% blocktrans with n=row.completed %}{{ n }} completed{% endblocktrans %}</div>
+                            <div>{% blocktrans with n=row.overdue %}{{ n }} overdue{% endblocktrans %}</div>
+                            <div>
+                                {% blocktrans with pct=row.avg_progress|floatformat:1 %}Avg progress {{ pct }}%{% endblocktrans %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-[#F8FAFC] text-left text-xs font-semibold text-[#64748B]">
+                            <th class="px-4 py-3">{% trans "Employee" %}</th>
+                            <th class="px-4 py-3">{% trans "Course" %}</th>
+                            <th class="px-4 py-3">{% trans "Status" %}</th>
+                            <th class="px-4 py-3">{% trans "Progress" %}</th>
+                            <th class="px-4 py-3">{% trans "Test score" %}</th>
+                            <th class="px-4 py-3">{% trans "Due" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr class="border-t border-[#F1F5F9] hover:bg-[#F8FAFC]">
+                                <td class="px-4 py-3 text-[#0F172A]">{{ row.employee }}</td>
+                                <td class="px-4 py-3 text-[#0F172A]">{{ row.course }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold
+                                        {% if row.status == 'completed' %}bg-[#DCFCE7] text-[#15803D]
+                                        {% elif row.overdue or row.status == 'overdue' %}bg-[#FEE2E2] text-[#B91C1C]
+                                        {% elif row.status == 'in_progress' %}bg-[#E0F2FE] text-[#0369A1]
+                                        {% else %}bg-[#F1F5F9] text-[#64748B]{% endif %}">
+                                        {% if row.overdue and row.status != 'completed' %}{% trans "Overdue" %}{% else %}{{ row.status_label }}{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">{{ row.progress }}%</td>
+                                <td class="px-4 py-3">
+                                    {% if row.compulsory_score is not None %}{{ row.compulsory_score }}%{% else %}—{% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-[#64748B]">
+                                    {% if row.due_at %}{{ row.due_at|date:"d M Y" }}{% else %}—{% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-[#64748B]">
+                                    {% trans "No enrollments match these filters." %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}

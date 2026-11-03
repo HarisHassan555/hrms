@@ -15,36 +15,36 @@ from horilla.models import HorillaModel
 
 THEMES_DATA = [
     {
-        "name": "Coral Red Theme (Default)",
-        "description": "Warm coral-red based theme",
+        "name": "DSG Indigo Theme (Default)",
+        "description": "Enterprise indigo brand palette for DSG HRMS",
         "is_default": True,
-        "primary_50": "#f6f6f6",
-        "primary_100": "#FFF5F1",  # f0f0f0
-        "primary_200": "#FEF6F5",
-        "primary_300": "#FCEDEB",
-        "primary_400": "#FBE5E1",
-        "primary_500": "#F7C8C1",
-        "primary_600": "#E54F38",
-        "primary_700": "#ce4732",
-        "primary_800": "#AC3B2A",
-        "primary_900": "#672419",
+        "primary_50": "#F8FAFC",
+        "primary_100": "#EEF2FF",
+        "primary_200": "#E0E7FF",
+        "primary_300": "#C7D2FE",
+        "primary_400": "#A5B4FC",
+        "primary_500": "#818CF8",
+        "primary_600": "#4F46E5",
+        "primary_700": "#4338CA",
+        "primary_800": "#3730A3",
+        "primary_900": "#312E81",
         "dark_50": "#E6E6E6",
         "dark_100": "#A8A8A8",
         "dark_200": "#515151",
-        "dark_300": "#501C14",
+        "dark_300": "#334155",
         "dark_400": "#64748B",
-        "dark_500": "#190906",
+        "dark_500": "#0F172A",
         "dark_600": "#000000",
-        "secondary_50": "#f8fafc",
-        "secondary_100": "#f1f5f9",
-        "secondary_200": "#e2e8f0",
-        "secondary_300": "#cbd5e1",
-        "secondary_400": "#FBE5E1",
-        "secondary_500": "#F7C8C1",
-        "secondary_600": "#E54F38",
+        "secondary_50": "#F8FAFC",
+        "secondary_100": "#F1F5F9",
+        "secondary_200": "#E2E8F0",
+        "secondary_300": "#CBD5E1",
+        "secondary_400": "#A5B4FC",
+        "secondary_500": "#818CF8",
+        "secondary_600": "#4F46E5",
         "secondary_700": "#334155",
-        "secondary_800": "#1e293b",
-        "secondary_900": "#0f172a",
+        "secondary_800": "#1E293B",
+        "secondary_900": "#0F172A",
     },
     {
         "name": "Ocean Blue Theme",
@@ -172,34 +172,34 @@ THEMES_DATA = [
     },
     {
         "name": "Indigo Night Theme",
-        "description": "Deep and sophisticated with indigo blues",
-        "primary_50": "#eef2ff",
-        "primary_100": "#eef2ff",
-        "primary_200": "#e0e7ff",
-        "primary_300": "#c7d2fe",
-        "primary_400": "#a5b4fc",
-        "primary_500": "#818cf8",
-        "primary_600": "#6366f1",
-        "primary_700": "#4f46e5",
-        "primary_800": "#4338ca",
-        "primary_900": "#3730a3",
+        "description": "Deep indigo variant aligned with the DSG brand palette",
+        "primary_50": "#EEF2FF",
+        "primary_100": "#EEF2FF",
+        "primary_200": "#E0E7FF",
+        "primary_300": "#C7D2FE",
+        "primary_400": "#A5B4FC",
+        "primary_500": "#818CF8",
+        "primary_600": "#4F46E5",
+        "primary_700": "#4338CA",
+        "primary_800": "#3730A3",
+        "primary_900": "#312E81",
         "dark_50": "#E6E6E6",
         "dark_100": "#E6E6E6",
         "dark_200": "#515151",
         "dark_300": "#515151",
-        "dark_400": "#1e1b4b",
+        "dark_400": "#1E1B4B",
         "dark_500": "#64748B",
-        "dark_600": "#0f0d2e",
-        "secondary_50": "#faf5ff",
-        "secondary_100": "#faf5ff",
-        "secondary_200": "#f3e8ff",
-        "secondary_300": "#e9d5ff",
-        "secondary_400": "#a5b4fc",
-        "secondary_500": "#818cf8",
-        "secondary_600": "#6366f1",
-        "secondary_700": "#9333ea",
-        "secondary_800": "#7e22ce",
-        "secondary_900": "#6b21a8",
+        "dark_600": "#0F0D2E",
+        "secondary_50": "#F8FAFC",
+        "secondary_100": "#F1F5F9",
+        "secondary_200": "#E2E8F0",
+        "secondary_300": "#CBD5E1",
+        "secondary_400": "#A5B4FC",
+        "secondary_500": "#818CF8",
+        "secondary_600": "#4F46E5",
+        "secondary_700": "#4338CA",
+        "secondary_800": "#3730A3",
+        "secondary_900": "#312E81",
     },
     {
         "name": "Sunset Orange Theme",
@@ -423,7 +423,7 @@ THEMES_DATA = [
 
 class HorillaColorTheme(HorillaModel):
     """
-    Model to store predefined color themes for Horilla
+    Model to store predefined color themes for DSG HRMS
     """
 
     name = models.CharField(max_length=100, unique=True, verbose_name=_("Name"))
@@ -577,7 +577,10 @@ class HorillaColorTheme(HorillaModel):
         default_theme = cls._base_manager.filter(is_default=True).order_by("-id").first()
         if default_theme:
             return default_theme
-        return cls._base_manager.filter(name="Coral Red Theme (Default)").first()
+        return (
+            cls._base_manager.filter(name="DSG Indigo Theme (Default)").first()
+            or cls._base_manager.filter(name="Coral Red Theme (Default)").first()
+        )
 
 
 class CompanyTheme(HorillaModel):

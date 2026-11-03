@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
-            --em-indigo: var(--primary-600, #E54F38);
+            --em-indigo: var(--primary-600, #4F46E5);
             --em-green: #22c55e;
             --em-amber: #f59e0b;
             --em-red: #ef4444;
@@ -251,7 +251,7 @@
             content: '';
         }
         .em-chart-card[data-accent='indigo']::before {
-            background: linear-gradient(90deg, #E54F38, #a855f7);
+            background: linear-gradient(90deg, #4F46E5, #a855f7);
         }
         .em-chart-card[data-accent='green']::before {
             background: linear-gradient(90deg, #22c55e, #06b6d4);
@@ -260,7 +260,7 @@
             background: linear-gradient(90deg, #f59e0b, #ef4444);
         }
         .em-chart-card[data-accent='blue']::before {
-            background: linear-gradient(90deg, #3b82f6, #E54F38);
+            background: linear-gradient(90deg, #3b82f6, #4F46E5);
         }
         .em-chart-card--wide {
             grid-column: span 2;
@@ -725,7 +725,7 @@
             const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
             const cardBg    = isDark ? '#242424' : '#ffffff';
 
-            const COLORS = (window.HORILLA_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
+            const COLORS = (window.DSG_CHART_COLORS || ['#A5B4FC','#93C5FD','#5EEAD4','#86EFAC','#FCD34D','#FCA5A5','#D8B4FE','#F9A8D4','#67E8F9','#FDBA74']);
 
             function emptyHtml(msg) {
                 return `<div class="em-empty">${msg}</div>`;
@@ -854,7 +854,7 @@
                     new ApexCharts(document.querySelector('#chart-em-joining'), {
                         series: [{ name: '{% trans "New Hires"|escapejs %}', data: data.months.map(m => m.count) }],
                         chart: { type: 'bar', height: 260, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-                        colors: ['#E54F38'],
+                        colors: ['#4F46E5'],
                         plotOptions: { bar: { borderRadius: 8, columnWidth: '45%' } },
                         xaxis: { categories: data.months.map(m => m.month), labels: { style: { colors: textColor, fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
                         yaxis: { labels: { style: { colors: textColor } } },

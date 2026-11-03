@@ -1,0 +1,151 @@
+{% load widget_tweaks %}
+{% load i18n generic_template_filters %}
+
+<div id="{{ view_id }}">
+</div>
+<form id="{{ view_id }}Form" hx-post="{{ request.path }}?{{ request.GET.urlencode }}" {% if request.META.HTTP_HX_TARGET %}hx-target="#{{request.META.HTTP_HX_TARGET}}"{% endif %}
+    hx-swap="{% if hx_target == 'this' %}outerHTML{% else %}innerHTML{% endif %}" hx-encoding="multipart/form-data"
+    novalidate>
+    {% csrf_token %}
+
+{% if form.verbose_name %}
+    <div class="oh-modal__dialog-header">
+        <h2 class="oh-modal__dialog-title" id="createTitle">
+            {{ form.verbose_name }}
+        </h2>
+        <button
+            type="button"
+            class="oh-modal__close--custom"
+            onclick="$(this).closest('.oh-modal--show').removeClass('oh-modal--show')"
+            aria-label="{% trans 'Close' %}"
+            {{ form.close_button_attrs|safe }}
+        >
+            <ion-icon name="close-outline"></ion-icon>
+        </button>
+    </div>
+{% endif %}
+
+<div class="oh-modal__dialog-body oh-modal__dialog-relative">
+    <div class="oh-general__tab-target oh-profile-section" id="{{ form.container_id }}">
+        <div class="oh-profile-section__card row">
+            <div class="row" style="padding-right: 0">
+                <div class="col-12" style="padding-right: 0">{{ form.non_field_errors }}</div>
+
+                {% for field in form.visible_fields %}
+                    <div
+                        class="col-12 col-md-{{ field|col }}"
+                        id="id_{{ field.name }}_parent_div"
+                        style="padding-right: 0"
+                    >
+                        <div class="oh-label__info" for="{{ field.id_for_label }}">
+                            <label
+                                class="oh-label {% if field.field.required %} required-star{% endif %}"
+                                for="{{ field.id_for_label }}"
+                            >{% trans field.label %}</label>
+                            {% if field.help_text != '' %}
+                                <span class="oh-info mr-2" title="{{ field.help_text }}"></span>
+                            {% endif %}
+                        </div>
+                        <div id="dynamic_field_{{ field.name }}">
+                            {{ field|add_class:'form-control' }}
+                            {{ field.errors }}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="col-12 mt-3" id="lmsSlideSection" style="padding-right: 0; display: none;">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <label class="oh-label">{% trans "Slideshow slides" %}</label>
+                        <button
+                            type="button"
+                            id="lmsAddSlideBtn"
+                            class="oh-btn oh-btn--light oh-btn--sq-sm"
+                            title="{% trans 'Add slide' %}"
+                        >
+                            <ion-icon name="add-outline"></ion-icon>
+                        </button>
+                    </div>
+                    <p class="text-xs text-[#64748B] mb-3">
+                        {% trans "Add one or more slides with optional title, text, and image." %}
+                    </p>
+                    {% include "lms/_lesson_slide_formset.html" %}
+                    {% if slide_formset.non_form_errors %}
+                        <div class="text-danger text-xs mt-2">{{ slide_formset.non_form_errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% for field in form.hidden_fields %}
+                {{ field }}
+            {% endfor %}
+
+            <div class="d-flex flex-row-reverse">
+                <button
+                    type="submit"
+                    class="oh-btn oh-btn--secondary mt-2 mr-0 pl-4 pr-5 oh-btn--w-100-resp"
+                    {{ form.submit_button_attrs|safe }}
+                >
+                    {% trans 'Save' %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+<style>
+    #{{ view_id }}Form .lms-slide-form.lms-slide-deleted { display: none !important; }
+</style>
+<script>
+(function () {
+    var form = document.getElementById("{{ view_id }}Form");
+    if (!form) return;
+    var typeField = form.querySelector('[name="type"]');
+    var slideSection = document.getElementById("lmsSlideSection");
+    var pagesRoot = form.querySelector("[data-lesson-slides]");
+    var emptyTemplate = document.getElementById("lmsSlideEmptyForm");
+    var addBtn = document.getElementById("lmsAddSlideBtn");
+    var totalInput = form.querySelector('input[name$="-TOTAL_FORMS"]');
+
+    function setVisible(el, visible) {
+        if (!el) return;
+        el.style.display = visible ? "" : "none";
+    }
+
+    function toggleTypeFields() {
+        var type = typeField ? typeField.value : "";
+        setVisible(document.getElementById("id_video_url_parent_div"), type === "video");
+        setVisible(document.getElementById("id_file_path_parent_div"), type === "pdf");
+        setVisible(document.getElementById("id_content_parent_div"), type === "text");
+        setVisible(slideSection, type === "slideshow");
+    }
+
+    function addSlide() {
+        if (!pagesRoot || !emptyTemplate || !totalInput) return;
+        var index = parseInt(totalInput.value, 10) || 0;
+        var html = emptyTemplate.innerHTML.replace(/__prefix__/g, String(index));
+        var wrapper = document.createElement("div");
+        wrapper.innerHTML = html.trim();
+        var row = wrapper.firstElementChild;
+        if (!row) return;
+        pagesRoot.appendChild(row);
+        totalInput.value = String(index + 1);
+    }
+
+    if (typeField) {
+        typeField.addEventListener("change", toggleTypeFields);
+        toggleTypeFields();
+    }
+    if (addBtn) addBtn.addEventListener("click", addSlide);
+
+    if (pagesRoot) {
+        pagesRoot.addEventListener("change", function (event) {
+            if (!event.target || !event.target.name || event.target.name.indexOf("-DELETE") === -1) return;
+            var row = event.target.closest("[data-slide-form]");
+            if (!row) return;
+            if (event.target.checked) row.classList.add("lms-slide-deleted");
+            else row.classList.remove("lms-slide-deleted");
+        });
+    }
+})();
+</script>

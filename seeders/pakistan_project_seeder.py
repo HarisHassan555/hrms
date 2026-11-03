@@ -146,7 +146,7 @@ def seed() -> SeederResult:
             "start_date": TODAY - timedelta(days=45),
             "end_date": TODAY + timedelta(days=90),
             "description": (
-                "Core Horilla HRMS product build — payroll, attendance, "
+                "Core DSG HRMS product build — payroll, attendance, "
                 "recruitment, and employee self-service for DSG Technologies."
             ),
             "company_id": company,
