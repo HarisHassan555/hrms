@@ -4,44 +4,35 @@
 {% include 'generic/modern_filter_panel.html' %}
 
 <style>
-  body.dark .ms-page-header h3 { color: #dfdfdf !important; }
-  /* Active-filter chip row -- colors/sizing copied from the computed
-     styles of .oh-titlebar__tag.filter-field / .oh-titlebar__tag-close
-     (generic/filter_tags.html) so this hand-built row matches exactly
-     rather than approximating it. */
   #ms-filter-tags { justify-content: flex-end; }
-  .ms-filter-tag {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    border-radius: 25px;
-    font-size: 13.6px;
+  .ms-page-header h3 {
+    margin: 0;
+    color: var(--vristo-heading, #0e1726);
+    font-size: 1.125rem;
     font-weight: 700;
-    background: #fff;
-    border: 1px solid rgb(229, 79, 56);
-    color: rgb(28, 28, 28);
   }
-  body.dark .ms-filter-tag { background: transparent; color: #f1f5f9; }
-  .ms-filter-tag .ms-filter-tag-close {
-    background-color: rgb(229, 79, 56);
-    color: #fff;
-    width: 16px;
-    height: 16px;
-    padding: 0;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
+  html.vristo-theme.dark .ms-page-header h3,
+  body.dark .ms-page-header h3 {
+    color: var(--vristo-heading, #dfdfdf);
+  }
+  .ms-search-clear {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    background: none;
     border: none;
-    border-radius: 50%;
-    margin-left: 0.75rem;
     cursor: pointer;
-    flex-shrink: 0;
+    color: var(--vristo-text-muted, #888ea8);
+    padding: 0;
+    display: none;
+    line-height: 1;
   }
-  .ms-filter-tag .ms-filter-tag-close ion-icon { font-size: 11px; }
+  .ms-search-clear ion-icon { font-size: .9rem; }
 </style>
 
 <div class="oh-wrapper">
-  <div class="oh-container"  style="padding-top:1.25rem;">
+  <div class="oh-container" style="padding-top:1.25rem;">
 
     <!-- Search + Filter bar -->
     <form id="summary-filter-form"
@@ -49,10 +40,10 @@
           hx-target="#summary-table-container"
           hx-push-url="false">
 
-      <div class="ms-page-header flex flex-wrap justify-between items-center mb-2">
-        <h3 class="text-lg font-semibold" style="margin:0;">{% trans "Monthly Attendance Summary" %}</h3>
+      <div class="ms-page-header vr-toolbar mb-3">
+        <h3>{% trans "Monthly Attendance Summary" %}</h3>
 
-        <div class="flex flex-wrap gap-1">
+        <div class="flex flex-wrap items-center gap-2">
           <!-- Search -->
           <div class="relative">
             <input type="text"
@@ -70,11 +61,9 @@
             <button type="button" id="ms-search-clear"
                     onclick="document.getElementById('ms-search-input').value='';
                              document.getElementById('ms-search-input').dispatchEvent(new Event('input'));"
-                    style="position:absolute;top:50%;right:8px;transform:translateY(-50%);
-                           background:none;border:none;cursor:pointer;color:#9ca3af;
-                           padding:0;display:none;line-height:1;"
+                    class="ms-search-clear"
                     title="{% trans 'Clear' %}">
-              <ion-icon name="close-circle-outline" style="font-size:.9rem;"></ion-icon>
+              <ion-icon name="close-circle-outline"></ion-icon>
             </button>
           </div>
 
@@ -102,17 +91,11 @@
                  class="text-color-600 p-1.5 pb-2 border border-dark-50 rounded-md focus-visible:outline-0 text-sm [transition:.3s] focus:border-primary-600"
                  style="width:145px;">
 
-          <!-- Modern slide-over filter panel (generic/modern_filter_panel.html)
-               -- same offcanvas used by Attendance/Late Arrival/Check-in Log/
-               Employee/Work Records this session, not a bespoke anchored
-               dropdown. Trigger/backdrop/panel ids aren't namespaced (only
-               one panel per page), so this replaces the page's earlier
-               custom #ms-filter-toggle/#ms-filter-dropdown implementation
-               entirely rather than living alongside it. -->
+          <!-- Modern slide-over filter panel (generic/modern_filter_panel.html) -->
           <button type="button"
                   id="modernFilterTrigger"
                   onclick="toggleModernFilterPanel(true)"
-                  class="px-5 py-2 h-full bg-[white] rounded-md text-xs flex items-center gap-2 border border-primary-500 hover:border-primary-600 transition duration-300 cursor-pointer">
+                  class="vr-toolbar-btn vr-toolbar-btn--white">
             <ion-icon name="filter-outline"></ion-icon> {% trans "Filter" %}
           </button>
           <div class="oh-filter-backdrop" id="modernFilterBackdrop" onclick="toggleModernFilterPanel(false)"></div>
@@ -308,7 +291,7 @@
                Select/Unselect/Update toolbar already reacting to it. -->
           <a id="export-btn"
              href="{% url 'attendance-monthly-summary-export' %}?{{ pd }}"
-             class="px-4 py-2 bg-brand-600 text-white rounded-md text-xs flex items-center gap-2 hover:bg-brand-800 transition duration-300 cursor-pointer">
+             class="oh-btn oh-btn--secondary oh-btn--small vr-btn vr-btn--primary">
             <ion-icon name="download-outline"></ion-icon>
             <span id="export-btn-label">{% trans "Export XLSX" %}</span>
           </a>
@@ -330,7 +313,7 @@
     added here instead, reusing the same generic SavedFilter backend
     (horilla_views.views.SavedFilter) everything else already saves to.
     {% endcomment %}
-    <div class="oh-modal" id="msSavedFilterModal" role="dialog" aria-labelledby="msSavedFilterModal" aria-hidden="true">
+    <div class="oh-modal vr-modal" id="msSavedFilterModal" role="dialog" aria-labelledby="msSavedFilterModal" aria-hidden="true">
       <div class="oh-modal__dialog" style="max-width: 550px" id="msSavedFilterFormTarget"></div>
     </div>
 
@@ -416,9 +399,9 @@ function msRenderFilterTags() {
   wrap.style.display = 'flex';
   chips.forEach(function (chip) {
     var tag = document.createElement('span');
-    tag.className = 'ms-filter-tag';
+    tag.className = 'oh-titlebar__tag filter-field';
     tag.innerHTML = chip.label + ': ' + chip.value +
-      '<span class="ms-filter-tag-close" data-clear-key="' + chip.key + '">' +
+      '<span class="oh-titlebar__tag-close" data-clear-key="' + chip.key + '">' +
       '<ion-icon name="close-outline"></ion-icon></span>';
     wrap.appendChild(tag);
   });

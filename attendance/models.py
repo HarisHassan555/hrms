@@ -25,6 +25,7 @@ from attendance.methods.utils import (
     format_time,
     get_diff_dict,
     month_date_range,
+    resolve_shift_day,
     strtime_seconds,
     validate_hh_mm_ss_format,
     validate_time_format,
@@ -828,8 +829,8 @@ class Attendance(HorillaModel):
         old = None
 
         if not self.attendance_day:
-            self.attendance_day = EmployeeShiftDay.objects.get(
-                day=self.attendance_date.strftime("%A").lower()
+            self.attendance_day = resolve_shift_day(
+                self.attendance_date.strftime("%A").lower()
             )
 
         if not is_new:

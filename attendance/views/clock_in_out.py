@@ -27,6 +27,7 @@ from attendance.methods.utils import (
     geofence_denial_web,
     get_client_ip,
     overtime_calculation,
+    resolve_shift_day,
     shift_schedule_today,
     strtime_seconds,
 )
@@ -42,7 +43,7 @@ from base.context_processors import (
     enable_late_come_early_out_tracking,
     timerunner_enabled,
 )
-from base.models import AttendanceAllowedIP, Company, EmployeeShiftDay
+from base.models import AttendanceAllowedIP, Company
 from horilla.decorators import hx_request_required, login_required
 from horilla.horilla_middlewares import _thread_locals
 
@@ -280,8 +281,7 @@ def clock_in(request):
             if request.__dict__.get("date"):
                 date_today = request.date
             attendance_date = date_today
-            day = date_today.strftime("%A").lower()
-            day = EmployeeShiftDay.objects.get(day=day)
+            day = resolve_shift_day(date_today.strftime("%A").lower())
             now = datetime.now().strftime("%H:%M")
             if request.__dict__.get("time"):
                 now = request.time.strftime("%H:%M")
@@ -300,8 +300,9 @@ def clock_in(request):
                     # Here you need to create attendance for yesterday
 
                     date_yesterday = date_today - timedelta(days=1)
-                    day_yesterday = date_yesterday.strftime("%A").lower()
-                    day_yesterday = EmployeeShiftDay.objects.get(day=day_yesterday)
+                    day_yesterday = resolve_shift_day(
+                        date_yesterday.strftime("%A").lower()
+                    )
                     minimum_hour, start_time_sec, end_time_sec = shift_schedule_today(
                         day=day_yesterday, shift=shift
                     )
@@ -542,8 +543,7 @@ def clock_out(request):
         date_today = date.today()
         if request.__dict__.get("date"):
             date_today = request.date
-        day = date_today.strftime("%A").lower()
-        day = EmployeeShiftDay.objects.get(day=day)
+        day = resolve_shift_day(date_today.strftime("%A").lower())
         attendance = (
             Attendance.objects.filter(employee_id=employee)
             .order_by("id", "attendance_date")
@@ -552,7 +552,7 @@ def clock_out(request):
         if attendance is not None:
             if not attendance.attendance_day:
                 day_name = attendance.attendance_date.strftime("%A").lower()
-                attendance.attendance_day = EmployeeShiftDay.objects.get(day=day_name)
+                attendance.attendance_day = resolve_shift_day(day_name)
                 attendance.save(update_fields=["attendance_day"])
             day = attendance.attendance_day
         now = datetime.now().strftime("%H:%M")

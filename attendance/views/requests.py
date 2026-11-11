@@ -26,7 +26,12 @@ from attendance.forms import (
     BulkAttendanceRequestForm,
     NewRequestForm,
 )
-from attendance.methods.utils import get_diff_dict, paginator_qry, shift_schedule_today
+from attendance.methods.utils import (
+    get_diff_dict,
+    paginator_qry,
+    resolve_shift_day,
+    shift_schedule_today,
+)
 from attendance.models import (
     Attendance,
     AttendanceActivity,
@@ -42,7 +47,7 @@ from base.methods import (
     get_key_instances,
     is_reportingmanager,
 )
-from base.models import EmployeeShift, EmployeeShiftDay
+from base.models import EmployeeShift
 from employee.models import Employee
 from horilla.decorators import (
     hx_request_required,
@@ -516,8 +521,7 @@ def approve_validate_attendance_request(request, attendance_id):
 
     # Create late come or early out objects
     shift = attendance.shift_id
-    day = attendance.attendance_date.strftime("%A").lower()
-    day = EmployeeShiftDay.objects.get(day=day)
+    day = resolve_shift_day(attendance.attendance_date.strftime("%A").lower())
 
     minimum_hour, start_time_sec, end_time_sec = shift_schedule_today(
         day=day, shift=shift
@@ -744,8 +748,7 @@ def bulk_approve_attendance_request(request):
 
         # Create late come or early out objects
         shift = attendance.shift_id
-        day = attendance.attendance_date.strftime("%A").lower()
-        day = EmployeeShiftDay.objects.get(day=day)
+        day = resolve_shift_day(attendance.attendance_date.strftime("%A").lower())
 
         minimum_hour, start_time_sec, end_time_sec = shift_schedule_today(
             day=day, shift=shift

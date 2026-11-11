@@ -3030,6 +3030,11 @@ def employee_dashboard(request):
     Returns:
     GET : return Employee dasboard template.
     """
+    from base.dashboard_roles import resolve_home_role
+
+    if resolve_home_role(request) == "employee":
+        return redirect("user-request-view")
+
     today = date.today()
     # Use reverse OneToOne — Employee.objects is company-filtered and would
     # raise DoesNotExist when the selected company is not the user's work company.

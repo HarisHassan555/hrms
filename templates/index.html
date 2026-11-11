@@ -33,6 +33,7 @@
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="{% static 'build/css/style.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'base/global_request_loader.css' %}?v=1" />
     <link rel="stylesheet" href="{% static 'build/css/sweetalert2.min.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'build/css/summernote-lite.min.css' %}" />
@@ -286,6 +287,7 @@
     <!--htmx script -->
     <script src="{% static 'build/js/web.frontend.min.js' %}"></script>
     <script src="{% static 'htmx/htmx.min.js' %}"></script>
+    <script src="{% static 'base/global_request_loader.js' %}?v=1"></script>
     <script>
         document.body.addEventListener('htmx:configRequest', (event) => {
             event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';

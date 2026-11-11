@@ -10,7 +10,9 @@ from django.test import RequestFactory, SimpleTestCase
 from base.dashboard import _normalize_dashboard_chart_prefs
 from base.dashboard_roles import (
     DEMOTED_BY_DEFAULT,
+    FORCE_HIDDEN_DUPLICATES,
     ROLE_DEFAULT_VISIBLE,
+    can_access_analytics_dashboard,
     can_see_analytics_home,
     resolve_home_role,
     role_default_prefs,
@@ -40,6 +42,7 @@ class ResolveHomeRoleTests(SimpleTestCase):
     def test_employee_leave_recruitment_is_leadership(self):
         perms = {
             "employee.view_employee",
+            "employee.add_employee",
             "leave.view_leaverequest",
             "recruitment.view_recruitment",
         }
@@ -49,10 +52,15 @@ class ResolveHomeRoleTests(SimpleTestCase):
             has_perm=lambda p: p in perms,
             employee_get=None,
         )
-        self.assertEqual(resolve_home_role(self._request(user)), "leadership")
+        with patch("base.dashboard_roles._is_reporting_manager", return_value=False):
+            self.assertEqual(resolve_home_role(self._request(user)), "leadership")
 
     def test_employee_leave_is_hr(self):
-        perms = {"employee.view_employee", "leave.view_leaverequest"}
+        perms = {
+            "employee.view_employee",
+            "employee.add_employee",
+            "leave.view_leaverequest",
+        }
         user = SimpleNamespace(
             is_superuser=False,
             is_staff=False,
@@ -61,6 +69,21 @@ class ResolveHomeRoleTests(SimpleTestCase):
         )
         with patch("base.dashboard_roles._is_reporting_manager", return_value=False):
             self.assertEqual(resolve_home_role(self._request(user)), "hr")
+
+    def test_manager_with_team_perms_is_manager_not_hr(self):
+        perms = {
+            "employee.view_employee",
+            "leave.view_leaverequest",
+            "recruitment.view_recruitment",
+        }
+        user = SimpleNamespace(
+            is_superuser=False,
+            is_staff=False,
+            has_perm=lambda p: p in perms,
+            employee_get=object(),
+        )
+        with patch("base.dashboard_roles._is_reporting_manager", return_value=True):
+            self.assertEqual(resolve_home_role(self._request(user)), "manager")
 
     def test_reporting_manager_is_manager(self):
         user = SimpleNamespace(
@@ -82,17 +105,23 @@ class ResolveHomeRoleTests(SimpleTestCase):
         with patch("base.dashboard_roles._is_reporting_manager", return_value=False):
             self.assertEqual(resolve_home_role(self._request(user)), "employee")
             self.assertFalse(can_see_analytics_home("employee"))
+            self.assertFalse(can_access_analytics_dashboard(self._request(user)))
 
 
 class RoleDefaultPrefsTests(SimpleTestCase):
-    def test_manager_default_visible_at_most_six(self):
+    def test_manager_default_includes_team_tiles(self):
         prefs = role_default_prefs("manager")
         visible = [p["id"] for p in prefs if p["visible"]]
-        self.assertLessEqual(len(visible), 6)
+        self.assertLessEqual(len(visible), 16)
         for demoted in DEMOTED_BY_DEFAULT:
             self.assertNotIn(demoted, visible)
         for expected in ROLE_DEFAULT_VISIBLE["manager"]:
             self.assertIn(expected, visible)
+        self.assertNotIn("team_presence", visible)
+        self.assertNotIn("action_queue", visible)
+        self.assertIn("team_roster", visible)
+        self.assertIn("attendance_module", visible)
+        self.assertIn("leave_module", visible)
 
     def test_hr_includes_turnover_not_payroll(self):
         prefs = role_default_prefs("hr")
@@ -115,6 +144,19 @@ class PrefsMigrationTests(SimpleTestCase):
             {"id": "gender_distribution", "visible": False},
         ]
         self.assertEqual(_normalize_dashboard_chart_prefs(modern), modern)
+
+    def test_demoted_duplicates_force_hidden(self):
+        prefs = _normalize_dashboard_chart_prefs(
+            [
+                {"id": "team_presence", "visible": True},
+                {"id": "action_queue", "visible": True},
+                {"id": "team_roster", "visible": True},
+            ]
+        )
+        by_id = {p["id"]: p["visible"] for p in prefs}
+        self.assertFalse(by_id["team_presence"])
+        self.assertFalse(by_id["action_queue"])
+        self.assertTrue(by_id["team_roster"])
 
     def test_modern_prefs_guard_helper(self):
         self.assertTrue(
@@ -150,6 +192,8 @@ class ModernDashboardFetchInventoryTests(SimpleTestCase):
             "dashboard-department-leave-days",
             "dashboard-hiring-timeline",
             "dashboard-recruitment-by-stage",
+            "dashboard-team-pulse",
+            "dashboard-module-pulse",
         ):
             self.assertIn(required, text)
 

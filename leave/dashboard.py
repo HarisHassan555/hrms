@@ -608,15 +608,33 @@ def _get_employee_for_user(request):
     return getattr(request.user, "employee_get", None)
 
 
+def _leave_employee_dashboard_forbidden(request):
+    """ESS-only users should use My Leave Requests, not the leave dashboard."""
+    from base.dashboard_roles import resolve_home_role
+
+    if resolve_home_role(request) != "employee":
+        return None
+    return JsonResponse({"no_permission": True}, status=403)
+
+
 @login_required
 def employee_dashboard_view(request):
     """Render the employee leave dashboard page (JS fetches all data via API)."""
+    from base.dashboard_roles import resolve_home_role
+    from django.shortcuts import redirect
+
+    if resolve_home_role(request) == "employee":
+        return redirect("user-request-view")
     return render(request, "leave/employee_dashboard.html")
 
 
 @login_required
 def employee_kpi_data(request):
     """Return KPI summary for the logged-in employee as JSON."""
+    blocked = _leave_employee_dashboard_forbidden(request)
+    if blocked is not None:
+        return blocked
+
     from leave.models import AvailableLeave, LeaveRequest
 
     today = date.today()
@@ -703,6 +721,10 @@ def employee_kpi_data(request):
 @login_required
 def employee_leave_balance(request):
     """Return leave balance details for the logged-in employee as JSON."""
+    blocked = _leave_employee_dashboard_forbidden(request)
+    if blocked is not None:
+        return blocked
+
     from leave.models import AvailableLeave, LeaveRequest
 
     employee = _get_employee_for_user(request)
@@ -750,6 +772,10 @@ def employee_leave_balance(request):
 @login_required
 def employee_monthly_trend(request):
     """Monthly leave request counts for the last 6 months for the logged-in employee."""
+    blocked = _leave_employee_dashboard_forbidden(request)
+    if blocked is not None:
+        return blocked
+
     from leave.models import LeaveRequest
 
     employee = _get_employee_for_user(request)
@@ -821,6 +847,10 @@ def employee_monthly_trend(request):
 @login_required
 def employee_upcoming_leaves(request):
     """Upcoming approved leaves for the logged-in employee."""
+    blocked = _leave_employee_dashboard_forbidden(request)
+    if blocked is not None:
+        return blocked
+
     from leave.models import LeaveRequest
 
     employee = _get_employee_for_user(request)
@@ -866,6 +896,10 @@ def employee_upcoming_leaves(request):
 @login_required
 def employee_leave_history(request):
     """Recent leave request history for the logged-in employee (last 10)."""
+    blocked = _leave_employee_dashboard_forbidden(request)
+    if blocked is not None:
+        return blocked
+
     from leave.models import LeaveRequest
 
     employee = _get_employee_for_user(request)

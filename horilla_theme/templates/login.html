@@ -12,6 +12,9 @@
         <link rel="icon" type="image/png" sizes="32x32" href="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}">
         <link rel="icon" type="image/png" sizes="16x16" href="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}">
         <link rel="stylesheet" href="{% static '/build/css/style.min.css' %}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
             :root {
                 --theme-primary-100: {{ login_theme.primary_100|default:"#EEF2FF" }};
@@ -27,11 +30,12 @@
                 --color-primary-soft: var(--theme-primary-100);
                 --color-page-background: #F8FAFC;
                 --color-surface: #FFFFFF;
-                --color-surface-secondary: #F8FAFC;
+                --color-surface-muted: #F1F5F9;
                 --color-text-primary: #0F172A;
                 --color-text-secondary: #475569;
                 --color-text-muted: #94A3B8;
                 --color-border: #E2E8F0;
+                --color-border-input: #CBD5E1;
                 --color-border-focus: #6366F1;
                 --color-focus-ring: color-mix(in srgb, var(--color-primary) 15%, transparent);
                 --color-danger: #DC2626;
@@ -49,20 +53,19 @@
                 --radius-xl: 16px;
                 --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
                 --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08);
+                --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
             }
 
-            * {
-                box-sizing: border-box;
+            * { box-sizing: border-box; }
+
+            html, body {
+                height: 100%;
             }
 
             body {
                 min-height: 100vh;
                 margin: 0;
-                background-color: var(--color-page-background);
-                background-image:
-                    linear-gradient(to right, rgba(226, 232, 240, 0.35) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(226, 232, 240, 0.35) 1px, transparent 1px);
-                background-size: 48px 48px;
+                background: #070B16;
                 color: var(--color-text-primary);
                 font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
                 font-size: 14px;
@@ -70,69 +73,112 @@
             }
 
             .login-page {
+                position: relative;
                 min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 32px 24px;
+                height: 100%;
+                overflow: hidden;
+                background:
+                    radial-gradient(ellipse 55% 58% at 100% 50%, rgba(56, 189, 248, 0.18) 0%, transparent 58%),
+                    radial-gradient(ellipse 36% 30% at 12% 28%, rgba(99, 102, 241, 0.08) 0%, transparent 55%),
+                    linear-gradient(160deg, #05070F 0%, #0B1224 55%, #0F172A 100%);
             }
 
-            .login-card {
+            .login-backdrop {
+                position: absolute;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+                overflow: hidden;
+            }
+
+            .login-globe {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            .login-backdrop__veil {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(ellipse 55% 70% at 50% 50%, rgba(7, 11, 22, 0.28) 0%, transparent 70%),
+                    linear-gradient(90deg, rgba(7, 11, 22, 0.22) 0%, transparent 40%);
+            }
+
+            .login-shell {
+                position: relative;
+                z-index: 1;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                padding: 28px 20px;
+                animation: login-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+
+            @keyframes login-rise {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: none; }
+            }
+
+            .login-form-panel {
                 width: min(100%, 440px);
-                padding: 40px 36px;
-                border: 1px solid var(--color-border);
-                border-radius: var(--radius-xl);
-                background: var(--color-surface);
-                box-shadow: var(--shadow-md);
+                padding: 40px 40px 32px;
+                border-radius: 16px;
+                background: rgba(11, 18, 32, 0.86);
+                border: 1px solid rgba(148, 163, 184, 0.16);
+                box-shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
+                backdrop-filter: blur(14px);
+                color: #E2E8F0;
+            }
+
+            .login-form-shell {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
             }
 
             .login-brand-lockup {
                 display: inline-flex;
                 align-items: center;
-                gap: 12px;
-                max-width: 100%;
-                margin-bottom: 28px;
+                gap: 10px;
+                margin-bottom: 36px;
+                color: #F8FAFC;
+                font-size: 15px;
+                font-weight: 700;
             }
 
             .login-logo-mark {
-                width: 44px;
-                height: 44px;
-                flex-shrink: 0;
+                width: 40px;
+                height: 40px;
                 display: grid;
                 place-items: center;
                 border-radius: var(--radius-md);
-                background: var(--color-surface);
-                border: 1px solid var(--color-border);
-                box-shadow: var(--shadow-sm);
+                background: rgba(125, 211, 252, 0.1);
+                border: 1px solid rgba(125, 211, 252, 0.24);
             }
 
             .login-logo-mark img {
-                width: 28px;
-                height: 28px;
+                width: 24px;
+                height: 24px;
                 object-fit: contain;
             }
 
-            .login-brand-name {
-                font-size: 15px;
-                font-weight: 700;
-                color: var(--color-text-primary);
-                line-height: 1.3;
-            }
-
             .login-title {
-                margin: 0 0 6px;
-                color: var(--color-text-primary);
-                font-size: 24px;
-                line-height: 32px;
+                margin: 0 0 8px;
+                color: #F8FAFC;
+                font-size: 28px;
+                line-height: 1.2;
                 font-weight: 700;
                 letter-spacing: -0.02em;
             }
 
             .login-subtitle {
-                margin: 0 0 24px;
-                color: var(--color-text-secondary);
+                margin: 0 0 28px;
+                color: #94A3B8;
                 font-size: 14px;
-                line-height: 1.5;
+                line-height: 1.55;
             }
 
             .login-alert-stack {
@@ -187,7 +233,7 @@
             .login-label {
                 display: block;
                 margin-bottom: 6px;
-                color: #334155;
+                color: #CBD5E1;
                 font-size: 13px;
                 font-weight: 600;
             }
@@ -211,26 +257,27 @@
                 width: 100%;
                 height: 42px;
                 padding: 0 42px;
-                border: 1px solid #CBD5E1;
+                border: 1px solid rgba(148, 163, 184, 0.28);
                 border-radius: var(--radius-md);
-                background: var(--color-surface);
-                color: var(--color-text-primary);
+                background: rgba(15, 23, 42, 0.55);
+                color: #F8FAFC;
                 font-size: 14px;
-                transition: border-color 180ms ease, box-shadow 180ms ease;
+                transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
             }
 
             .login-input::placeholder {
-                color: var(--color-text-muted);
+                color: #64748B;
             }
 
             .login-input:hover {
-                border-color: #94A3B8;
+                border-color: rgba(148, 163, 184, 0.45);
             }
 
             .login-input:focus,
             .login-input:focus-visible {
-                border-color: var(--color-border-focus);
-                box-shadow: 0 0 0 3px var(--color-focus-ring);
+                border-color: #38BDF8;
+                box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+                background: rgba(15, 23, 42, 0.85);
                 outline: none;
             }
 
@@ -253,8 +300,8 @@
 
             .login-password-toggle:hover,
             .login-password-toggle:focus-visible {
-                background: var(--color-primary-soft);
-                color: var(--color-primary);
+                background: rgba(56, 189, 248, 0.12);
+                color: #7DD3FC;
                 outline: none;
             }
 
@@ -271,7 +318,7 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
-                color: var(--color-text-secondary);
+                color: #94A3B8;
                 white-space: nowrap;
                 cursor: pointer;
             }
@@ -280,11 +327,11 @@
                 width: 16px;
                 height: 16px;
                 margin: 0;
-                accent-color: var(--color-primary);
+                accent-color: #38BDF8;
             }
 
             .login-link {
-                color: var(--color-primary);
+                color: #7DD3FC;
                 font-size: 13px;
                 font-weight: 600;
                 text-decoration: none;
@@ -293,7 +340,7 @@
 
             .login-link:hover,
             .login-link:focus-visible {
-                color: var(--color-primary-active);
+                color: #BAE6FD;
                 text-decoration: underline;
                 outline: none;
             }
@@ -301,41 +348,41 @@
             .login-submit,
             .login-init-button {
                 width: 100%;
-                height: 40px;
+                height: 42px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
                 border: 1px solid transparent;
                 border-radius: var(--radius-md);
-                background: var(--color-primary);
-                border-color: var(--color-primary);
+                background: #0EA5E9;
+                border-color: #0EA5E9;
                 color: #FFFFFF;
                 font-size: 14px;
                 font-weight: 600;
                 text-decoration: none;
                 cursor: pointer;
-                box-shadow: var(--shadow-sm);
+                box-shadow: 0 8px 20px rgba(14, 165, 233, 0.22);
                 transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
             }
 
             .login-submit:hover,
             .login-init-button:hover {
-                background: var(--color-primary-hover);
-                border-color: var(--color-primary-hover);
+                background: #0284C7;
+                border-color: #0284C7;
                 color: #FFFFFF;
                 text-decoration: none;
             }
 
             .login-submit:active,
             .login-init-button:active {
-                background: var(--color-primary-active);
-                border-color: var(--color-primary-active);
+                background: #0369A1;
+                border-color: #0369A1;
             }
 
             .login-submit:focus-visible,
             .login-init-button:focus-visible {
-                box-shadow: 0 0 0 3px var(--color-focus-ring);
+                box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
                 outline: none;
             }
 
@@ -347,37 +394,41 @@
             }
 
             .login-init-button--secondary {
-                border-color: #CBD5E1;
-                background: var(--color-surface);
-                color: #334155;
+                border-color: rgba(148, 163, 184, 0.28);
+                background: transparent;
+                color: #E2E8F0;
                 box-shadow: none;
             }
 
             .login-init-button--secondary:hover,
             .login-init-button--secondary:focus-visible {
-                border-color: #94A3B8;
-                background: var(--color-surface-secondary);
-                color: var(--color-text-primary);
+                border-color: rgba(148, 163, 184, 0.5);
+                background: rgba(148, 163, 184, 0.08);
+                color: #F8FAFC;
             }
 
-            .login-form-footnote {
-                margin: 20px 0 0;
-                text-align: center;
+            .login-meta {
+                margin: 28px 0 0;
+                text-align: left;
                 font-size: 12px;
-                color: var(--color-text-muted);
+                color: #64748B;
                 line-height: 1.5;
             }
 
-            @media (max-width: 480px) {
-                .login-page {
+            .login-form-footer {
+                margin-top: 28px;
+                color: #64748B;
+                font-size: 12px;
+            }
+
+            @media (max-width: 520px) {
+                .login-shell {
                     padding: 16px;
-                    align-items: flex-start;
-                    padding-top: 24px;
                 }
 
-                .login-card {
-                    border-radius: var(--radius-lg);
-                    padding: 28px 20px;
+                .login-form-panel {
+                    padding: 28px 20px 24px;
+                    border-radius: 12px;
                 }
 
                 .login-options {
@@ -394,15 +445,25 @@
     </head>
     <body>
         <main class="login-page">
-            <section class="login-card" aria-labelledby="login-title">
-                <div class="login-brand-lockup">
-                    <span class="login-logo-mark" aria-hidden="true">
-                        <img src="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}" alt="">
-                    </span>
-                    <span class="login-brand-name">{{ white_label_company_name }}</span>
-                </div>
+            <div class="login-backdrop" aria-hidden="true">
+                <canvas class="login-globe" id="login-globe" width="1600" height="900"></canvas>
+                <div class="login-backdrop__veil"></div>
+            </div>
 
-                <h1 class="login-title" id="login-title">{% trans "Welcome back" %}</h1>
+            <section class="login-shell" aria-labelledby="login-title">
+                <div class="login-form-panel">
+                    <div class="login-form-shell">
+                        <div class="login-brand-lockup">
+                            <span class="login-logo-mark">
+                                <img
+                                    src="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'images/ui/dsglogo.png' %}{% endif %}"
+                                    alt=""
+                                >
+                            </span>
+                            <span>{{ white_label_company_name }}</span>
+                        </div>
+
+                        <h1 class="login-title" id="login-title">{% trans "Welcome back" %}</h1>
                         <p class="login-subtitle">{% trans "Sign in with your work credentials" %}</p>
 
                         {% if messages %}
@@ -479,11 +540,17 @@
                                     {% include "demo_database/auth_load_data.html" %}
                                 </div>
                             </div>
+                        {% else %}
+                            <p class="login-meta">
+                                {% trans "Protected by your organization’s access policies." %}
+                            </p>
                         {% endif %}
 
-                <p class="login-form-footnote">
-                    {% trans "Protected by your organization’s access policies." %}
-                </p>
+                        <p class="login-form-footer">
+                            &copy; {{ white_label_company_name }}
+                        </p>
+                    </div>
+                </div>
             </section>
         </main>
 
@@ -512,6 +579,249 @@
                     }
                 });
             });
+
+            (function initLoginGlobe() {
+                var canvas = document.getElementById('login-globe');
+                if (!canvas || !canvas.getContext) return;
+
+                var ctx = canvas.getContext('2d');
+                var points = [];
+                var stars = [];
+                var rotation = 0.85;
+                var tilt = 0.38;
+                var rafId = null;
+                var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                var landMaskUrl = "{% static 'images/ui/world_landmask.jpg' %}";
+
+                function buildStars() {
+                    stars = [];
+                    for (var i = 0; i < 110; i++) {
+                        stars.push({
+                            x: Math.random(),
+                            y: Math.random(),
+                            r: 0.3 + Math.random() * 1.05,
+                            a: 0.1 + Math.random() * 0.35
+                        });
+                    }
+                }
+
+                function pushPoint(latDeg, lonDeg, land) {
+                    var lat = latDeg * Math.PI / 180;
+                    var lon = lonDeg * Math.PI / 180;
+                    var cosLat = Math.cos(lat);
+                    var x = cosLat * Math.cos(lon);
+                    var y = Math.sin(lat);
+                    var z = cosLat * Math.sin(lon);
+
+                    // Axial tilt for a more natural Earth pose
+                    var cosT = Math.cos(tilt);
+                    var sinT = Math.sin(tilt);
+                    var ty = y * cosT - z * sinT;
+                    var tz = y * sinT + z * cosT;
+
+                    points.push({
+                        x: x,
+                        y: ty,
+                        z: tz,
+                        land: land,
+                        shade: 0.7 + Math.random() * 0.3,
+                        twinkle: Math.random() * Math.PI * 2
+                    });
+                }
+
+                function sampleFromImageData(imageData, width, height, darkIsLand) {
+                    points = [];
+                    var density = 2.2;
+                    for (var lat = 90; lat > -90; lat -= 1) {
+                        var radius = Math.cos(Math.abs(lat) * Math.PI / 180);
+                        var circumference = radius * Math.PI * 2;
+                        var dotsForLat = Math.max(1, Math.floor(circumference * density * 20));
+                        for (var x = 0; x < dotsForLat; x++) {
+                            var lon = -180 + x * 360 / dotsForLat;
+                            var px = Math.floor(((lon + 180) / 360) * (width - 1));
+                            var py = Math.floor(((90 - lat) / 180) * (height - 1));
+                            var idx = (py * width + px) * 4;
+                            var r = imageData[idx];
+                            var g = imageData[idx + 1];
+                            var b = imageData[idx + 2];
+                            var isLand = darkIsLand
+                                ? (r < 90 && g < 90 && b < 90)
+                                : (r > 140);
+                            if (!isLand) {
+                                if (Math.random() > 0.015) continue;
+                                pushPoint(lat, lon, false);
+                                continue;
+                            }
+                            pushPoint(lat, lon, true);
+                        }
+                    }
+                }
+
+                function buildFallbackPoints() {
+                    var mask = document.createElement('canvas');
+                    mask.width = 360;
+                    mask.height = 180;
+                    var m = mask.getContext('2d');
+                    m.fillStyle = '#fff';
+                    m.fillRect(0, 0, 360, 180);
+                    m.fillStyle = '#000';
+                    function blob(x, y, rx, ry, rot) {
+                        m.save();
+                        m.translate(x * 360, y * 180);
+                        m.rotate(rot || 0);
+                        m.beginPath();
+                        m.ellipse(0, 0, rx * 360, ry * 180, 0, 0, Math.PI * 2);
+                        m.fill();
+                        m.restore();
+                    }
+                    blob(0.20, 0.32, 0.11, 0.15, -0.4);
+                    blob(0.24, 0.40, 0.09, 0.10, -0.1);
+                    blob(0.18, 0.46, 0.05, 0.07, 0.2);
+                    blob(0.27, 0.58, 0.05, 0.12, 0.3);
+                    blob(0.29, 0.68, 0.04, 0.10, 0.1);
+                    blob(0.42, 0.18, 0.08, 0.05, 0.1);
+                    blob(0.48, 0.28, 0.07, 0.08, 0.05);
+                    blob(0.52, 0.42, 0.08, 0.12, 0.1);
+                    blob(0.53, 0.55, 0.07, 0.11, 0.05);
+                    blob(0.62, 0.30, 0.12, 0.10, 0);
+                    blob(0.72, 0.34, 0.12, 0.12, 0.05);
+                    blob(0.68, 0.46, 0.08, 0.07, 0.1);
+                    blob(0.80, 0.58, 0.07, 0.06, 0.15);
+                    var data = m.getImageData(0, 0, 360, 180).data;
+                    sampleFromImageData(data, 360, 180, true);
+                }
+
+                function loadLandMask() {
+                    var image = new Image();
+                    image.onload = function () {
+                        var off = document.createElement('canvas');
+                        off.width = image.width;
+                        off.height = image.height;
+                        var octx = off.getContext('2d');
+                        octx.drawImage(image, 0, 0);
+                        var data = octx.getImageData(0, 0, off.width, off.height).data;
+                        sampleFromImageData(data, off.width, off.height, true);
+                    };
+                    image.onerror = buildFallbackPoints;
+                    image.src = landMaskUrl;
+                }
+
+                function resize() {
+                    var parent = canvas.parentElement;
+                    if (!parent) return;
+                    var rect = parent.getBoundingClientRect();
+                    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+                    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+                    canvas.style.width = rect.width + 'px';
+                    canvas.style.height = rect.height + 'px';
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                }
+
+                function draw(now) {
+                    var w = canvas.clientWidth;
+                    var h = canvas.clientHeight;
+                    ctx.clearRect(0, 0, w, h);
+
+                    for (var s = 0; s < stars.length; s++) {
+                        var st = stars[s];
+                        ctx.fillStyle = 'rgba(186, 230, 253,' + st.a + ')';
+                        ctx.beginPath();
+                        ctx.arc(st.x * w, st.y * h, st.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // Large globe — half clipped off the right edge
+                    var radius = Math.min(w, h) * 0.68;
+                    var cx = w;
+                    var cy = h * 0.5;
+                    var cosR = Math.cos(rotation);
+                    var sinR = Math.sin(rotation);
+                    var t = (now || 0) * 0.001;
+
+                    var glow = ctx.createRadialGradient(cx - radius * 0.2, cy, radius * 0.1, cx, cy, radius * 1.35);
+                    glow.addColorStop(0, 'rgba(56, 189, 248, 0.18)');
+                    glow.addColorStop(0.45, 'rgba(56, 189, 248, 0.06)');
+                    glow.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                    ctx.fillStyle = glow;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius * 1.35, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Soft ocean body (Stripe/GitHub-style base sphere)
+                    var ocean = ctx.createRadialGradient(cx - radius * 0.35, cy - radius * 0.2, radius * 0.1, cx, cy, radius);
+                    ocean.addColorStop(0, 'rgba(30, 58, 95, 0.55)');
+                    ocean.addColorStop(0.7, 'rgba(11, 26, 46, 0.72)');
+                    ocean.addColorStop(1, 'rgba(7, 15, 28, 0.85)');
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = ocean;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(125, 211, 252, 0.22)';
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+
+                    var projected = [];
+                    for (var i = 0; i < points.length; i++) {
+                        var p = points[i];
+                        var rx = p.x * cosR - p.z * sinR;
+                        var rz = p.x * sinR + p.z * cosR;
+                        if (rz < -0.05 && !p.land) continue;
+                        projected.push({
+                            x: cx + rx * radius,
+                            y: cy - p.y * radius,
+                            z: rz,
+                            land: p.land,
+                            shade: p.shade,
+                            twinkle: p.twinkle
+                        });
+                    }
+                    projected.sort(function (a, b) { return a.z - b.z; });
+
+                    for (var j = 0; j < projected.length; j++) {
+                        var pt = projected[j];
+                        var depth = (pt.z + 1) * 0.5;
+                        var sparkle = 0.85 + 0.15 * Math.sin(t * 2.2 + pt.twinkle);
+                        var alpha = pt.land
+                            ? (0.42 + depth * 0.58) * pt.shade * sparkle
+                            : (0.04 + depth * 0.12) * pt.shade;
+                        var rim = Math.max(0, (cx - radius * 0.55 - pt.x) / (radius * 0.95));
+                        alpha = Math.min(1, alpha + rim * 0.2);
+                        var size = pt.land ? (0.9 + depth * 1.25) : (0.45 + depth * 0.55);
+                        ctx.fillStyle = pt.land
+                            ? 'rgba(165, 230, 255,' + alpha + ')'
+                            : 'rgba(100, 116, 139,' + (alpha * 0.7) + ')';
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, size * 0.55, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                function tick(now) {
+                    if (!reduceMotion) rotation += 0.0028;
+                    draw(now);
+                    rafId = window.requestAnimationFrame(tick);
+                }
+
+                buildStars();
+                buildFallbackPoints();
+                loadLandMask();
+                resize();
+                rafId = window.requestAnimationFrame(tick);
+
+                window.addEventListener('resize', function () {
+                    resize();
+                });
+
+                document.addEventListener('visibilitychange', function () {
+                    if (document.hidden) {
+                        if (rafId) window.cancelAnimationFrame(rafId);
+                        rafId = null;
+                    } else if (!rafId) {
+                        rafId = window.requestAnimationFrame(tick);
+                    }
+                });
+            })();
         </script>
     </body>
 </html>

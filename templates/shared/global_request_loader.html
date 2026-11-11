@@ -1,0 +1,14 @@
+{% load i18n %}
+<div
+    id="hrms-global-loader"
+    class="hrms-global-loader"
+    hidden
+    aria-live="polite"
+    aria-busy="false"
+>
+    <div class="hrms-global-loader__backdrop" aria-hidden="true"></div>
+    <div class="hrms-global-loader__panel" role="status">
+        <div class="hrms-global-loader__spinner" aria-hidden="true"></div>
+        <span class="hrms-global-loader__label">{% trans "Loading…" %}</span>
+    </div>
+</div>

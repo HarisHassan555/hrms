@@ -1756,6 +1756,8 @@ def get_next_month_same_date(date_obj):
     if month > 12:
         month = 1
         year = year + 1
+    if year > 9999:
+        raise ValueError("year 10000 is out of range")
     day = date_copy.day
     total_days_in_month = calendar.monthrange(year, month)[1]
     day = min(day, total_days_in_month)

@@ -2,9 +2,9 @@
 Home-dashboard role resolution and chart preference defaults.
 
 Locked decisions (plans/horilla-hr-main-dashboard-redesign.md):
-- Leadership = superuser/staff OR (employee + leave + recruitment view)
-- HR = employee.view_employee ∧ leave.view_leaverequest
-- Manager = reporting manager and not HR/Leadership
+- Leadership = superuser/staff OR (can add employees ∧ leave ∧ recruitment view)
+- HR = employee.view_employee ∧ leave.view_leaverequest ∧ can add employees
+- Manager = reporting manager (team lead without org-wide HR permissions)
 - Employee = everyone else → ESS home
 """
 
@@ -24,6 +24,18 @@ DEMOTED_BY_DEFAULT = (
     "leave_trends",
     "hiring_timeline",
     "recruitment_funnel",
+    # Duplicates of hero presence accents / approvals / department chart
+    "team_presence",
+    "action_queue",
+    "department_overview",
+)
+
+# Always force-hidden even if saved prefs mark them visible — they repeat
+# hero Present/Absent/On Leave/Late or the sticky approvals rail.
+FORCE_HIDDEN_DUPLICATES = (
+    "team_presence",
+    "action_queue",
+    "department_overview",
 )
 
 # Charts shown by default for manager/HR/leadership when prefs are empty.
@@ -31,20 +43,49 @@ DEMOTED_BY_DEFAULT = (
 _BASE_VISIBLE = (
     "attendance_trend",
     "department_headcount",
-    "department_overview",
     "department_overtime",
     "attendance_overview",
     "leave_coverage",
 )
 
+# Manager-first operational tiles (people list + unique module packs).
+_TEAM_VISIBLE = (
+    "team_roster",
+)
+
+# Cross-module KPI packs — one tile per HR domain.
+_MODULE_VISIBLE = (
+    "attendance_module",
+    "leave_module",
+    "recruitment_module",
+    "asset_module",
+    "performance_module",
+    "payroll_module",
+    "workforce_module",
+)
+
 ROLE_DEFAULT_VISIBLE: dict[str, tuple[str, ...]] = {
-    "manager": _BASE_VISIBLE,
+    "manager": (
+        "attendance_trend",
+        "leave_coverage",
+        "department_overtime",
+        "team_roster",
+        "attendance_module",
+        "leave_module",
+        "asset_module",
+        "performance_module",
+        "workforce_module",
+    ),
     "hr": _BASE_VISIBLE
+    + _TEAM_VISIBLE
+    + _MODULE_VISIBLE
     + (
         "recruitment_pipeline",
         "employee_turnover",
     ),
     "leadership": _BASE_VISIBLE
+    + _TEAM_VISIBLE
+    + _MODULE_VISIBLE
     + (
         "recruitment_pipeline",
         "employee_turnover",
@@ -84,15 +125,16 @@ def resolve_home_role(request) -> HomeRole:
     has_employee = user.has_perm("employee.view_employee")
     has_leave = user.has_perm("leave.view_leaverequest")
     has_recruitment = user.has_perm("recruitment.view_recruitment")
-
-    if has_employee and has_leave and has_recruitment:
-        return "leadership"
-
-    if has_employee and has_leave:
-        return "hr"
+    can_manage_employees = user.has_perm("employee.add_employee")
 
     if _is_reporting_manager(user):
         return "manager"
+
+    if can_manage_employees and has_employee and has_leave and has_recruitment:
+        return "leadership"
+
+    if can_manage_employees and has_employee and has_leave:
+        return "hr"
 
     return "employee"
 
@@ -116,6 +158,8 @@ def role_default_prefs(
             dict.fromkeys(
                 list(DEMOTED_BY_DEFAULT)
                 + list(_BASE_VISIBLE)
+                + list(_TEAM_VISIBLE)
+                + list(_MODULE_VISIBLE)
                 + [
                     "recruitment_pipeline",
                     "employee_turnover",
@@ -133,3 +177,16 @@ def role_default_prefs(
 
 def can_see_analytics_home(role: HomeRole) -> bool:
     return role in ("manager", "hr", "leadership")
+
+
+def can_access_analytics_dashboard(request) -> bool:
+    """True when the user may open ``/dashboard/`` (analytics home), not ESS."""
+    user = getattr(request, "user", None)
+    if user is None:
+        return False
+    authenticated = getattr(user, "is_authenticated", True)
+    if callable(authenticated):
+        authenticated = authenticated()
+    if not authenticated:
+        return False
+    return can_see_analytics_home(resolve_home_role(request))

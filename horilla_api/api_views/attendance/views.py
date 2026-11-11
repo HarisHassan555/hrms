@@ -16,6 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from attendance.methods.utils import resolve_shift_day
 from attendance.models import (
     Attendance,
     AttendanceActivity,
@@ -152,8 +153,7 @@ class ClockInAPIView(APIView):
                 if request.__dict__.get("date"):
                     date_today = request.date
                 attendance_date = date_today
-                day = date_today.strftime("%A").lower()
-                day = EmployeeShiftDay.objects.get(day=day)
+                day = resolve_shift_day(date_today.strftime("%A").lower())
                 now = datetime.now().strftime("%H:%M")
                 if request.__dict__.get("time"):
                     now = request.time.strftime("%H:%M")
@@ -172,8 +172,9 @@ class ClockInAPIView(APIView):
                         # Here you need to create attendance for yesterday
 
                         date_yesterday = date_today - timedelta(days=1)
-                        day_yesterday = date_yesterday.strftime("%A").lower()
-                        day_yesterday = EmployeeShiftDay.objects.get(day=day_yesterday)
+                        day_yesterday = resolve_shift_day(
+                            date_yesterday.strftime("%A").lower()
+                        )
                         (
                             minimum_hour,
                             start_time_sec,

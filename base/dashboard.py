@@ -326,25 +326,176 @@ def _today_leave_qs(request, today, status="approved"):
 
 def _scoped_active_employee_ids(request):
     """
-    Return subordinate employee PKs when the user lacks org-wide employee view.
+    Return employee PKs visible on the analytics dashboard.
 
-    ``None`` means company-scoped (HorillaCompanyManager) — no extra filter.
+    ``None`` = org-wide (HR / leadership).
+
+    Managers always see the **nested** reporting tree (direct reports and their
+    reports, recursively) — matching org-chart visibility: a manager of
+    managers sees the full subtree. Self is excluded; KPIs are about the team.
     """
-    user = request.user
-    if user.is_superuser or user.has_perm("employee.view_employee"):
-        return None
-    try:
-        from base.methods import filtersubordinatesemployeemodel
-        from employee.models import Employee
+    from base.dashboard_roles import resolve_home_role
 
-        qs = filtersubordinatesemployeemodel(
-            request,
-            Employee.objects.filter(is_active=True),
-            perm="employee.view_employee",
-        )
-        return list(qs.values_list("id", flat=True))
+    user = request.user
+    if user.is_superuser or user.is_staff:
+        return None
+
+    role = resolve_home_role(request)
+    if role in ("hr", "leadership"):
+        return None
+
+    try:
+        from base.methods import get_subordinate_employee_ids
+
+        # Always nested on /dashboard so senior managers see the full subtree
+        # regardless of the global NESTED_SUBORDINATE_VISIBILITY flag.
+        sub_ids = get_subordinate_employee_ids(request, nested=True)
+        return list(set(sub_ids))
     except Exception:
         return []
+
+
+def _scoped_today_leave_qs(request, today, status="approved"):
+    """Leave rows for today, clipped to dashboard employee scope when team-scoped."""
+    scoped_ids = _scoped_active_employee_ids(request)
+    if scoped_ids is None:
+        return _today_leave_qs(request, today, status=status)
+
+    from leave.models import LeaveRequest
+
+    return (
+        LeaveRequest.objects.filter(
+            status=status,
+            start_date__lte=today,
+            employee_id__in=scoped_ids,
+        )
+        .filter(Q(end_date__gte=today) | Q(end_date__isnull=True, start_date=today))
+        .distinct()
+    )
+
+
+def _scoped_leave_overlap_qs(request, start, end, status="approved"):
+    """Leave overlapping ``[start, end]``, clipped to dashboard employee scope."""
+    from leave.models import LeaveRequest
+
+    scoped_ids = _scoped_active_employee_ids(request)
+    qs = LeaveRequest.objects.filter(status=status, start_date__lte=end).filter(
+        Q(end_date__gte=start) | Q(end_date__isnull=True, start_date__gte=start)
+    )
+    if scoped_ids is not None:
+        qs = qs.filter(employee_id__in=scoped_ids)
+    return qs.distinct()
+
+
+def _team_coverage_next_days(request, emp_ids, days=7):
+    """Unique coverage KPIs for managers: upcoming leave + peak concurrent day."""
+    today = date.today()
+    end = today + timedelta(days=days - 1)
+    upcoming_people = 0
+    peak_on_leave = 0
+    peak_date = None
+    try:
+        rows = list(
+            _scoped_leave_overlap_qs(request, today, end, status="approved").values(
+                "employee_id", "start_date", "end_date"
+            )
+        )
+        upcoming_people = len({r["employee_id"] for r in rows})
+        team_size = max(1, len(emp_ids) if emp_ids is not None else upcoming_people)
+        for offset in range(days):
+            day = today + timedelta(days=offset)
+            on_leave = 0
+            for r in rows:
+                start = r["start_date"]
+                end_d = r["end_date"] or r["start_date"]
+                if start <= day <= end_d:
+                    on_leave += 1
+            if on_leave > peak_on_leave:
+                peak_on_leave = on_leave
+                peak_date = day
+        peak_pct = round((peak_on_leave / team_size) * 100, 1) if team_size else 0
+    except Exception:
+        return {
+            "upcoming_leave_7d": 0,
+            "peak_on_leave_7d": 0,
+            "peak_leave_date": None,
+            "peak_leave_pct": 0,
+        }
+    return {
+        "upcoming_leave_7d": upcoming_people,
+        "peak_on_leave_7d": peak_on_leave,
+        "peak_leave_date": peak_date.isoformat() if peak_date else None,
+        "peak_leave_pct": peak_pct,
+    }
+
+
+def _mtd_attendance_stats(emp_ids, today=None):
+    """Month-to-date attendance rate and late incidents (scoped employee ids)."""
+    today = today or date.today()
+    first = today.replace(day=1)
+    mtd_rate = 0.0
+    late_mtd = 0
+    present_days = 0
+    try:
+        from attendance.models import Attendance, AttendanceLateComeEarlyOut
+
+        if not emp_ids:
+            return {"mtd_attendance_rate": 0.0, "late_mtd": 0, "present_days_mtd": 0}
+
+        present_days = (
+            Attendance.objects.filter(
+                employee_id__in=emp_ids,
+                attendance_date__gte=first,
+                attendance_date__lte=today,
+            )
+            .values("employee_id", "attendance_date")
+            .distinct()
+            .count()
+        )
+        # Expected person-days ≈ active headcount × weekdays so far (simple).
+        weekdays = sum(
+            1
+            for i in range((today - first).days + 1)
+            if (first + timedelta(days=i)).weekday() < 5
+        )
+        expected = max(1, len(emp_ids) * weekdays)
+        mtd_rate = round((present_days / expected) * 100, 1)
+        late_mtd = (
+            AttendanceLateComeEarlyOut.objects.filter(
+                type="late_come",
+                attendance_id__attendance_date__gte=first,
+                attendance_id__attendance_date__lte=today,
+                employee_id__in=emp_ids,
+            )
+            .values("employee_id")
+            .distinct()
+            .count()
+        )
+    except Exception:
+        pass
+    return {
+        "mtd_attendance_rate": mtd_rate,
+        "late_mtd": late_mtd,
+        "present_days_mtd": present_days,
+    }
+
+
+def _scoped_employee_queryset(request, *, active_only=True):
+    """Employees clipped to the dashboard reporting scope (nested subordinates)."""
+    from employee.models import Employee
+
+    qs = Employee.objects.all()
+    if active_only:
+        qs = qs.filter(is_active=True)
+    scoped_ids = _scoped_active_employee_ids(request)
+    if scoped_ids is not None:
+        qs = qs.filter(id__in=scoped_ids)
+    return qs, scoped_ids
+
+
+def _is_team_scoped(request):
+    """True when analytics must stay inside the user's subordinate tree."""
+    return _scoped_active_employee_ids(request) is not None
 
 
 def _company_scope_context(request) -> dict:
@@ -372,21 +523,21 @@ def _company_scope_context(request) -> dict:
 def main_dashboard_view(request):
     """Render the modern analytics dashboard (manager/HR/leadership).
 
-    Pure employees are redirected to ESS unless ``?view=analytics`` is set
-    (explicit switch from ESS).
+    Employees (ESS home) cannot access analytics; middleware redirects them.
     """
     from django.apps import apps
     from django.shortcuts import redirect
 
     from base.dashboard_roles import (
-        can_see_analytics_home,
+        can_access_analytics_dashboard,
         resolve_home_role,
         role_default_prefs,
     )
 
-    home_role = resolve_home_role(request)
-    if not can_see_analytics_home(home_role) and request.GET.get("view") != "analytics":
+    if not can_access_analytics_dashboard(request):
         return redirect("ess-dashboard")
+
+    home_role = resolve_home_role(request)
 
     enabled_timerunner = True
     get_forecasted_at_work = None
@@ -439,15 +590,23 @@ def _normalize_dashboard_chart_prefs(charts):
     Modern prefs are ``[{id, visible}, ...]``.
     Legacy FAB prefs stored excluded chart id strings — incompatible with the
     modern dashboard; treat those as empty (all charts visible by default).
+
+    Cards listed in ``FORCE_HIDDEN_DUPLICATES`` stay force-hidden so saved
+    prefs cannot resurface duplicate KPI tiles.
     """
+    from base.dashboard_roles import FORCE_HIDDEN_DUPLICATES
+
     if not charts or not isinstance(charts, list):
         return []
     if isinstance(charts[0], str):
         return []
+    force_hidden = set(FORCE_HIDDEN_DUPLICATES)
     clean = []
     for item in charts:
         if isinstance(item, dict) and item.get("id"):
-            clean.append({"id": item["id"], "visible": item.get("visible", True)})
+            cid = item["id"]
+            visible = False if cid in force_hidden else item.get("visible", True)
+            clean.append({"id": cid, "visible": visible})
     return clean
 
 
@@ -505,7 +664,7 @@ def dashboard_kpi_data(request):
     on_leave_employee_ids = set()
     half_day_today = 0
     try:
-        leave_qs = _today_leave_qs(request, real_today, status="approved")
+        leave_qs = _scoped_today_leave_qs(request, real_today, status="approved")
         on_leave_employee_ids = set(
             leave_qs.values_list("employee_id", flat=True).distinct()
         )
@@ -555,6 +714,34 @@ def dashboard_kpi_data(request):
     except Exception:
         pass
 
+    late_today = 0
+    early_out_today = 0
+    try:
+        from attendance.models import AttendanceLateComeEarlyOut
+
+        late_today = (
+            AttendanceLateComeEarlyOut.objects.filter(
+                type="late_come",
+                attendance_id__attendance_date=real_today,
+                employee_id__in=emp_qs,
+            )
+            .values("employee_id")
+            .distinct()
+            .count()
+        )
+        early_out_today = (
+            AttendanceLateComeEarlyOut.objects.filter(
+                type="early_out",
+                attendance_id__attendance_date=real_today,
+                employee_id__in=emp_qs,
+            )
+            .values("employee_id")
+            .distinct()
+            .count()
+        )
+    except Exception:
+        pass
+
     # Expected = active employees not on approved leave (excludes leave from
     # the denominator so "absent" is not inflated by people who should be out).
     expected_today = max(0, total_employees - on_leave)
@@ -575,7 +762,7 @@ def dashboard_kpi_data(request):
 
     pending_leaves = 0
     try:
-        pending_leaves = _today_leave_qs(
+        pending_leaves = _scoped_today_leave_qs(
             request, real_today, status="requested"
         ).count()
     except Exception:
@@ -585,9 +772,9 @@ def dashboard_kpi_data(request):
     try:
         from recruitment.models import Recruitment
 
-        # Recruitments stay org-wide for users with recruitment view; managers
-        # without that perm see 0 (chart is also gated).
-        if (
+        # Org-wide recruitment counts are for HR/leadership only. Team-scoped
+        # managers must not see company hiring totals as their team KPI.
+        if not _is_team_scoped(request) and (
             request.user.has_perm("recruitment.view_recruitment")
             or request.user.is_superuser
         ):
@@ -597,9 +784,23 @@ def dashboard_kpi_data(request):
     except Exception:
         pass
 
+    # Direct reports only (for chip context); KPIs use nested subtree above.
+    direct_reports = 0
+    try:
+        from base.methods import get_subordinate_employee_ids
+
+        direct_reports = len(get_subordinate_employee_ids(request, nested=False))
+    except Exception:
+        pass
+
+    emp_id_list = list(emp_qs.values_list("id", flat=True))
+    coverage = _team_coverage_next_days(request, emp_id_list, days=7)
+    mtd = _mtd_attendance_stats(emp_id_list, real_today)
+
     return JsonResponse(
         {
             "total_employees": total_employees,
+            "direct_reports": direct_reports,
             "present_today": present_today,
             "present_by_work_type": present_by_work_type,
             "absent_today": absent_today,
@@ -609,9 +810,17 @@ def dashboard_kpi_data(request):
             "attendance_rate": attendance_rate,
             "on_leave": on_leave,
             "half_day_today": half_day_today,
+            "late_today": late_today,
+            "early_out_today": early_out_today,
             "pending_leaves": pending_leaves,
             "new_joiners": new_joiners,
             "open_recruitments": open_recruitments,
+            "upcoming_leave_7d": coverage["upcoming_leave_7d"],
+            "peak_on_leave_7d": coverage["peak_on_leave_7d"],
+            "peak_leave_date": coverage["peak_leave_date"],
+            "peak_leave_pct": coverage["peak_leave_pct"],
+            "mtd_attendance_rate": mtd["mtd_attendance_rate"],
+            "late_mtd": mtd["late_mtd"],
             "date": today.isoformat(),
             "is_team_scoped": scoped_ids is not None,
         }
@@ -678,10 +887,15 @@ def dashboard_attendance_trend(request):
 def dashboard_leave_breakdown(request):
     """Leave type breakdown for the current calendar month.
 
-    Requires leave.view_leaverequest permission or superuser.
+    Requires leave.view_leaverequest permission, superuser, or reporting manager.
+    Team-scoped users only see leave inside their subordinate tree.
     """
     user = request.user
-    if not (user.is_superuser or user.has_perm("leave.view_leaverequest")):
+    if not (
+        user.is_superuser
+        or user.has_perm("leave.view_leaverequest")
+        or _is_manager(user)
+    ):
         return JsonResponse({"no_permission": True})
 
     # Always the current calendar month -- ignores any from_date/to_date so
@@ -689,19 +903,22 @@ def dashboard_leave_breakdown(request):
     first_of_month, last_of_month = _current_month_bounds()
     today = date.today()
     breakdown = []
+    scoped_ids = _scoped_active_employee_ids(request)
 
     try:
         from django.db.models import Count, Sum
 
         from leave.models import LeaveRequest
 
+        qs = LeaveRequest.objects.filter(
+            start_date__gte=first_of_month,
+            start_date__lte=last_of_month,
+            status__in=["approved", "requested"],
+        )
+        if scoped_ids is not None:
+            qs = qs.filter(employee_id__in=scoped_ids)
         data = (
-            LeaveRequest.objects.filter(
-                start_date__gte=first_of_month,
-                start_date__lte=last_of_month,
-                status__in=["approved", "requested"],
-            )
-            .values("leave_type_id__name")
+            qs.values("leave_type_id__name")
             .annotate(count=Count("id"), total_days=Sum("requested_days"))
             .order_by("-count")[:8]
         )
@@ -717,22 +934,26 @@ def dashboard_leave_breakdown(request):
     except Exception:
         pass
 
-    return JsonResponse({"breakdown": breakdown, "month": today.strftime("%B %Y")})
+    return JsonResponse(
+        {
+            "breakdown": breakdown,
+            "month": today.strftime("%B %Y"),
+            "is_team_scoped": scoped_ids is not None,
+        }
+    )
 
 
 @login_required
 def dashboard_department_headcount(request):
-    """Department-wise headcount."""
+    """Department-wise headcount within the dashboard reporting scope."""
     departments = []
+    emp_qs, scoped_ids = _scoped_employee_queryset(request)
 
     try:
         from django.db.models import Count
 
-        from employee.models import Employee
-
         data = (
-            Employee.objects.filter(is_active=True)
-            .values("employee_work_info__department_id__department")
+            emp_qs.values("employee_work_info__department_id__department")
             .annotate(count=Count("id"))
             .order_by("-count")[:10]
         )
@@ -744,25 +965,21 @@ def dashboard_department_headcount(request):
     except Exception:
         pass
 
-    return JsonResponse({"departments": departments})
+    return JsonResponse(
+        {"departments": departments, "is_team_scoped": scoped_ids is not None}
+    )
 
 
 @login_required
 def dashboard_gender_split(request):
-    """Gender distribution."""
+    """Gender distribution within the dashboard reporting scope."""
     genders = []
+    emp_qs, scoped_ids = _scoped_employee_queryset(request)
 
     try:
         from django.db.models import Count
 
-        from employee.models import Employee
-
-        data = (
-            Employee.objects.filter(is_active=True)
-            .values("gender")
-            .annotate(count=Count("id"))
-            .order_by("-count")
-        )
+        data = emp_qs.values("gender").annotate(count=Count("id")).order_by("-count")
 
         gender_map = {
             "male": _("Male"),
@@ -785,7 +1002,7 @@ def dashboard_gender_split(request):
     except Exception:
         pass
 
-    return JsonResponse({"genders": genders})
+    return JsonResponse({"genders": genders, "is_team_scoped": scoped_ids is not None})
 
 
 @login_required
@@ -881,33 +1098,27 @@ def dashboard_announcement_detail(request, pk):
 
 @login_required
 def dashboard_todays_leave(request):
-    """Employees on leave today.
-
-    Users without leave view permission see only their own leave.
-    """
+    """Employees on leave today within the dashboard reporting scope."""
     today = date.today()
     leaves = []
 
     user = request.user
     is_mgr = _is_manager(user)
-    can_view_all = user.has_perm("leave.view_leaverequest") or is_mgr
+    can_view_team = (
+        user.is_superuser
+        or user.has_perm("leave.view_leaverequest")
+        or is_mgr
+    )
+    scoped_ids = _scoped_active_employee_ids(request)
 
     try:
-        from leave.models import LeaveRequest
-
-        qs = LeaveRequest.objects.filter(
-            start_date__lte=today,
-            end_date__gte=today,
-            status="approved",
+        qs = _scoped_today_leave_qs(
+            request, today, status="approved"
         ).select_related("employee_id", "leave_type_id")
 
-        if not can_view_all:
+        if not can_view_team:
             employee = getattr(user, "employee_get", None)
             qs = qs.filter(employee_id=employee) if employee else qs.none()
-        elif is_mgr and not user.has_perm("leave.view_leaverequest"):
-            from base.methods import filtersubordinates
-
-            qs = filtersubordinates(request, qs, "leave.view_leaverequest")
 
         qs = qs.order_by("employee_id__employee_first_name")[:20]
 
@@ -922,7 +1133,7 @@ def dashboard_todays_leave(request):
                     "avatar": emp.get_avatar() if emp else None,
                     "leave_type": lr.leave_type_id.name if lr.leave_type_id else "—",
                     "start": lr.start_date.strftime("%b %d"),
-                    "end": lr.end_date.strftime("%b %d"),
+                    "end": lr.end_date.strftime("%b %d") if lr.end_date else "—",
                     "days": float(lr.requested_days) if lr.requested_days else 1,
                 }
             )
@@ -930,7 +1141,12 @@ def dashboard_todays_leave(request):
         pass
 
     return JsonResponse(
-        {"leaves": leaves, "date": today.isoformat(), "is_restricted": not can_view_all}
+        {
+            "leaves": leaves,
+            "date": today.isoformat(),
+            "is_restricted": not can_view_team or scoped_ids is not None,
+            "is_team_scoped": scoped_ids is not None,
+        }
     )
 
 
@@ -979,10 +1195,11 @@ def dashboard_upcoming_holidays(request):
 
 @login_required
 def dashboard_birthdays_anniversaries(request):
-    """Birthdays and work anniversaries occurring in the current calendar month."""
+    """Birthdays and work anniversaries in the current month (reporting scope)."""
     today = date.today()
     birthdays = []
     anniversaries = []
+    emp_qs, scoped_ids = _scoped_employee_queryset(request)
 
     def _this_month_date(month_day_source):
         """Recreate a month/day in the current year, dodging Feb 29 on non-leap years."""
@@ -992,13 +1209,11 @@ def dashboard_birthdays_anniversaries(request):
             return date(today.year, month_day_source.month, 28)
 
     try:
-        from employee.models import Employee, EmployeeWorkInformation
+        from employee.models import EmployeeWorkInformation
 
         # Birthdays — compare month only, so already-celebrated days this
         # month still show alongside ones still to come.
-        for emp in Employee.objects.filter(
-            is_active=True, dob__month=today.month
-        ).exclude(dob__isnull=True):
+        for emp in emp_qs.filter(dob__month=today.month).exclude(dob__isnull=True):
             this_year_bday = _this_month_date(emp.dob)
             birthdays.append(
                 {
@@ -1015,14 +1230,11 @@ def dashboard_birthdays_anniversaries(request):
         birthdays.sort(key=lambda x: abs(x["days_away"]))
 
         # Work anniversaries — same current-month rule as birthdays.
-        for wi in (
-            EmployeeWorkInformation.objects.filter(
-                employee_id__is_active=True,
-                date_joining__month=today.month,
-            )
-            .exclude(date_joining__isnull=True)
-            .select_related("employee_id")
-        ):
+        ann_qs = EmployeeWorkInformation.objects.filter(
+            employee_id__in=emp_qs,
+            date_joining__month=today.month,
+        ).exclude(date_joining__isnull=True).select_related("employee_id")
+        for wi in ann_qs:
             join = wi.date_joining
             this_year_ann = _this_month_date(join)
             years = today.year - join.year
@@ -1046,6 +1258,7 @@ def dashboard_birthdays_anniversaries(request):
         {
             "birthdays": birthdays[:10],
             "anniversaries": anniversaries[:10],
+            "is_team_scoped": scoped_ids is not None,
         }
     )
 
@@ -1054,10 +1267,13 @@ def dashboard_birthdays_anniversaries(request):
 def dashboard_recruitment_pipeline(request):
     """Recruitment pipeline funnel — candidates aggregated by stage type.
 
-    Org-wide metric: requires recruitment view permission (not manager-only).
+    Org-wide metric: requires recruitment view permission. Hidden for
+    team-scoped managers so hiring totals never look like team KPIs.
     """
     user = request.user
-    if not (user.has_perm("recruitment.view_recruitment") or user.is_superuser):
+    if _is_team_scoped(request) or not (
+        user.has_perm("recruitment.view_recruitment") or user.is_superuser
+    ):
         response = JsonResponse({"no_permission": True})
         response["Cache-Control"] = "no-store, no-cache, must-revalidate"
         return response
@@ -1240,14 +1456,21 @@ def dashboard_pending_approvals(request):
     is_restricted = not can_approve
     employee = getattr(user, "employee_get", None)
 
-    # Leave requests
+    # Leave requests — managers use nested team scope on the dashboard so
+    # senior managers see requests from the full reporting subtree.
     try:
         from leave.models import LeaveRequest
 
         if can_approve:
-            leave_count = (
-                _leave_request_list_qs(request).filter(status="requested").count()
-            )
+            scoped_ids = _scoped_active_employee_ids(request)
+            if scoped_ids is not None:
+                leave_count = LeaveRequest.objects.filter(
+                    status="requested", employee_id__in=scoped_ids
+                ).count()
+            else:
+                leave_count = (
+                    _leave_request_list_qs(request).filter(status="requested").count()
+                )
         else:
             leave_count = (
                 LeaveRequest.objects.filter(
@@ -1417,6 +1640,1116 @@ def dashboard_pending_approvals(request):
 
 
 @login_required
+def dashboard_team_pulse(request):
+    """Team / subordinate pulse for manager-friendly dashboard tiles.
+
+    Returns presence counts, late arrivals, and a short member roster with
+    status for the same employee scope as other analytics KPIs.
+    """
+    from employee.models import Employee
+
+    today = date.today()
+    scoped_ids = _scoped_active_employee_ids(request)
+    emp_qs = Employee.objects.filter(is_active=True).select_related(
+        "employee_work_info__job_position_id"
+    )
+    if scoped_ids is not None:
+        emp_qs = emp_qs.filter(id__in=scoped_ids)
+
+    # Roster prefers the nested reporting tree for managers; org-wide for HR.
+    roster_qs = emp_qs
+    try:
+        from base.methods import get_subordinate_employee_ids
+
+        sub_ids = get_subordinate_employee_ids(request, nested=True)
+        if sub_ids:
+            roster_qs = emp_qs.filter(id__in=sub_ids)
+    except Exception:
+        pass
+
+    team_size = emp_qs.count()
+    on_leave_ids = set()
+    try:
+        on_leave_ids = set(
+            _scoped_today_leave_qs(request, today, status="approved")
+            .values_list("employee_id", flat=True)
+            .distinct()
+        )
+    except Exception:
+        pass
+
+    present_ids = set()
+    try:
+        from attendance.models import Attendance
+
+        present_ids = set(
+            Attendance.objects.filter(
+                attendance_date=today, employee_id__in=emp_qs
+            )
+            .values_list("employee_id", flat=True)
+            .distinct()
+        )
+    except Exception:
+        pass
+
+    late_ids = set()
+    early_out_ids = set()
+    try:
+        from attendance.models import AttendanceLateComeEarlyOut
+
+        late_qs = AttendanceLateComeEarlyOut.objects.filter(
+            type="late_come",
+            attendance_id__attendance_date=today,
+            employee_id__in=emp_qs,
+        )
+        late_ids = set(late_qs.values_list("employee_id", flat=True).distinct())
+        early_out_ids = set(
+            AttendanceLateComeEarlyOut.objects.filter(
+                type="early_out",
+                attendance_id__attendance_date=today,
+                employee_id__in=emp_qs,
+            )
+            .values_list("employee_id", flat=True)
+            .distinct()
+        )
+    except Exception:
+        pass
+
+    on_leave = len(on_leave_ids & set(emp_qs.values_list("id", flat=True)))
+    present = len(present_ids)
+    offline = max(0, team_size - present - on_leave)
+
+    members = []
+    for emp in roster_qs.order_by("employee_first_name", "employee_last_name")[:14]:
+        emp_id = emp.id
+        if emp_id in on_leave_ids:
+            status = "leave"
+        elif emp_id in late_ids:
+            status = "late"
+        elif emp_id in present_ids:
+            status = "present"
+        else:
+            status = "offline"
+        job = ""
+        try:
+            job = str(emp.get_job_position() or "")
+        except Exception:
+            job = ""
+        members.append(
+            {
+                "id": emp_id,
+                "name": emp.get_full_name(),
+                "avatar": emp.get_avatar(),
+                "job": job,
+                "status": status,
+            }
+        )
+
+    return JsonResponse(
+        {
+            "team_size": team_size,
+            "present": present,
+            "offline": offline,
+            "on_leave": on_leave,
+            "late_today": len(late_ids),
+            "early_out_today": len(early_out_ids),
+            "members": members,
+            "is_team_scoped": scoped_ids is not None,
+        }
+    )
+
+
+@login_required
+def dashboard_module_pulse(request):
+    """Cross-module KPI packs for the analytics home mosaic.
+
+    Each module returns a small set of manager-useful counts, clipped to the
+    nested reporting tree for managers and org-wide for HR/leadership.
+    Modules the user cannot access are marked ``available: false``.
+    """
+    from django.apps import apps
+
+    from employee.models import Employee
+
+    today = date.today()
+    first_of_month, last_of_month = _current_month_bounds()
+    scoped_ids = _scoped_active_employee_ids(request)
+    user = request.user
+    is_mgr = _is_manager(user)
+
+    emp_qs = Employee.objects.filter(is_active=True)
+    if scoped_ids is not None:
+        emp_qs = emp_qs.filter(id__in=scoped_ids)
+    emp_ids = list(emp_qs.values_list("id", flat=True))
+
+    def _can(*perms):
+        return user.is_superuser or any(user.has_perm(p) for p in perms)
+
+    modules = {}
+
+    # ── Attendance (unique vs hero Present/Absent/On Leave/Late accents) ─
+    att_ok = _can("attendance.view_attendance") or is_mgr
+    if apps.is_installed("attendance") and att_ok:
+        early = pending_val = 0
+        ot_hours = 0.0
+        mtd = {"mtd_attendance_rate": 0.0, "late_mtd": 0}
+        try:
+            from attendance.models import (
+                Attendance,
+                AttendanceLateComeEarlyOut,
+                AttendanceOverTime,
+            )
+
+            early = (
+                AttendanceLateComeEarlyOut.objects.filter(
+                    type="early_out",
+                    attendance_id__attendance_date=today,
+                    employee_id__in=emp_ids,
+                )
+                .values("employee_id")
+                .distinct()
+                .count()
+            )
+            pending_val = Attendance.objects.filter(
+                employee_id__in=emp_ids,
+                is_validate_request=True,
+                is_validate_request_approved=False,
+            ).count()
+            ot_qs = AttendanceOverTime.objects.filter(
+                employee_id__in=emp_ids,
+                month=today.strftime("%B").lower(),
+                year=str(today.year),
+            )
+            total_seconds = 0
+            for row in ot_qs.only("overtime_second"):
+                total_seconds += getattr(row, "overtime_second", 0) or 0
+            ot_hours = round(total_seconds / 3600, 1)
+            mtd = _mtd_attendance_stats(emp_ids, today)
+        except Exception:
+            pass
+        modules["attendance"] = {
+            "available": True,
+            "metrics": [
+                {
+                    "key": "mtd_rate",
+                    "label": str(_("MTD attendance %")),
+                    "value": mtd.get("mtd_attendance_rate", 0),
+                },
+                {
+                    "key": "late_mtd",
+                    "label": str(_("Late (month)")),
+                    "value": mtd.get("late_mtd", 0),
+                },
+                {"key": "early_out", "label": str(_("Early out today")), "value": early},
+                {
+                    "key": "pending",
+                    "label": str(_("Pending validation")),
+                    "value": pending_val,
+                },
+                {
+                    "key": "ot_hours",
+                    "label": str(_("OT hours (month)")),
+                    "value": ot_hours,
+                },
+            ],
+        }
+    else:
+        modules["attendance"] = {"available": False, "metrics": []}
+
+    # ── Leave (unique vs hero On Leave accent) ─────────────────────────
+    leave_ok = _can("leave.view_leaverequest") or is_mgr
+    if apps.is_installed("leave") and leave_ok:
+        pending = approved_month = rejected_month = 0
+        try:
+            from leave.models import LeaveRequest
+
+            leave_base = LeaveRequest.objects.filter(employee_id__in=emp_ids)
+            pending = leave_base.filter(status="requested").count()
+            approved_month = leave_base.filter(
+                status="approved",
+                start_date__lte=last_of_month,
+            ).filter(
+                Q(end_date__gte=first_of_month)
+                | Q(end_date__isnull=True, start_date__gte=first_of_month)
+            ).count()
+            rejected_month = leave_base.filter(
+                status="cancelled",
+                start_date__gte=first_of_month,
+                start_date__lte=last_of_month,
+            ).count()
+            rejected_month += leave_base.filter(
+                status="rejected",
+                start_date__gte=first_of_month,
+                start_date__lte=last_of_month,
+            ).count()
+        except Exception:
+            pass
+        # Coverage Next 7 Days (hero) owns upcoming/peak; leave tile stays request ops.
+        modules["leave"] = {
+            "available": True,
+            "metrics": [
+                {"key": "pending", "label": str(_("Pending requests")), "value": pending},
+                {
+                    "key": "approved_month",
+                    "label": str(_("Approved (month)")),
+                    "value": approved_month,
+                },
+                {
+                    "key": "rejected_month",
+                    "label": str(_("Rejected / cancelled")),
+                    "value": rejected_month,
+                },
+            ],
+        }
+    else:
+        modules["leave"] = {"available": False, "metrics": []}
+
+    # ── Recruitment ────────────────────────────────────────────────────
+    # Company hiring pipeline is org-wide; keep it off team-scoped manager homes.
+    rec_ok = (
+        not _is_team_scoped(request)
+        and _can("recruitment.view_recruitment", "recruitment.view_candidate")
+    )
+    if apps.is_installed("recruitment") and rec_ok:
+        open_jobs = candidates = hired_month = interviews = 0
+        try:
+            from recruitment.models import Candidate, Recruitment, Stage
+
+            open_jobs = Recruitment.objects.filter(
+                is_active=True, closed=False
+            ).count()
+            candidates = Candidate.objects.filter(
+                is_active=True, hired=False, canceled=False
+            ).count()
+            hired_month = Candidate.objects.filter(
+                hired=True,
+                hired_date__gte=first_of_month,
+                hired_date__lte=last_of_month,
+            ).count()
+            interview_stages = Stage.objects.filter(
+                stage_type="interview", recruitment_id__closed=False
+            )
+            interviews = Candidate.objects.filter(
+                stage_id__in=interview_stages, is_active=True, canceled=False
+            ).count()
+        except Exception:
+            pass
+        modules["recruitment"] = {
+            "available": True,
+            "metrics": [
+                {"key": "open", "label": str(_("Open jobs")), "value": open_jobs},
+                {
+                    "key": "candidates",
+                    "label": str(_("Active candidates")),
+                    "value": candidates,
+                },
+                {
+                    "key": "interviews",
+                    "label": str(_("In interview")),
+                    "value": interviews,
+                },
+                {
+                    "key": "hired_month",
+                    "label": str(_("Hired (month)")),
+                    "value": hired_month,
+                },
+            ],
+        }
+    else:
+        modules["recruitment"] = {"available": False, "metrics": []}
+
+    # ── Assets ─────────────────────────────────────────────────────────
+    asset_ok = _can("asset.view_asset", "asset.view_assetrequest") or is_mgr
+    if apps.is_installed("asset") and asset_ok:
+        assigned = requests_pending = return_req = 0
+        try:
+            from asset.models import AssetAssignment, AssetRequest
+
+            assigned = AssetAssignment.objects.filter(
+                assigned_to_employee_id__in=emp_ids,
+                return_date__isnull=True,
+            ).count()
+            requests_pending = AssetRequest.objects.filter(
+                requested_employee_id__in=emp_ids,
+                asset_request_status="Requested",
+            ).count()
+            return_req = AssetAssignment.objects.filter(
+                assigned_to_employee_id__in=emp_ids,
+                return_request=True,
+                return_date__isnull=True,
+            ).count()
+        except Exception:
+            pass
+        modules["assets"] = {
+            "available": True,
+            "metrics": [
+                {
+                    "key": "assigned",
+                    "label": str(_("Assets assigned")),
+                    "value": assigned,
+                },
+                {
+                    "key": "requests",
+                    "label": str(_("Pending requests")),
+                    "value": requests_pending,
+                },
+                {
+                    "key": "returns",
+                    "label": str(_("Return requests")),
+                    "value": return_req,
+                },
+            ],
+        }
+    else:
+        modules["assets"] = {"available": False, "metrics": []}
+
+    # ── Performance ────────────────────────────────────────────────────
+    pms_ok = _can("pms.view_employeeobjective", "pms.view_feedback") or is_mgr
+    if apps.is_installed("pms") and pms_ok:
+        active_obj = at_risk = behind = feedback_open = 0
+        try:
+            from pms.models import EmployeeObjective, Feedback
+
+            obj_qs = EmployeeObjective.objects.filter(
+                employee_id__in=emp_ids, archive=False
+            )
+            active_obj = obj_qs.exclude(status="Closed").count()
+            at_risk = obj_qs.filter(status="At Risk").count()
+            behind = obj_qs.filter(status="Behind").count()
+            feedback_open = Feedback.objects.filter(
+                employee_id__in=emp_ids
+            ).exclude(status="Closed").count()
+        except Exception:
+            pass
+        modules["performance"] = {
+            "available": True,
+            "metrics": [
+                {
+                    "key": "active",
+                    "label": str(_("Active objectives")),
+                    "value": active_obj,
+                },
+                {"key": "at_risk", "label": str(_("At risk")), "value": at_risk},
+                {"key": "behind", "label": str(_("Behind")), "value": behind},
+                {
+                    "key": "feedback",
+                    "label": str(_("Open feedback")),
+                    "value": feedback_open,
+                },
+            ],
+        }
+    else:
+        modules["performance"] = {"available": False, "metrics": []}
+
+    # ── Payroll ────────────────────────────────────────────────────────
+    pay_ok = _can("payroll.view_payslip", "payroll.change_payslip") or (
+        user.is_staff and _can("payroll.view_payslip")
+    )
+    if apps.is_installed("payroll") and pay_ok:
+        payslips = reimbursements = loans = contracts = 0
+        try:
+            from payroll.models.models import Contract, LoanAccount, Payslip
+
+            payslips = Payslip.objects.filter(
+                start_date__gte=first_of_month,
+                start_date__lte=last_of_month,
+            ).count()
+            if scoped_ids is not None:
+                payslips = Payslip.objects.filter(
+                    employee_id__in=emp_ids,
+                    start_date__gte=first_of_month,
+                    start_date__lte=last_of_month,
+                ).count()
+            contracts = Contract.objects.filter(
+                employee_id__in=emp_ids, contract_status="active"
+            ).count()
+            try:
+                loans = LoanAccount.objects.filter(
+                    employee_id__in=emp_ids
+                ).exclude(settled=True).count()
+            except Exception:
+                try:
+                    loans = LoanAccount.objects.filter(employee_id__in=emp_ids).count()
+                except Exception:
+                    loans = 0
+            try:
+                from payroll.models.models import Reimbursement
+
+                reimbursements = Reimbursement.objects.filter(
+                    status="requested"
+                ).count()
+                if scoped_ids is not None:
+                    reimbursements = Reimbursement.objects.filter(
+                        employee_id__in=emp_ids, status="requested"
+                    ).count()
+            except Exception:
+                reimbursements = 0
+        except Exception:
+            pass
+        modules["payroll"] = {
+            "available": True,
+            "metrics": [
+                {
+                    "key": "payslips",
+                    "label": str(_("Payslips (month)")),
+                    "value": payslips,
+                },
+                {
+                    "key": "contracts",
+                    "label": str(_("Active contracts")),
+                    "value": contracts,
+                },
+                {
+                    "key": "reimbursements",
+                    "label": str(_("Reimbursements")),
+                    "value": reimbursements,
+                },
+                {"key": "loans", "label": str(_("Active loans")), "value": loans},
+            ],
+        }
+    else:
+        modules["payroll"] = {"available": False, "metrics": []}
+
+    # ── Workforce ops (offboarding + helpdesk) ─────────────────────────
+    off_ok = apps.is_installed("offboarding") and (
+        _can("offboarding.view_offboardingemployee") or is_mgr or user.is_superuser
+    )
+    help_ok = apps.is_installed("helpdesk") and (
+        _can("helpdesk.view_ticket") or is_mgr or user.is_superuser
+    )
+    if off_ok or help_ok:
+        exits = resignations = open_tickets = new_tickets = 0
+        if off_ok:
+            try:
+                from offboarding.models import OffboardingEmployee, ResignationLetter
+
+                exits = OffboardingEmployee.objects.filter(
+                    employee_id__in=emp_ids
+                ).count()
+                resignations = ResignationLetter.objects.filter(
+                    status="requested", employee_id__in=emp_ids
+                ).count()
+            except Exception:
+                pass
+        if help_ok:
+            try:
+                from helpdesk.models import Ticket
+
+                tq = Ticket.objects.exclude(status__in=["resolved", "canceled"])
+                if scoped_ids is not None:
+                    # Tickets assigned to / created for scoped employees when possible
+                    tq = tq.filter(
+                        Q(employee_id__in=emp_ids) | Q(assigned_to__in=emp_ids)
+                    )
+                open_tickets = tq.count()
+                new_tickets = tq.filter(status="new").count()
+            except Exception:
+                pass
+        modules["workforce"] = {
+            "available": True,
+            "metrics": [
+                {
+                    "key": "exits",
+                    "label": str(_("Offboarding")),
+                    "value": exits,
+                },
+                {
+                    "key": "resignations",
+                    "label": str(_("Resignations")),
+                    "value": resignations,
+                },
+                {
+                    "key": "tickets",
+                    "label": str(_("Open tickets")),
+                    "value": open_tickets,
+                },
+                {
+                    "key": "new_tickets",
+                    "label": str(_("New tickets")),
+                    "value": new_tickets,
+                },
+            ],
+        }
+    else:
+        modules["workforce"] = {"available": False, "metrics": []}
+
+    return JsonResponse(
+        {
+            "modules": modules,
+            "team_size": len(emp_ids),
+            "is_team_scoped": scoped_ids is not None,
+            "date": today.isoformat(),
+        }
+    )
+
+
+@login_required
+def dashboard_module_detail(request):
+    """Return detail rows for a module KPI click (popup modal payload)."""
+    from django.apps import apps
+
+    from employee.models import Employee
+
+    module = (request.GET.get("module") or "").strip()
+    metric = (request.GET.get("metric") or "").strip()
+    today = date.today()
+    first_of_month, last_of_month = _current_month_bounds()
+    scoped_ids = _scoped_active_employee_ids(request)
+
+    emp_qs = Employee.objects.filter(is_active=True).select_related(
+        "employee_work_info__job_position_id",
+        "employee_work_info__department_id",
+    )
+    if scoped_ids is not None:
+        emp_qs = emp_qs.filter(id__in=scoped_ids)
+    emp_ids = list(emp_qs.values_list("id", flat=True))
+
+    def rows_for(ids, badge="", badge_tone="slate", meta_fn=None):
+        out = []
+        id_set = set(ids)
+        for emp in emp_qs.filter(id__in=id_set).order_by(
+            "employee_first_name", "employee_last_name"
+        )[:40]:
+            meta = meta_fn(emp) if meta_fn else ""
+            try:
+                profile = reverse("employee-view-individual", kwargs={"obj_id": emp.id})
+            except Exception:
+                profile = "#"
+            out.append(
+                {
+                    "id": emp.id,
+                    "name": emp.get_full_name(),
+                    "avatar": emp.get_avatar(),
+                    "job": str(emp.get_job_position() or ""),
+                    "department": str(emp.get_department() or ""),
+                    "meta": meta,
+                    "badge": badge,
+                    "badge_tone": badge_tone,
+                    "url": profile,
+                }
+            )
+        return out
+
+    title = str(_("Details"))
+    subtitle = ""
+    rows = []
+    view_all = ""
+
+    try:
+        if module == "attendance" and apps.is_installed("attendance"):
+            from attendance.models import (
+                Attendance,
+                AttendanceLateComeEarlyOut,
+                AttendanceOverTime,
+            )
+
+            present_ids = set(
+                Attendance.objects.filter(
+                    attendance_date=today, employee_id__in=emp_ids
+                ).values_list("employee_id", flat=True)
+            )
+            leave_ids = set(
+                _scoped_today_leave_qs(request, today, status="approved").values_list(
+                    "employee_id", flat=True
+                )
+            )
+            if metric == "present":
+                title = str(_("Present today"))
+                rows = rows_for(present_ids, str(_("Present")), "green")
+                view_all = (
+                    _safe_url("employee-view")
+                    + f"?present_on={today.isoformat()}&is_active=True&filter_applied=on"
+                )
+            elif metric == "absent":
+                title = str(_("Absent / not punched"))
+                absent_ids = set(emp_ids) - present_ids - leave_ids
+                rows = rows_for(absent_ids, str(_("Absent")), "red")
+                view_all = (
+                    _safe_url("employee-view")
+                    + f"?expected_to_check_in={today.isoformat()}&is_active=True&filter_applied=on"
+                )
+            elif metric == "late":
+                title = str(_("Late arrivals"))
+                late_ids = set(
+                    AttendanceLateComeEarlyOut.objects.filter(
+                        type="late_come",
+                        attendance_id__attendance_date=today,
+                        employee_id__in=emp_ids,
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(late_ids, str(_("Late")), "amber")
+                view_all = (
+                    _safe_url("employee-view")
+                    + f"?present_on={today.isoformat()}&attendance_status=late_come&is_active=True&filter_applied=on"
+                )
+            elif metric == "early_out":
+                title = str(_("Early departures"))
+                early_ids = set(
+                    AttendanceLateComeEarlyOut.objects.filter(
+                        type="early_out",
+                        attendance_id__attendance_date=today,
+                        employee_id__in=emp_ids,
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(early_ids, str(_("Early out")), "blue")
+            elif metric == "pending":
+                title = str(_("Pending attendance validation"))
+                pending_ids = set(
+                    Attendance.objects.filter(
+                        employee_id__in=emp_ids,
+                        is_validate_request=True,
+                        is_validate_request_approved=False,
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(pending_ids, str(_("Pending")), "amber")
+                view_all = _safe_url("request-attendance-view") + (
+                    "?open_tab=1&is_validate_request_approved=False&filter_applied=1"
+                )
+            elif metric == "ot_hours":
+                title = str(_("Overtime this month"))
+                ot_map = {
+                    r.employee_id_id: round((r.overtime_second or 0) / 3600, 1)
+                    for r in AttendanceOverTime.objects.filter(
+                        employee_id__in=emp_ids,
+                        month=today.strftime("%B").lower(),
+                        year=str(today.year),
+                    ).only("employee_id_id", "overtime_second")
+                    if (r.overtime_second or 0) > 0
+                }
+                rows = rows_for(
+                    ot_map.keys(),
+                    str(_("OT")),
+                    "indigo",
+                    meta_fn=lambda e: f"{ot_map.get(e.id, 0)} h",
+                )
+            elif metric == "mtd_rate":
+                title = str(_("Month-to-date attendance"))
+                first = today.replace(day=1)
+                present_ids = set(
+                    Attendance.objects.filter(
+                        employee_id__in=emp_ids,
+                        attendance_date__gte=first,
+                        attendance_date__lte=today,
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(present_ids, str(_("Attended this month")), "green")
+            elif metric == "late_mtd":
+                title = str(_("Late arrivals this month"))
+                first = today.replace(day=1)
+                late_ids = set(
+                    AttendanceLateComeEarlyOut.objects.filter(
+                        type="late_come",
+                        attendance_id__attendance_date__gte=first,
+                        attendance_id__attendance_date__lte=today,
+                        employee_id__in=emp_ids,
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(late_ids, str(_("Late")), "amber")
+
+        elif module == "leave" and apps.is_installed("leave"):
+            from leave.models import LeaveRequest
+
+            leave_base = LeaveRequest.objects.filter(employee_id__in=emp_ids)
+            if metric == "on_leave":
+                title = str(_("On leave today"))
+                ids = set(
+                    _scoped_today_leave_qs(
+                        request, today, status="approved"
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("On leave")), "amber")
+                view_all = (
+                    _safe_url("request-view")
+                    + "?status=approved&today_leave=true&filter_applied=on"
+                )
+            elif metric in ("upcoming_7d", "peak_7d"):
+                end = today + timedelta(days=6)
+                title = (
+                    str(_("On leave next 7 days"))
+                    if metric == "upcoming_7d"
+                    else str(_("Peak coverage day (next 7 days)"))
+                )
+                ids = set(
+                    _scoped_leave_overlap_qs(
+                        request, today, end, status="approved"
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("Upcoming leave")), "amber")
+                view_all = (
+                    _safe_url("request-view")
+                    + "?status=approved&filter_applied=on"
+                )
+            elif metric == "pending":
+                title = str(_("Pending leave requests"))
+                ids = set(
+                    leave_base.filter(status="requested").values_list(
+                        "employee_id", flat=True
+                    )
+                )
+                rows = rows_for(ids, str(_("Pending")), "amber")
+                view_all = (
+                    _safe_url("request-view") + "?status=requested&filter_applied=1"
+                )
+            elif metric == "approved_month":
+                title = str(_("Approved leave this month"))
+                ids = set(
+                    leave_base.filter(status="approved")
+                    .filter(
+                        Q(end_date__gte=first_of_month)
+                        | Q(end_date__isnull=True, start_date__gte=first_of_month)
+                    )
+                    .filter(start_date__lte=last_of_month)
+                    .values_list("employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("Approved")), "green")
+            elif metric == "rejected_month":
+                title = str(_("Rejected / cancelled leave"))
+                ids = set(
+                    leave_base.filter(
+                        status__in=["cancelled", "rejected"],
+                        start_date__gte=first_of_month,
+                        start_date__lte=last_of_month,
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("Rejected")), "red")
+
+        elif module == "recruitment" and apps.is_installed("recruitment"):
+            if scoped_ids is not None:
+                return JsonResponse(
+                    {
+                        "title": str(_("Recruitment")),
+                        "subtitle": str(_("Not available for team-scoped dashboards")),
+                        "rows": [],
+                        "view_all_url": "",
+                    }
+                )
+            from recruitment.models import Candidate, Recruitment, Stage
+
+            if metric == "open":
+                title = str(_("Open recruitments"))
+                for rec in Recruitment.objects.filter(
+                    is_active=True, closed=False
+                ).order_by("-id")[:40]:
+                    rows.append(
+                        {
+                            "id": rec.id,
+                            "name": str(rec),
+                            "avatar": "",
+                            "job": "",
+                            "department": "",
+                            "meta": "",
+                            "badge": str(_("Open")),
+                            "badge_tone": "blue",
+                            "url": _safe_url("recruitment-pipeline"),
+                        }
+                    )
+                view_all = _safe_url("recruitment-view")
+            elif metric in ("candidates", "interviews", "hired_month"):
+                qs = Candidate.objects.filter(is_active=True)
+                if metric == "candidates":
+                    title = str(_("Active candidates"))
+                    qs = qs.filter(hired=False, canceled=False)
+                    badge, tone = str(_("Candidate")), "indigo"
+                elif metric == "interviews":
+                    title = str(_("Candidates in interview"))
+                    stages = Stage.objects.filter(
+                        stage_type="interview", recruitment_id__closed=False
+                    )
+                    qs = qs.filter(stage_id__in=stages, canceled=False)
+                    badge, tone = str(_("Interview")), "amber"
+                else:
+                    title = str(_("Hired this month"))
+                    qs = Candidate.objects.filter(
+                        hired=True,
+                        hired_date__gte=first_of_month,
+                        hired_date__lte=last_of_month,
+                    )
+                    badge, tone = str(_("Hired")), "green"
+                for c in qs.select_related("stage_id", "recruitment_id").order_by(
+                    "-id"
+                )[:40]:
+                    rows.append(
+                        {
+                            "id": c.id,
+                            "name": c.get_full_name()
+                            if hasattr(c, "get_full_name")
+                            else str(c),
+                            "avatar": getattr(c, "get_avatar", lambda: "")(),
+                            "job": str(getattr(c, "job_position_id", "") or ""),
+                            "department": str(
+                                getattr(c, "recruitment_id", "") or ""
+                            ),
+                            "meta": str(getattr(c, "stage_id", "") or ""),
+                            "badge": badge,
+                            "badge_tone": tone,
+                            "url": _safe_url("candidate-view"),
+                        }
+                    )
+                view_all = _safe_url("candidate-view")
+
+        elif module == "assets" and apps.is_installed("asset"):
+            from asset.models import AssetAssignment, AssetRequest
+
+            if metric == "assigned":
+                title = str(_("Assets currently assigned"))
+                for a in (
+                    AssetAssignment.objects.filter(
+                        assigned_to_employee_id__in=emp_ids,
+                        return_date__isnull=True,
+                    )
+                    .select_related("assigned_to_employee_id", "asset_id")
+                    .order_by("-id")[:40]
+                ):
+                    emp = a.assigned_to_employee_id
+                    try:
+                        profile = reverse(
+                            "employee-view-individual", kwargs={"obj_id": emp.id}
+                        )
+                    except Exception:
+                        profile = "#"
+                    rows.append(
+                        {
+                            "id": a.id,
+                            "name": emp.get_full_name(),
+                            "avatar": emp.get_avatar(),
+                            "job": str(emp.get_job_position() or ""),
+                            "department": str(emp.get_department() or ""),
+                            "meta": str(a.asset_id),
+                            "badge": str(_("Assigned")),
+                            "badge_tone": "blue",
+                            "url": profile,
+                        }
+                    )
+            elif metric == "requests":
+                title = str(_("Pending asset requests"))
+                ids = set(
+                    AssetRequest.objects.filter(
+                        requested_employee_id__in=emp_ids,
+                        asset_request_status="Requested",
+                    ).values_list("requested_employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("Requested")), "amber")
+                view_all = _safe_url("asset-request-allocation-view") + (
+                    "?open_tab=2&asset_request_status=Requested&filter_applied=1"
+                )
+            elif metric == "returns":
+                title = str(_("Asset return requests"))
+                ids = set(
+                    AssetAssignment.objects.filter(
+                        assigned_to_employee_id__in=emp_ids,
+                        return_request=True,
+                        return_date__isnull=True,
+                    ).values_list("assigned_to_employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("Return")), "amber")
+
+        elif module == "performance" and apps.is_installed("pms"):
+            from pms.models import EmployeeObjective, Feedback
+
+            if metric in ("active", "at_risk", "behind"):
+                status_map = {
+                    "active": None,
+                    "at_risk": "At Risk",
+                    "behind": "Behind",
+                }
+                title = {
+                    "active": str(_("Active objectives")),
+                    "at_risk": str(_("Objectives at risk")),
+                    "behind": str(_("Objectives behind")),
+                }[metric]
+                qs = EmployeeObjective.objects.filter(
+                    employee_id__in=emp_ids, archive=False
+                )
+                if status_map[metric]:
+                    qs = qs.filter(status=status_map[metric])
+                else:
+                    qs = qs.exclude(status="Closed")
+                tone = {"active": "blue", "at_risk": "red", "behind": "amber"}[metric]
+                for obj in qs.select_related("employee_id").order_by("-id")[:40]:
+                    emp = obj.employee_id
+                    if not emp:
+                        continue
+                    try:
+                        profile = reverse(
+                            "employee-view-individual", kwargs={"obj_id": emp.id}
+                        )
+                    except Exception:
+                        profile = "#"
+                    rows.append(
+                        {
+                            "id": obj.id,
+                            "name": emp.get_full_name(),
+                            "avatar": emp.get_avatar(),
+                            "job": str(emp.get_job_position() or ""),
+                            "department": str(emp.get_department() or ""),
+                            "meta": obj.objective or str(obj.objective_id or ""),
+                            "badge": obj.status,
+                            "badge_tone": tone,
+                            "url": profile,
+                        }
+                    )
+            elif metric == "feedback":
+                title = str(_("Open feedback"))
+                for fb in (
+                    Feedback.objects.filter(employee_id__in=emp_ids)
+                    .exclude(status="Closed")
+                    .select_related("employee_id")
+                    .order_by("-id")[:40]
+                ):
+                    emp = fb.employee_id
+                    if not emp:
+                        continue
+                    try:
+                        profile = reverse(
+                            "employee-view-individual", kwargs={"obj_id": emp.id}
+                        )
+                    except Exception:
+                        profile = "#"
+                    rows.append(
+                        {
+                            "id": fb.id,
+                            "name": emp.get_full_name(),
+                            "avatar": emp.get_avatar(),
+                            "job": str(emp.get_job_position() or ""),
+                            "department": str(emp.get_department() or ""),
+                            "meta": getattr(fb, "review_cycle", "") or "",
+                            "badge": fb.status,
+                            "badge_tone": "indigo",
+                            "url": profile,
+                        }
+                    )
+
+        elif module == "payroll" and apps.is_installed("payroll"):
+            from payroll.models.models import Contract, LoanAccount, Payslip
+
+            if metric == "payslips":
+                title = str(_("Payslips this month"))
+                qs = Payslip.objects.filter(
+                    start_date__gte=first_of_month, start_date__lte=last_of_month
+                )
+                if scoped_ids is not None:
+                    qs = qs.filter(employee_id__in=emp_ids)
+                ids = set(qs.values_list("employee_id", flat=True))
+                rows = rows_for(ids, str(_("Payslip")), "indigo")
+            elif metric == "contracts":
+                title = str(_("Active contracts"))
+                ids = set(
+                    Contract.objects.filter(
+                        employee_id__in=emp_ids, contract_status="active"
+                    ).values_list("employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("Active")), "green")
+            elif metric == "reimbursements":
+                title = str(_("Pending reimbursements"))
+                try:
+                    from payroll.models.models import Reimbursement
+
+                    qs = Reimbursement.objects.filter(status="requested")
+                    if scoped_ids is not None:
+                        qs = qs.filter(employee_id__in=emp_ids)
+                    ids = set(qs.values_list("employee_id", flat=True))
+                    rows = rows_for(ids, str(_("Requested")), "amber")
+                    view_all = _safe_url("view-reimbursement") + (
+                        "?open_tab=1&status=requested&type=reimbursement&filter_applied=1"
+                    )
+                except Exception:
+                    rows = []
+            elif metric == "loans":
+                title = str(_("Active loans / advances"))
+                ids = set(
+                    LoanAccount.objects.filter(employee_id__in=emp_ids)
+                    .exclude(settled=True)
+                    .values_list("employee_id", flat=True)
+                )
+                rows = rows_for(ids, str(_("Loan")), "amber")
+
+        elif module == "workforce":
+            if metric in ("exits", "resignations") and apps.is_installed("offboarding"):
+                from offboarding.models import OffboardingEmployee, ResignationLetter
+
+                if metric == "exits":
+                    title = str(_("Employees in offboarding"))
+                    ids = set(
+                        OffboardingEmployee.objects.filter(
+                            employee_id__in=emp_ids
+                        ).values_list("employee_id", flat=True)
+                    )
+                    rows = rows_for(ids, str(_("Offboarding")), "amber")
+                else:
+                    title = str(_("Resignation requests"))
+                    ids = set(
+                        ResignationLetter.objects.filter(
+                            status="requested", employee_id__in=emp_ids
+                        ).values_list("employee_id", flat=True)
+                    )
+                    rows = rows_for(ids, str(_("Requested")), "red")
+            elif metric in ("tickets", "new_tickets") and apps.is_installed("helpdesk"):
+                from helpdesk.models import Ticket
+
+                title = (
+                    str(_("New tickets"))
+                    if metric == "new_tickets"
+                    else str(_("Open tickets"))
+                )
+                tq = Ticket.objects.exclude(status__in=["resolved", "canceled"])
+                if scoped_ids is not None:
+                    tq = tq.filter(
+                        Q(employee_id__in=emp_ids) | Q(assigned_to__in=emp_ids)
+                    )
+                if metric == "new_tickets":
+                    tq = tq.filter(status="new")
+                for t in tq.select_related("employee_id").order_by("-id")[:40]:
+                    emp = t.employee_id
+                    rows.append(
+                        {
+                            "id": t.id,
+                            "name": emp.get_full_name() if emp else str(t),
+                            "avatar": emp.get_avatar() if emp else "",
+                            "job": str(emp.get_job_position() or "") if emp else "",
+                            "department": str(emp.get_department() or "")
+                            if emp
+                            else "",
+                            "meta": getattr(t, "title", "") or str(t),
+                            "badge": t.get_status_display()
+                            if hasattr(t, "get_status_display")
+                            else t.status,
+                            "badge_tone": "blue"
+                            if t.status == "new"
+                            else "amber",
+                            "url": _safe_url("ticket-view")
+                            if _safe_url("ticket-view") != "#"
+                            else "#",
+                        }
+                    )
+    except Exception as exc:
+        return JsonResponse(
+            {
+                "title": title,
+                "subtitle": str(exc),
+                "rows": [],
+                "view_all_url": "",
+                "error": True,
+            }
+        )
+
+    subtitle = (
+        str(_("%(count)s records") % {"count": len(rows)})
+        if rows
+        else str(_("No records in scope"))
+    )
+    return JsonResponse(
+        {
+            "title": title,
+            "subtitle": subtitle,
+            "rows": rows,
+            "view_all_url": view_all,
+            "module": module,
+            "metric": metric,
+        }
+    )
+
+
+@login_required
 @require_http_methods(["POST"])
 def save_dashboard_prefs(request):
     """Persist dashboard customisation to DashboardEmployeeCharts model."""
@@ -1454,10 +2787,12 @@ def dashboard_turnover(request):
     """Employee turnover — new hires vs exits over the last 6 months ending at selected period.
 
     Org-wide metric: requires employee view permission (not manager-only).
-    Exit counts prefer shared report exit helper when available.
+    Hidden for team-scoped managers so exits outside their tree never appear.
     """
     user = request.user
-    if not (user.has_perm("employee.view_employee") or user.is_superuser):
+    if _is_team_scoped(request) or not (
+        user.has_perm("employee.view_employee") or user.is_superuser
+    ):
         return JsonResponse({"no_permission": True})
 
     _from_date, to_date = _parse_period(request)
@@ -1658,65 +2993,328 @@ def _force_get_params(request, **params):
 
 @login_required
 def dashboard_employee_status(request):
-    from employee.views import dashboard_employee
-
-    return _call_module_json(dashboard_employee, request)
+    """Active / inactive headcount within the dashboard reporting scope."""
+    emp_qs, scoped_ids = _scoped_employee_queryset(request, active_only=False)
+    active = emp_qs.filter(is_active=True).count()
+    inactive = emp_qs.filter(is_active=False).count()
+    return JsonResponse(
+        {
+            "dataSet": [
+                {
+                    "label": str(_("Employees")),
+                    "data": [active, inactive],
+                }
+            ],
+            "labels": [str(_("Active")), str(_("In-Active"))],
+            "is_team_scoped": scoped_ids is not None,
+        }
+    )
 
 
 @login_required
 def dashboard_attendance_overview(request):
-    from attendance.views.dashboard import dashboard_attendance
+    """On-time / late / early-out by department for the dashboard scope.
 
-    first_of_month, _ = _current_month_bounds()
-    scoped_request = _force_get_params(
-        request, type="monthly", date=first_of_month.strftime("%Y-%m")
+    Managers see their nested reporting tree even without org-wide
+    ``attendance.view_attendance``; HR/leadership see company-wide.
+    Defaults to the current calendar month (same as the prior module proxy).
+    """
+    user = request.user
+    if not (
+        user.is_superuser
+        or user.has_perm("attendance.view_attendance")
+        or _is_manager(user)
+    ):
+        return JsonResponse({"no_permission": True})
+
+    first_of_month, last_of_month = _current_month_bounds()
+    scoped_ids = _scoped_active_employee_ids(request)
+    labels = [
+        str(_("On Time")),
+        str(_("Late Arrival")),
+        str(_("Early Departure")),
+    ]
+    data_set = []
+
+    try:
+        from attendance.models import Attendance, AttendanceLateComeEarlyOut
+        from base.models import Department
+        from employee.models import Employee
+
+        emp_qs = Employee.objects.filter(is_active=True)
+        if scoped_ids is not None:
+            emp_qs = emp_qs.filter(id__in=scoped_ids)
+
+        dept_ids = (
+            emp_qs.exclude(employee_work_info__department_id__isnull=True)
+            .values_list("employee_work_info__department_id", flat=True)
+            .distinct()
+        )
+        for dept in Department.objects.filter(id__in=dept_ids).order_by("department"):
+            dept_emp_ids = list(
+                emp_qs.filter(employee_work_info__department_id=dept).values_list(
+                    "id", flat=True
+                )
+            )
+            if not dept_emp_ids:
+                continue
+            present = Attendance.objects.filter(
+                attendance_date__gte=first_of_month,
+                attendance_date__lte=last_of_month,
+                employee_id__in=dept_emp_ids,
+            ).count()
+            late = AttendanceLateComeEarlyOut.objects.filter(
+                type="late_come",
+                attendance_id__attendance_date__gte=first_of_month,
+                attendance_id__attendance_date__lte=last_of_month,
+                employee_id__in=dept_emp_ids,
+            ).count()
+            early = AttendanceLateComeEarlyOut.objects.filter(
+                type="early_out",
+                attendance_id__attendance_date__gte=first_of_month,
+                attendance_id__attendance_date__lte=last_of_month,
+                employee_id__in=dept_emp_ids,
+            ).count()
+            on_time = max(0, present - late)
+            if on_time or late or early:
+                data_set.append(
+                    {
+                        "id": dept.pk,
+                        "label": dept.department,
+                        "data": [on_time, late, early],
+                    }
+                )
+    except Exception:
+        data_set = []
+
+    return JsonResponse(
+        {
+            "dataSet": data_set,
+            "labels": labels,
+            "message": str(_("No records available at the moment.")),
+            "is_team_scoped": scoped_ids is not None,
+        }
     )
-    return _call_module_json(dashboard_attendance, scoped_request)
 
 
 @login_required
 def dashboard_department_overtime(request):
-    from attendance.views.dashboard import department_overtime_chart
+    """Validated overtime hours by department for the dashboard reporting scope."""
+    user = request.user
+    if not (
+        user.is_superuser
+        or user.has_perm("attendance.view_attendance")
+        or _is_manager(user)
+    ):
+        return JsonResponse({"no_permission": True})
 
-    first_of_month, _ = _current_month_bounds()
-    scoped_request = _force_get_params(
-        request, type="monthly", date=first_of_month.strftime("%Y-%m")
+    first_of_month, last_of_month = _current_month_bounds()
+    emp_qs, scoped_ids = _scoped_employee_queryset(request)
+    emp_ids = list(emp_qs.values_list("id", flat=True))
+    labels = []
+    data = []
+    department_total = []
+
+    try:
+        from attendance.models import Attendance, AttendanceValidationCondition
+        from attendance.views.views import strtime_seconds
+
+        min_ot = strtime_seconds("00:00")
+        condition = AttendanceValidationCondition.objects.first()
+        if condition is not None and condition.minimum_overtime_to_approve is not None:
+            min_ot = strtime_seconds(condition.minimum_overtime_to_approve)
+
+        attendances = Attendance.objects.filter(
+            attendance_date__gte=first_of_month,
+            attendance_date__lte=last_of_month,
+            employee_id__in=emp_ids,
+            overtime_second__gte=min_ot,
+            attendance_validated=True,
+            attendance_overtime_approve=True,
+        ).select_related("employee_id__employee_work_info__department_id")
+
+        totals = {}
+        for att in attendances:
+            wi = getattr(att.employee_id, "employee_work_info", None)
+            dept = getattr(getattr(wi, "department_id", None), "department", None)
+            if not dept:
+                continue
+            totals[dept] = totals.get(dept, 0.0) + (
+                (att.approved_overtime_second or 0) / 3600.0
+            )
+
+        for dept, hours in sorted(totals.items(), key=lambda x: -x[1]):
+            labels.append(dept)
+            data.append(round(hours, 2))
+            department_total.append({"department": dept, "ot_hours": round(hours, 2)})
+    except Exception:
+        labels, data, department_total = [], [], []
+
+    return JsonResponse(
+        {
+            "dataset": [{"label": "", "data": data}],
+            "labels": labels,
+            "department_total": department_total,
+            "message": str(_("No validated Overtimes were found")),
+            "is_team_scoped": scoped_ids is not None,
+        }
     )
-    return _call_module_json(department_overtime_chart, scoped_request)
 
 
 @login_required
 def dashboard_leave_trends(request):
-    from leave.views import leave_over_period
+    """Approved leave headcount by day for the current month (reporting scope)."""
+    user = request.user
+    if not (
+        user.is_superuser
+        or user.has_perm("leave.view_leaverequest")
+        or _is_manager(user)
+    ):
+        return JsonResponse({"no_permission": True})
 
-    scoped_request = _force_get_params(request, period="month")
-    return _call_module_json(leave_over_period, scoped_request)
+    first_of_month, last_of_month = _current_month_bounds()
+    scoped_ids = _scoped_active_employee_ids(request)
+    labels = []
+    data = []
+
+    try:
+        from leave.models import LeaveRequest
+
+        leave_qs = LeaveRequest.objects.filter(
+            status="approved",
+            start_date__lte=last_of_month,
+        ).filter(
+            Q(end_date__gte=first_of_month)
+            | Q(end_date__isnull=True, start_date__gte=first_of_month)
+        )
+        if scoped_ids is not None:
+            leave_qs = leave_qs.filter(employee_id__in=scoped_ids)
+
+        day = first_of_month
+        while day <= last_of_month:
+            labels.append(day.strftime("%d-%m-%Y"))
+            on_leave = (
+                leave_qs.filter(start_date__lte=day)
+                .filter(Q(end_date__gte=day) | Q(end_date__isnull=True, start_date=day))
+                .values("employee_id")
+                .distinct()
+                .count()
+            )
+            data.append(on_leave)
+            day += timedelta(days=1)
+    except Exception:
+        labels, data = [], []
+
+    return JsonResponse(
+        {
+            "labels": labels,
+            "data": data,
+            "is_team_scoped": scoped_ids is not None,
+        }
+    )
 
 
 @login_required
 def dashboard_leave_by_department(request):
-    from leave.views import overall_leave
+    """Leave request counts by department for the current month (reporting scope)."""
+    user = request.user
+    if not (
+        user.is_superuser
+        or user.has_perm("leave.view_leaverequest")
+        or _is_manager(user)
+    ):
+        return JsonResponse({"no_permission": True})
 
     first_of_month, last_of_month = _current_month_bounds()
-    scoped_request = _force_get_params(
-        request,
-        from_date=first_of_month.isoformat(),
-        to_date=last_of_month.isoformat(),
+    emp_qs, scoped_ids = _scoped_employee_queryset(request)
+    labels = []
+    data = []
+
+    try:
+        from leave.models import LeaveRequest
+
+        leave_qs = LeaveRequest.objects.filter(
+            start_date__gte=first_of_month,
+            start_date__lte=last_of_month,
+            employee_id__in=emp_qs,
+        )
+        rows = (
+            leave_qs.values("employee_id__employee_work_info__department_id__department")
+            .annotate(count=Count("id"))
+            .order_by("-count")
+        )
+        for row in rows:
+            dept = row["employee_id__employee_work_info__department_id__department"]
+            if dept and row["count"]:
+                labels.append(dept)
+                data.append(row["count"])
+    except Exception:
+        labels, data = [], []
+
+    return JsonResponse(
+        {
+            "labels": labels,
+            "data": data,
+            "is_team_scoped": scoped_ids is not None,
+        }
     )
-    return _call_module_json(overall_leave, scoped_request)
 
 
 @login_required
 def dashboard_department_leave_days(request):
-    from leave.views import department_leave_chart
+    """Approved leave days by department for the current month (reporting scope)."""
+    user = request.user
+    if not (
+        user.is_superuser
+        or user.has_perm("leave.view_leaverequest")
+        or _is_manager(user)
+    ):
+        return JsonResponse({"no_permission": True})
 
-    first_of_month, _ = _current_month_bounds()
-    scoped_request = _force_get_params(request, date=first_of_month.strftime("%Y-%m"))
-    return _call_module_json(department_leave_chart, scoped_request)
+    first_of_month, last_of_month = _current_month_bounds()
+    emp_qs, scoped_ids = _scoped_employee_queryset(request)
+    labels = []
+    values = []
+
+    try:
+        from django.db.models import Sum
+
+        from leave.models import LeaveRequest
+
+        leave_qs = LeaveRequest.objects.filter(
+            status="approved",
+            start_date__month=first_of_month.month,
+            start_date__year=first_of_month.year,
+            employee_id__in=emp_qs,
+        )
+        rows = (
+            leave_qs.values("employee_id__employee_work_info__department_id__department")
+            .annotate(days=Sum("requested_days"))
+            .order_by("-days")
+        )
+        for row in rows:
+            dept = row["employee_id__employee_work_info__department_id__department"]
+            days = float(row["days"] or 0)
+            if dept and days:
+                labels.append(dept)
+                values.append(days)
+    except Exception:
+        labels, values = [], []
+
+    return JsonResponse(
+        {
+            "labels": labels,
+            "dataset": [{"label": str(_("Leave days")), "data": values}],
+            "is_team_scoped": scoped_ids is not None,
+        }
+    )
 
 
 @login_required
 def dashboard_hiring_timeline(request):
+    """Hiring timeline is org-wide; hide for team-scoped manager homes."""
+    if _is_team_scoped(request):
+        return JsonResponse({"no_permission": True})
     from recruitment.views.dashboard import dashboard_hiring
 
     return _call_module_json(dashboard_hiring, request)
@@ -1725,6 +3323,8 @@ def dashboard_hiring_timeline(request):
 @login_required
 def dashboard_recruitment_by_stage(request):
     """Stacked-by-recruitment pipeline chart (legacy recruitment-pipeline JSON)."""
+    if _is_team_scoped(request):
+        return JsonResponse({"no_permission": True})
     from recruitment.views.dashboard import dashboard_pipeline
 
     return _call_module_json(dashboard_pipeline, request)

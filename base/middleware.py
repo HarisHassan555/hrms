@@ -419,6 +419,46 @@ class CompanyMiddleware:
         return self.get_response(request)
 
 
+class AnalyticsDashboardAccessMiddleware:
+    """
+    Block ``/dashboard/`` (analytics home + APIs) for ESS-only users (Employee role).
+    """
+
+    _PREFIX = "/dashboard"
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path.rstrip("/") or "/"
+        prefix = self._PREFIX
+        if path != prefix and not path.startswith(prefix + "/"):
+            return self.get_response(request)
+
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return self.get_response(request)
+
+        from base.dashboard_roles import can_access_analytics_dashboard
+
+        if can_access_analytics_dashboard(request):
+            return self.get_response(request)
+
+        from django.urls import reverse
+
+        ess_url = reverse("ess-dashboard")
+        if path.startswith(prefix + "/api/"):
+            from django.http import JsonResponse
+
+            return JsonResponse({"no_permission": True}, status=403)
+
+        if request.headers.get("HX-Request"):
+            response = HttpResponse(status=204)
+            response["HX-Redirect"] = ess_url
+            return response
+
+        return redirect(ess_url)
+
+
 class ForcePasswordChangeMiddleware:
     """
     Middleware to force password change for new employees.

@@ -5,10 +5,10 @@
   only the main content region instead of doing a full page reload.
 {% endcomment %}
 <a
-    href="{% url 'dashboard' %}"
+    href="{% url home_dashboard_url_name %}"
     class="sideboxmain w-full"
     data-menu="Dashboard"
-    hx-get="{% url 'dashboard' %}"
+    hx-get="{% url home_dashboard_url_name %}"
     hx-target="#ohMainContent"
     hx-select="#ohMainContent > *"
     hx-swap="innerHTML show:window:top"

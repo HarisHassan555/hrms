@@ -845,11 +845,35 @@ class LoanAccountForm(ModelForm):
                     "Installment start date should be greater than or equal to provided date"
                 )
             )
-        if cleaned_data.get("installments") != None:
-            if cleaned_data.get("installments") <= 0:
+        installments = cleaned_data.get("installments")
+        if installments is not None:
+            if installments <= 0:
                 raise forms.ValidationError(
                     _("Installments needs to be a positive integer")
                 )
+            # Schedule is one month per installment; unbounded counts push
+            # get_next_month_same_date() past year 9999 and 500 the create form.
+            max_installments = 360
+            if installments > max_installments:
+                raise forms.ValidationError(
+                    _(
+                        "Total installments cannot exceed %(max)s "
+                        "(about %(years)s years)."
+                    )
+                    % {"max": max_installments, "years": max_installments // 12}
+                )
+            if start_date:
+                months_left = (9999 - start_date.year) * 12 + (
+                    12 - start_date.month
+                )
+                if installments > months_left:
+                    raise forms.ValidationError(
+                        _(
+                            "Installment schedule would exceed the maximum "
+                            "supported date. Reduce total installments or "
+                            "choose an earlier start date."
+                        )
+                    )
 
         return cleaned_data
 

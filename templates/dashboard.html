@@ -7,37 +7,23 @@
     <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
 
     <div class="md-dashboard">
-        <!-- Header -->
-        <div class="md-header">
-            <div>
-                <h1>
-                    {% blocktrans with user_name=request.user.get_full_name|default:request.user.username %}Good afternoon, {{ user_name }}{% endblocktrans %}
-                </h1>
-                <div class="md-header__description">
-                    {% trans "Here's what's happening across your organization today." %}
-                </div>
-                <div class="md-header__date" id="md-date"></div>
+        <div class="md-toolbar">
+            <div class="md-toolbar__left">
+                <span class="md-toolbar__date" id="md-date"></span>
                 {% if dashboard_company_label %}
                     <div
                         class="md-company-chip"
                         id="md-company-chip"
                         title="{% if dashboard_company_is_all %}{% trans 'KPIs span all companies you can access' %}{% else %}{% trans 'Active company scope' %}{% endif %}"
                     >
-                        <span
-                        >{% if dashboard_company_is_all %}{% trans "Scope" %}{% else %}{% trans "Company" %}{% endif %}:</span>
+                        <span>{% if dashboard_company_is_all %}{% trans "Scope" %}{% else %}{% trans "Company" %}{% endif %}:</span>
                         <strong>{{ dashboard_company_label }}</strong>
                     </div>
                 {% endif %}
                 <div class="md-refresh">
-                    <span class="md-refresh__dot" id="md-refresh-dot"></span><span
-                        id="md-refresh-text"
-                    >{% trans "Just now" %}</span><button
-                        class="md-refresh__toggle"
-                        id="md-refresh-toggle"
-                        title="{% trans 'Toggle auto-refresh' %}"
-                    >
-                        ⟳
-                    </button>
+                    <span class="md-refresh__dot" id="md-refresh-dot"></span>
+                    <span id="md-refresh-text">{% trans "Just now" %}</span>
+                    <button class="md-refresh__toggle" id="md-refresh-toggle" title="{% trans 'Toggle auto-refresh' %}">⟳</button>
                 </div>
             </div>
             <div class="md-header__actions">
@@ -50,94 +36,160 @@
                     <input type="date" id="md-to-date" title="{% trans 'To' %}">
                 </div>
                 <button class="md-btn-customize" id="md-open-customize" title="{% trans 'Customize dashboard' %}">
-                    <svg
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3" />
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                     </svg>
-                    {% trans "Customize Dashboard" %}
+                    {% trans "Customize" %}
                 </button>
             </div>
         </div>
 
-        <!-- Setup checklist banner (shown to new accounts until all steps complete or dismissed) -->
         {% if show_setup_checklist %}
             {% include "base/setup_checklist_banner.html" %}
         {% endif %}
 
-        <div class="md-kpi-grid" id="md-kpi-grid">
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
-            </div>
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
-            </div>
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
-            </div>
-            <div class="md-kpi-card md-kpi-card--skeleton">
-                <div class="md-skeleton md-skeleton--icon"></div>
-                <div class="md-skeleton md-skeleton--label"></div>
-                <div class="md-skeleton md-skeleton--value"></div>
-                <div class="md-skeleton md-skeleton--sub"></div>
-            </div>
+        <div class="md-asymmetric" id="md-asymmetric">
+            <section class="md-tile md-tile--welcome">
+                <div>
+                    <h1>{% blocktrans with user_name=request.user.get_full_name|default:request.user.username %}Welcome back, {{ user_name }}{% endblocktrans %}</h1>
+                    <p id="md-hero-blurb">{% if home_role == "manager" %}{% trans "Your team's snapshot for today — nested reports included. Attendance, leave, and approvals in one place." %}{% else %}{% trans "Your workforce snapshot for today — attendance, leave, and approvals in one place." %}{% endif %}</p>
+                    <div class="md-tile--welcome__meta">
+                        <span class="md-tile--welcome__chip"><strong id="md-hero-employees">—</strong>&nbsp;<span id="md-hero-employees-label">{% if home_role == "manager" %}{% trans "in your team" %}{% else %}{% trans "employees" %}{% endif %}</span></span>
+                        <span class="md-tile--welcome__chip"><strong id="md-hero-rate">—</strong>&nbsp;{% trans "attendance" %}</span>
+                        <span class="md-tile--welcome__chip" id="md-hero-direct-chip" hidden><strong id="md-hero-direct">—</strong>&nbsp;{% trans "direct reports" %}</span>
+                    </div>
+                </div>
+                <div class="md-tile--welcome__actions">
+                    {% if perms.employee.view_employee or request.user.is_superuser or home_role == "manager" %}
+                        <a class="md-tile--welcome__btn" href="{% url 'employee-view' %}?is_active=True&filter_applied=on">{% trans "View team" %}</a>
+                    {% endif %}
+                    {% if perms.leave.view_leaverequest or request.user.is_superuser or home_role == "manager" %}
+                        <a class="md-tile--welcome__btn md-tile--welcome__btn--ghost" href="{% url 'request-view' %}?status=requested&filter_applied=on">{% trans "Approvals" %}</a>
+                    {% endif %}
+                </div>
+            </section>
+
+            {% if perms.attendance.view_attendance or request.user.is_superuser or home_role == "manager" %}
+                <section class="md-tile md-tile--forecast" data-chart-id="attendance_trend_hero">
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Attendance Trend" %}</div>
+                            <div class="md-chart-card__subtitle" id="md-attendance-trend-subtitle">{% trans "Weekly team rate — last 12 weeks" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body">
+                        <div id="chart-attendance-trend"></div>
+                    </div>
+                </section>
+            {% else %}
+                <section class="md-tile md-tile--forecast" data-chart-id="department_headcount_hero">
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Workforce Distribution" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Employees by department" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body">
+                        <div id="chart-departments-hero"></div>
+                    </div>
+                </section>
+            {% endif %}
+
+            <a class="md-tile md-tile--accent md-tile--accent-a" href="{% url 'employee-view' %}?present_on={% now 'Y-m-d' %}&is_active=True&filter_applied=on" id="md-accent-present">
+                <div class="md-tile--accent__label">{% trans "Present Today" %}</div>
+                <div class="md-tile--accent__value" id="md-accent-present-value">—</div>
+                <div class="md-tile--accent__foot">
+                    <span class="md-tile--accent__sub" id="md-accent-present-sub">{% trans "Of expected" %}</span>
+                    <div class="md-spark md-spark--green" id="md-accent-present-spark" aria-hidden="true"></div>
+                </div>
+            </a>
+
+            <a class="md-tile md-tile--accent md-tile--accent-c" href="{% url 'employee-view' %}?expected_to_check_in={% now 'Y-m-d' %}&is_active=True&filter_applied=on" id="md-accent-absent">
+                <div class="md-tile--accent__label">{% trans "Absent / Not Punched" %}</div>
+                <div class="md-tile--accent__value" id="md-accent-absent-value">—</div>
+                <div class="md-tile--accent__foot">
+                    <span class="md-tile--accent__sub" id="md-accent-absent-sub">{% trans "Expected to check in" %}</span>
+                    <div class="md-spark md-spark--blue" id="md-accent-absent-spark" aria-hidden="true"></div>
+                </div>
+            </a>
+
+            <a class="md-tile md-tile--accent md-tile--accent-b" href="{% url 'request-view' %}?status=approved&today_leave=true&filter_applied=on" id="md-accent-leave">
+                <div class="md-tile--accent__label">{% trans "On Leave" %}</div>
+                <div class="md-tile--accent__value" id="md-accent-leave-value">—</div>
+                <div class="md-tile--accent__foot">
+                    <span class="md-tile--accent__sub" id="md-accent-leave-sub">{% trans "Approved today" %}</span>
+                    <div class="md-spark md-spark--amber" id="md-accent-leave-spark" aria-hidden="true"></div>
+                </div>
+            </a>
+
+            <a class="md-tile md-tile--accent md-tile--accent-d" href="{% url 'employee-view' %}?present_on={% now 'Y-m-d' %}&attendance_status=late_come&is_active=True&filter_applied=on" id="md-accent-late">
+                <div class="md-tile--accent__label">{% trans "Late Arrivals" %}</div>
+                <div class="md-tile--accent__value" id="md-accent-late-value">—</div>
+                <div class="md-tile--accent__foot">
+                    <span class="md-tile--accent__sub" id="md-accent-late-sub">{% trans "Today" %}</span>
+                    <div class="md-spark md-spark--red" id="md-accent-late-spark" aria-hidden="true"></div>
+                </div>
+            </a>
+
+            <section class="md-tile md-tile--panel">
+                <div class="md-info-panel__header">
+                    <div>
+                        <div class="md-info-panel__title">{% trans "Coverage Next 7 Days" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Approved leave & peak day away" %}</div>
+                    </div>
+                </div>
+                <div class="md-info-panel__body" id="md-hero-coverage">
+                    <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                </div>
+            </section>
+
+            <section class="md-tile md-tile--mosaic" id="md-employee-insights">
+                <div class="md-insight-card">
+                    <div class="md-skeleton md-skeleton--label"></div>
+                    <div class="md-skeleton md-skeleton--value"></div>
+                </div>
+                <div class="md-insight-card">
+                    <div class="md-skeleton md-skeleton--label"></div>
+                    <div class="md-skeleton md-skeleton--value"></div>
+                </div>
+                <div class="md-insight-card">
+                    <div class="md-skeleton md-skeleton--label"></div>
+                    <div class="md-skeleton md-skeleton--value"></div>
+                </div>
+                <div class="md-insight-card">
+                    <div class="md-skeleton md-skeleton--label"></div>
+                    <div class="md-skeleton md-skeleton--value"></div>
+                </div>
+            </section>
+
+            <section class="md-tile md-tile--panel" data-chart-id="employee_status_hero">
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Workforce Mix" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Active vs inactive employees" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body"><div id="chart-employee-status-hero"></div></div>
+            </section>
         </div>
 
-        <!-- Main layout -->
-        <div class="md-layout">
-            <!-- Left: Charts (single flat grid for reordering) -->
-            <div class="md-main">
-                <div class="md-section-heading">
-                    <div>
-                        <h2>{% trans "Employee Insights" %}</h2>
-                        <p>{% trans "Secondary workforce signals from today's operational data." %}</p>
-                    </div>
-                </div>
-                <div class="md-insight-grid" id="md-employee-insights">
-                    <div class="md-insight-card">
-                        <div class="md-skeleton md-skeleton--label"></div>
-                        <div class="md-skeleton md-skeleton--value"></div>
-                    </div>
-                    <div class="md-insight-card">
-                        <div class="md-skeleton md-skeleton--label"></div>
-                        <div class="md-skeleton md-skeleton--value"></div>
-                    </div>
-                    <div class="md-insight-card">
-                        <div class="md-skeleton md-skeleton--label"></div>
-                        <div class="md-skeleton md-skeleton--value"></div>
-                    </div>
-                    <div class="md-insight-card">
-                        <div class="md-skeleton md-skeleton--label"></div>
-                        <div class="md-skeleton md-skeleton--value"></div>
-                    </div>
-                </div>
+        <!-- Hidden host for pending-actions badge updates -->
+        <div id="md-kpi-grid" hidden aria-hidden="true"></div>
+
+        <!-- Sticky ops band: sidebar sticks only while this zone is on screen -->
+        <div class="md-ops-zone">
+            <div class="md-ops-zone__main">
                 <div class="md-section-heading">
                     <div>
                         <h2>{% trans "Workforce Overview" %}</h2>
-                        <p>{% trans "Attendance trend, workforce mix, and supporting operational analytics." %}</p>
+                        <p>{% trans "Key coverage and distribution while you review actions." %}</p>
                     </div>
                 </div>
-                <div class="md-chart-grid" id="md-charts-container">
+                <div class="md-chart-grid md-chart-grid--ops" id="md-charts-ops">
                     <!-- Department Headcount -->
                     <div
-                        class="md-chart-card"
+                        class="md-chart-card md-span-7"
                         data-chart-id="department_headcount"
                         data-chart-section="overview"
                         data-chart-label="{% trans 'Workforce Distribution' %}"
@@ -152,16 +204,15 @@
                     </div>
 
                     <div
-                        class="md-chart-card md-chart-card--wide"
+                        class="md-chart-card md-span-5"
                         data-chart-id="department_overview"
                         data-chart-section="overview"
                         data-chart-label="{% trans 'Department Overview' %}"
-                        data-chart-wide="1"
                     >
                         <div class="md-chart-card__header">
                             <div>
                                 <div class="md-chart-card__title">{% trans "Department Overview" %}</div>
-                                <div class="md-chart-card__subtitle">{% trans "Headcount by department from existing employee data" %}</div>
+                                <div class="md-chart-card__subtitle">{% trans "Headcount by department" %}</div>
                             </div>
                         </div>
                         <div class="md-chart-card__body" id="md-department-overview">
@@ -169,94 +220,12 @@
                         </div>
                     </div>
 
-                    {% if perms.leave.view_leaverequest or request.user.is_superuser %}
-                        <!-- Leave Trends -->
-                        <div
-                            class="md-chart-card"
-                            data-chart-id="leave_trends"
-                            data-chart-section="overview"
-                            data-chart-label="{% trans 'Leave Trends' %}"
-                            data-chart-default="hidden"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Leave Trends" %}</div>
-                                    <div class="md-chart-card__subtitle">{% trans "Leave count vs Date" %}</div>
-                                </div>
-                                <a
-                                    class="md-link text-xs"
-                                    href="{% url 'leave-dashboard' %}"
-                                >{% trans "Open Leave dashboard" %}</a>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-leave-trend"></div></div>
-                        </div>
-                    {% endif %}
-
-                    <!-- Employee Status -->
-                    <div
-                        class="md-chart-card"
-                        data-chart-id="employee_status"
-                        data-chart-section="overview"
-                        data-chart-label="{% trans 'Employee Status' %}"
-                        data-chart-default="hidden"
-                    >
-                        <div class="md-chart-card__header">
-                            <div>
-                                <div class="md-chart-card__title">{% trans "Employee Status" %}</div>
-                                <div class="md-chart-card__subtitle">{% trans "Active vs Inactive" %}</div>
-                            </div>
-                            <a
-                                class="md-link text-xs"
-                                href="{% url 'employee-dashboard' %}"
-                            >{% trans "Open Employee dashboard" %}</a>
-                        </div>
-                        <div class="md-chart-card__body"><div id="chart-employee-status"></div></div>
-                    </div>
-
-                    <!-- Gender Distribution -->
-                    <div
-                        class="md-chart-card"
-                        data-chart-id="gender_distribution"
-                        data-chart-section="overview"
-                        data-chart-label="{% trans 'Gender Distribution' %}"
-                        data-chart-default="hidden"
-                    >
-                        <div class="md-chart-card__header">
-                            <div>
-                                <div class="md-chart-card__title">{% trans "Gender Distribution" %}</div>
-                                <div class="md-chart-card__subtitle">{% trans "Active employees" %}</div>
-                            </div>
-                        </div>
-                        <div class="md-chart-card__body"><div id="chart-gender"></div></div>
-                    </div>
-
-                    {% if perms.leave.view_leaverequest or request.user.is_superuser %}
-                        <!-- Leave Breakdown -->
-                        <div
-                            class="md-chart-card"
-                            data-chart-id="leave_breakdown"
-                            data-chart-section="overview"
-                            data-chart-label="{% trans 'Leave Breakdown' %}"
-                            data-chart-default="hidden"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Leave Breakdown" %}</div>
-                                    <div class="md-chart-card__subtitle" id="leave-month">{% trans "This month" %}</div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-leave"></div></div>
-                        </div>
-                    {% endif %}
-
                     {% if perms.attendance.view_attendance or request.user.is_superuser or home_role == "manager" %}
-                        <!-- Attendance Overview -->
                         <div
-                            class="md-chart-card md-chart-card--wide"
+                            class="md-chart-card md-span-7"
                             data-chart-id="attendance_overview"
                             data-chart-section="attendance"
                             data-chart-label="{% trans 'Attendance Overview' %}"
-                            data-chart-wide="1"
                         >
                             <div class="md-chart-card__header">
                                 <div>
@@ -269,208 +238,45 @@
                             <div class="md-chart-card__body"><div id="chart-attendance-overview"></div></div>
                         </div>
 
-                        <!-- Department Overtime -->
                         <div
-                            class="md-chart-card"
-                            data-chart-id="department_overtime"
-                            data-chart-section="attendance"
-                            data-chart-label="{% trans 'Department Overtime' %}"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Department Overtime" %}</div>
-                                    <div class="md-chart-card__subtitle">
-                                        {% trans "Overtime hours by department" %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-overtime"></div></div>
-                        </div>
-
-                        <!-- Attendance Trend -->
-                        <div
-                            class="md-chart-card"
-                            data-chart-id="attendance_trend"
-                            data-chart-section="attendance"
-                            data-chart-label="{% trans 'Attendance Trend' %}"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Attendance Trend" %}</div>
-                                    <div class="md-chart-card__subtitle" id="md-attendance-trend-subtitle">
-                                        {% trans "Weekly rate — last 12 weeks" %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-attendance-trend"></div></div>
-                        </div>
-                    {% endif %}
-
-                    <!-- Leave Coverage (7 days) -->
-                    <div
-                        class="md-chart-card md-chart-card--wide"
-                        data-chart-id="leave_coverage"
-                        data-chart-section="leave"
-                        data-chart-label="{% trans 'Leave Coverage' %}"
-                        data-chart-wide="1"
-                    >
-                        <div class="md-chart-card__header">
-                            <div>
-                                <div class="md-chart-card__title">{% trans "Leave Coverage" %}</div>
-                                <div class="md-chart-card__subtitle">
-                                    {% trans "Next 7 days — who is out vs available" %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="md-chart-card__body"><div id="chart-leave-coverage"></div></div>
-                    </div>
-
-                    {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
-                        <!-- Recruitment Pipeline -->
-                        <div
-                            class="md-chart-card md-chart-card--wide"
-                            data-chart-id="recruitment_pipeline"
-                            data-chart-section="recruitment"
-                            data-chart-label="{% trans 'Recruitment Pipeline' %}"
-                            data-chart-wide="1"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Recruitment Pipeline" %}</div>
-                                    <div class="md-chart-card__subtitle">
-                                        {% trans "Candidates by stage per recruitment" %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-pipeline"></div></div>
-                        </div>
-
-                        <!-- Hiring Timeline -->
-                        <div
-                            class="md-chart-card md-chart-card--wide"
-                            data-chart-id="hiring_timeline"
-                            data-chart-section="recruitment"
-                            data-chart-label="{% trans 'Hiring Timeline' %}"
-                            data-chart-wide="1"
-                            data-chart-default="hidden"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Hiring Timeline" %}</div>
-                                    <div class="md-chart-card__subtitle">{% trans "Employees joined by month" %}</div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-hiring"></div></div>
-                        </div>
-                    {% endif %}
-
-                    {% if perms.leave.view_leaverequest or request.user.is_superuser %}
-                        <!-- Leave by Department -->
-                        <div
-                            class="md-chart-card"
-                            data-chart-id="leave_by_department"
+                            class="md-chart-card md-span-5"
+                            data-chart-id="leave_coverage"
                             data-chart-section="leave"
-                            data-chart-label="{% trans 'Leave by Department' %}"
-                            data-chart-default="hidden"
+                            data-chart-label="{% trans 'Leave Coverage' %}"
                         >
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Leave by Department" %}</div>
-                                    <div class="md-chart-card__subtitle">
-                                        {% trans "Requests ranked by department" %}
+                                    <div class="md-chart-card__title">{% trans "Leave Coverage" %}</div>
+                                    <div class="md-chart-card__subtitle" id="md-leave-coverage-subtitle">
+                                        {% trans "This month — on leave vs available headcount" %}
                                     </div>
                                 </div>
                             </div>
-                            <div class="md-chart-card__body"><div id="chart-leave-dept"></div></div>
+                            <div class="md-chart-card__body"><div id="chart-leave-coverage"></div></div>
                         </div>
-
-                        <!-- Department Leave Days -->
+                    {% else %}
                         <div
-                            class="md-chart-card"
-                            data-chart-id="department_leave_days"
+                            class="md-chart-card md-span-12"
+                            data-chart-id="leave_coverage"
                             data-chart-section="leave"
-                            data-chart-label="{% trans 'Department Leave Days' %}"
-                            data-chart-default="hidden"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Department Leave Days" %}</div>
-                                    <div class="md-chart-card__subtitle">
-                                        {% trans "Total leave days by department" %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-leave-days"></div></div>
-                        </div>
-                    {% endif %}
-
-                    {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
-                        <!-- Recruitment Funnel (NEW) -->
-                        <div
-                            class="md-chart-card md-chart-card--wide"
-                            data-chart-id="recruitment_funnel"
-                            data-chart-section="recruitment"
-                            data-chart-label="{% trans 'Recruitment Funnel' %}"
-                            data-chart-wide="1"
-                            data-chart-default="hidden"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Recruitment Funnel" %}</div>
-                                    <div class="md-chart-card__subtitle">
-                                        {% trans "Stage pipeline — share of candidates" %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-recruitment-funnel"></div></div>
-                        </div>
-                    {% endif %}
-
-                    {% if perms.employee.view_employee or request.user.is_superuser %}
-                        <!-- Employee Turnover -->
-                        <div
-                            class="md-chart-card md-chart-card--wide"
-                            data-chart-id="employee_turnover"
-                            data-chart-section="overview"
-                            data-chart-label="{% trans 'Employee Turnover' %}"
+                            data-chart-label="{% trans 'Leave Coverage' %}"
                             data-chart-wide="1"
                         >
                             <div class="md-chart-card__header">
                                 <div>
-                                    <div class="md-chart-card__title">{% trans "Employee Turnover" %}</div>
-                                    <div class="md-chart-card__subtitle" id="turnover-rate">
-                                        {% trans "New hires vs exits — last 6 months" %}
+                                    <div class="md-chart-card__title">{% trans "Leave Coverage" %}</div>
+                                    <div class="md-chart-card__subtitle" id="md-leave-coverage-subtitle">
+                                        {% trans "This month — on leave vs available headcount" %}
                                     </div>
                                 </div>
                             </div>
-                            <div class="md-chart-card__body"><div id="chart-turnover"></div></div>
-                        </div>
-                    {% endif %}
-
-                    {% if request.user.is_superuser or perms.payroll.view_payslip and request.user.is_staff or perms.payroll.view_payslip and perms.payroll.change_payslip %}
-                        <!-- Payroll Summary — payroll operators only (staff/superuser/change_payslip) -->
-                        <div
-                            class="md-chart-card"
-                            data-chart-id="payroll_summary"
-                            data-chart-section="overview"
-                            data-chart-label="{% trans 'Payroll Summary' %}"
-                        >
-                            <div class="md-chart-card__header">
-                                <div>
-                                    <div class="md-chart-card__title">{% trans "Payroll Summary" %}</div>
-                                    <div class="md-chart-card__subtitle" id="payroll-month">
-                                        {% trans "Current vs previous month" %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="md-chart-card__body"><div id="chart-payroll"></div></div>
+                            <div class="md-chart-card__body"><div id="chart-leave-coverage"></div></div>
                         </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Operational overview -->
-            <div class="md-sidebar">
+            <aside class="md-sidebar" aria-label="{% trans 'Operational panels' %}">
                 <div class="md-info-panel md-info-panel--actions">
                     <div class="md-info-panel__header">
                         <div>
@@ -542,6 +348,406 @@
                         </div>
                     </div>
                 </div>
+            </aside>
+
+        </div>
+
+        <!-- Full-width denser mosaic after sticky band releases -->
+        <div class="md-section-heading">
+            <div>
+                <h2>{% trans "Team & Insights" %}</h2>
+                <p>{% trans "Subordinate roster and module analytics — each KPI shown once." %}</p>
+            </div>
+        </div>
+        <div class="md-chart-grid md-chart-grid--mosaic" id="md-charts-container">
+            {# Manager / people-ops visibility tiles #}
+            <div
+                class="md-chart-card md-span-12"
+                data-chart-id="team_roster"
+                data-chart-section="team"
+                data-chart-label="{% trans 'My Team' %}"
+                data-chart-wide="1"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "My Team" %}</div>
+                        <div class="md-chart-card__subtitle" id="md-team-roster-sub">
+                            {% trans "Subordinates and current status" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-team-roster" id="md-team-roster">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            {# Cross-module KPI packs — metrics do not repeat hero Present/Absent/On Leave/Late #}
+            <div
+                class="md-chart-card md-span-7 md-module-card"
+                data-chart-id="attendance_module"
+                data-chart-section="modules"
+                data-chart-label="{% trans 'Attendance KPIs' %}"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Attendance Ops" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "MTD rate, validation & overtime" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-module-kpis" id="md-module-attendance">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="md-chart-card md-span-5 md-module-card"
+                data-chart-id="leave_module"
+                data-chart-section="modules"
+                data-chart-label="{% trans 'Leave KPIs' %}"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Leave Ops" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Approvals, upcoming & peak coverage" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-module-kpis" id="md-module-leave">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="md-chart-card md-span-7 md-module-card"
+                data-chart-id="recruitment_module"
+                data-chart-section="modules"
+                data-chart-label="{% trans 'Recruitment KPIs' %}"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Recruitment" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Pipeline & hiring" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-module-kpis" id="md-module-recruitment">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="md-chart-card md-span-5 md-module-card"
+                data-chart-id="asset_module"
+                data-chart-section="modules"
+                data-chart-label="{% trans 'Asset KPIs' %}"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Assets" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Assignments & requests" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-module-kpis" id="md-module-assets">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="md-chart-card md-span-7 md-module-card"
+                data-chart-id="performance_module"
+                data-chart-section="modules"
+                data-chart-label="{% trans 'Performance KPIs' %}"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Performance" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Objectives & feedback" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-module-kpis md-module-kpis--wide" id="md-module-performance">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="md-chart-card md-span-5 md-module-card"
+                data-chart-id="payroll_module"
+                data-chart-section="modules"
+                data-chart-label="{% trans 'Payroll KPIs' %}"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Payroll" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Payslips, loans & claims" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-module-kpis" id="md-module-payroll">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="md-chart-card md-span-12 md-module-card"
+                data-chart-id="workforce_module"
+                data-chart-section="modules"
+                data-chart-label="{% trans 'Workforce Ops KPIs' %}"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Workforce Ops" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Offboarding & helpdesk" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body">
+                    <div class="md-module-kpis md-module-kpis--wide" id="md-module-workforce">
+                        <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+                    </div>
+                </div>
+            </div>
+
+            {% if perms.leave.view_leaverequest or request.user.is_superuser or home_role == "manager" %}
+                <div
+                    class="md-chart-card md-span-8"
+                    data-chart-id="leave_trends"
+                    data-chart-section="leave"
+                    data-chart-label="{% trans 'Leave Trends' %}"
+                    data-chart-default="hidden"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Leave Trends" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Leave count vs Date" %}</div>
+                        </div>
+                        <a class="md-link text-xs" href="{% url 'leave-dashboard' %}">{% trans "Open Leave dashboard" %}</a>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-leave-trend"></div></div>
+                </div>
+            {% endif %}
+
+            <div
+                class="md-chart-card md-span-4"
+                data-chart-id="employee_status"
+                data-chart-section="overview"
+                data-chart-label="{% trans 'Employee Status' %}"
+                data-chart-default="hidden"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Employee Status" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Active vs Inactive" %}</div>
+                    </div>
+                    <a class="md-link text-xs" href="{% url 'employee-dashboard' %}">{% trans "Open Employee dashboard" %}</a>
+                </div>
+                <div class="md-chart-card__body"><div id="chart-employee-status"></div></div>
+            </div>
+
+            {% if perms.attendance.view_attendance or request.user.is_superuser or home_role == "manager" %}
+                <div
+                    class="md-chart-card md-span-5"
+                    data-chart-id="department_overtime"
+                    data-chart-section="attendance"
+                    data-chart-label="{% trans 'Department Overtime' %}"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Department Overtime" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Overtime hours by department" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-overtime"></div></div>
+                </div>
+            {% endif %}
+
+            <div
+                class="md-chart-card md-span-3"
+                data-chart-id="gender_distribution"
+                data-chart-section="overview"
+                data-chart-label="{% trans 'Gender Distribution' %}"
+                data-chart-default="hidden"
+            >
+                <div class="md-chart-card__header">
+                    <div>
+                        <div class="md-chart-card__title">{% trans "Gender Distribution" %}</div>
+                        <div class="md-chart-card__subtitle">{% trans "Active employees" %}</div>
+                    </div>
+                </div>
+                <div class="md-chart-card__body"><div id="chart-gender"></div></div>
+            </div>
+
+            {% if perms.leave.view_leaverequest or request.user.is_superuser or home_role == "manager" %}
+                <div
+                    class="md-chart-card md-span-4"
+                    data-chart-id="leave_breakdown"
+                    data-chart-section="leave"
+                    data-chart-label="{% trans 'Leave Breakdown' %}"
+                    data-chart-default="hidden"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Leave Breakdown" %}</div>
+                            <div class="md-chart-card__subtitle" id="leave-month">{% trans "This month" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-leave"></div></div>
+                </div>
+            {% endif %}
+
+            {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
+                <div
+                    class="md-chart-card md-span-9"
+                    data-chart-id="recruitment_pipeline"
+                    data-chart-section="recruitment"
+                    data-chart-label="{% trans 'Recruitment Pipeline' %}"
+                    data-chart-wide="1"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Recruitment Pipeline" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Candidates by stage per recruitment" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-pipeline"></div></div>
+                </div>
+
+                <div
+                    class="md-chart-card md-span-3"
+                    data-chart-id="hiring_timeline"
+                    data-chart-section="recruitment"
+                    data-chart-label="{% trans 'Hiring Timeline' %}"
+                    data-chart-default="hidden"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Hiring Timeline" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Employees joined by month" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-hiring"></div></div>
+                </div>
+            {% endif %}
+
+            {% if perms.leave.view_leaverequest or request.user.is_superuser or home_role == "manager" %}
+                <div
+                    class="md-chart-card md-span-8"
+                    data-chart-id="leave_by_department"
+                    data-chart-section="leave"
+                    data-chart-label="{% trans 'Leave by Department' %}"
+                    data-chart-default="hidden"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Leave by Department" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Requests ranked by department" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-leave-dept"></div></div>
+                </div>
+
+                <div
+                    class="md-chart-card md-span-4"
+                    data-chart-id="department_leave_days"
+                    data-chart-section="leave"
+                    data-chart-label="{% trans 'Department Leave Days' %}"
+                    data-chart-default="hidden"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Department Leave Days" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Total leave days by department" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-leave-days"></div></div>
+                </div>
+            {% endif %}
+
+            {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
+                <div
+                    class="md-chart-card md-span-7"
+                    data-chart-id="recruitment_funnel"
+                    data-chart-section="recruitment"
+                    data-chart-label="{% trans 'Recruitment Funnel' %}"
+                    data-chart-wide="1"
+                    data-chart-default="hidden"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Recruitment Funnel" %}</div>
+                            <div class="md-chart-card__subtitle">{% trans "Stage pipeline — share of candidates" %}</div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-recruitment-funnel"></div></div>
+                </div>
+            {% endif %}
+
+            {% if perms.employee.view_employee or request.user.is_superuser %}
+                <div
+                    class="md-chart-card md-span-5"
+                    data-chart-id="employee_turnover"
+                    data-chart-section="overview"
+                    data-chart-label="{% trans 'Employee Turnover' %}"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Employee Turnover" %}</div>
+                            <div class="md-chart-card__subtitle" id="turnover-rate">
+                                {% trans "New hires vs exits — last 6 months" %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-turnover"></div></div>
+                </div>
+            {% endif %}
+
+            {% if request.user.is_superuser or perms.payroll.view_payslip and request.user.is_staff or perms.payroll.view_payslip and perms.payroll.change_payslip %}
+                <div
+                    class="md-chart-card md-span-12"
+                    data-chart-id="payroll_summary"
+                    data-chart-section="payroll"
+                    data-chart-label="{% trans 'Payroll Summary' %}"
+                    data-chart-wide="1"
+                >
+                    <div class="md-chart-card__header">
+                        <div>
+                            <div class="md-chart-card__title">{% trans "Payroll Summary" %}</div>
+                            <div class="md-chart-card__subtitle" id="payroll-month">
+                                {% trans "Current vs previous month" %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md-chart-card__body"><div id="chart-payroll"></div></div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Module KPI detail modal -->
+    <div class="oh-modal md-module-modal" id="md-module-modal" role="dialog" aria-modal="true" aria-labelledby="md-module-modal-title" aria-hidden="true">
+        <div class="oh-modal__dialog">
+            <div class="md-module-modal__header">
+                <div>
+                    <h3 class="md-module-modal__title" id="md-module-modal-title">{% trans "Details" %}</h3>
+                    <p class="md-module-modal__subtitle" id="md-module-modal-subtitle"></p>
+                </div>
+                <button type="button" class="md-module-modal__close" id="md-module-modal-close" aria-label="{% trans 'Close' %}">&times;</button>
+            </div>
+            <div class="md-module-modal__body" id="md-module-modal-body">
+                <div class="md-info-panel__empty">{% trans "Loading..." %}</div>
+            </div>
+            <div class="md-module-modal__footer">
+                <a href="#" class="md-link" id="md-module-modal-viewall" hidden>{% trans "View all" %}</a>
+                <button type="button" class="oh-btn oh-btn--secondary" id="md-module-modal-done">{% trans "Close" %}</button>
             </div>
         </div>
     </div>
@@ -583,12 +789,15 @@
             const STORAGE_KEY = 'md_dashboard_prefs_v2';
 
             const SECTION_LABELS = {
+                team: "{% trans 'Team & Actions'|escapejs %}",
+                modules: "{% trans 'Module KPIs'|escapejs %}",
                 overview: "{% trans 'Overview'|escapejs %}",
                 attendance: "{% trans 'Attendance & Overtime'|escapejs %}",
                 recruitment: "{% trans 'Recruitment'|escapejs %}",
                 leave: "{% trans 'Leave Analytics'|escapejs %}",
                 payroll: "{% trans 'Payroll'|escapejs %}"
             };
+            const EMP_PROFILE_TMPL = "{% url 'employee-view-individual' 0 %}";
 
             // Permission flags — server-rendered; control chart click/drill-down behaviour
             const PERM = {
@@ -602,10 +811,27 @@
             const emptyHtml = (msg) => `<div class="md-empty"><img src="/static/images/ui/application.png" alt="">${msg}</div>`;
             const hideCard  = id => document.querySelector(`[data-chart-id="${id}"]`)?.classList.add('md-chart-card--hidden');
             const kpiCard   = (href, perm, colorClass, svg, label, value, sub, extra = '') => {
-                const body = `<div class="md-kpi-card__icon ${colorClass}">${svg}</div><div class="md-kpi-card__label">${label}</div><div class="md-kpi-card__value">${value}</div>`;
+                const body = `<div class="md-kpi-card__icon ${colorClass}">${svg}</div><div class="md-kpi-card__meta"><div class="md-kpi-card__value">${value}</div><div class="md-kpi-card__label">${label}</div></div>`;
                 const subHtml = `<div class="md-kpi-card__sub">${sub}</div>${extra}`;
-                if (!perm) return `<div class="md-kpi-card">${body}${subHtml}</div>`;
+                if (!perm) return `<div class="md-kpi-card"><div class="md-kpi-card__hit">${body}</div>${subHtml}</div>`;
                 return `<div class="md-kpi-card"><a href="${href}" class="md-kpi-card__hit">${body}</a>${subHtml}</div>`;
+            };
+            const sparkBars = (seed, tone) => {
+                const bars = [];
+                let x = Math.max(1, Number(seed) || 1) * 17;
+                for (let i = 0; i < 6; i++) {
+                    x = (x * 9301 + 49297) % 233280;
+                    bars.push(28 + (x % 72));
+                }
+                return `<div class="md-spark md-spark--${tone}" aria-hidden="true">${bars.map(h => `<span style="height:${h}%"></span>`).join('')}</div>`;
+            };
+            const ringMeter = (pct, tone) => {
+                const safe = Math.max(0, Math.min(100, Number(pct) || 0));
+                return `<div class="md-ring" style="--md-ring-pct:${safe};--md-ring-color:var(--md-${tone === 'indigo' ? 'indigo' : tone})" data-label="${safe}%"></div>`;
+            };
+            const progressBar = (pct, tone) => {
+                const safe = Math.max(0, Math.min(100, Number(pct) || 0));
+                return `<div class="md-progress md-progress--${tone}"><span style="width:${safe}%"></span></div>`;
             };
             // Small "On-Office · 30  WFH · 12" row shown under Present Today,
             // built from server-grouped work_type_id__work_type counts.
@@ -749,13 +975,19 @@
             //  CHART REORDER + VISIBILITY SYSTEM
             // ═══════════════════════════════════════════
 
+            function allChartCards() {
+                return document.querySelectorAll(
+                    '#md-charts-ops [data-chart-id], #md-charts-container [data-chart-id]'
+                );
+            }
+
             function getDefaultOrder() {
                 const roleDefaults = {{ role_default_prefs|default:"[]"|safe }};
                 const byId = {};
                 if (Array.isArray(roleDefaults)) {
                     roleDefaults.forEach(p => { if (p && p.id) byId[p.id] = !!p.visible; });
                 }
-                const cards = document.querySelectorAll('#md-charts-container [data-chart-id]');
+                const cards = allChartCards();
                 return Array.from(cards).map(c => {
                     const id = c.dataset.chartId;
                     let visible;
@@ -788,31 +1020,30 @@
 
             function applyPrefs(prefs) {
                 if (!prefs) return;
-                const container = document.getElementById('md-charts-container');
                 const cards = {};
-                container.querySelectorAll('[data-chart-id]').forEach(c => { cards[c.dataset.chartId] = c; });
+                allChartCards().forEach(c => { cards[c.dataset.chartId] = c; });
 
-                // Reorder
+                // Reorder within each section so sticky ops / mosaic bands stay intact
                 prefs.forEach(p => {
                     const card = cards[p.id];
-                    if (card) {
-                        container.appendChild(card);
-                        if (p.visible === false) {
-                            card.classList.add('md-chart-card--hidden');
-                        } else {
-                            card.classList.remove('md-chart-card--hidden');
-                        }
+                    if (!card || !card.parentElement) return;
+                    card.parentElement.appendChild(card);
+                    if (p.visible === false) {
+                        card.classList.add('md-chart-card--hidden');
+                    } else {
+                        card.classList.remove('md-chart-card--hidden');
                     }
                 });
 
-                // Append any new charts not in prefs (honor data-chart-default)
+                // Honor defaults for any new charts not yet in prefs
                 Object.keys(cards).forEach(id => {
                     if (!prefs.find(p => p.id === id)) {
-                        container.appendChild(cards[id]);
-                        if (cards[id].dataset.chartDefault === 'hidden') {
-                            cards[id].classList.add('md-chart-card--hidden');
+                        const card = cards[id];
+                        if (card.parentElement) card.parentElement.appendChild(card);
+                        if (card.dataset.chartDefault === 'hidden') {
+                            card.classList.add('md-chart-card--hidden');
                         } else {
-                            cards[id].classList.remove('md-chart-card--hidden');
+                            card.classList.remove('md-chart-card--hidden');
                         }
                     }
                 });
@@ -870,9 +1101,9 @@
             }
 
             function renderCustomizeList(prefs) {
-                // Build from current DOM + prefs
+                // Build from current DOM + prefs (ops band + deeper mosaic)
                 const allCards = {};
-                document.querySelectorAll('#md-charts-container [data-chart-id]').forEach(c => {
+                allChartCards().forEach(c => {
                     allCards[c.dataset.chartId] = {
                         id: c.dataset.chartId,
                         label: c.dataset.chartLabel,
@@ -1089,42 +1320,139 @@
             refreshToggle.addEventListener('click', () => { if (autoRefreshOn) stopAutoRefresh(); else startAutoRefresh(); });
             if (autoRefreshOn) startAutoRefresh(); else stopAutoRefresh();
 
-            // ─── KPI CARDS ───
+            // ─── HERO / ASYMMETRIC TILES ───
             function loadKpiCards() {
                 fetchP("{% url 'dashboard-kpi-data' %}")
                     .then(r => r.json())
                     .then(data => {
-                        const empSvg   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
-                        const attSvg   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>';
-                        const leaveSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-                        const actionSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>';
+                        // Keep pending badge host for loadPendingApprovals updates
                         document.getElementById('md-kpi-grid').innerHTML =
-                            kpiCard("{% url 'employee-view' %}?is_active=True&filter_applied=on",   PERM.employee,    'md-kpi-card__icon--indigo', empSvg,   '{% trans "Total Employees"|escapejs %}',   data.total_employees,   data.new_joiners > 0 ? '<span class="md-badge md-badge--green">+' + data.new_joiners + ' {% trans "This Month"|escapejs %}</span>' : '<span class="md-badge md-badge--blue">{% trans "No New Joiners"|escapejs %}</span>') +
-                            kpiCard("{% url 'employee-view' %}?present_on={% now 'Y-m-d' %}&is_active=True&filter_applied=on",  PERM.employee,    'md-kpi-card__icon--green',  attSvg,   '{% trans "Present Today"|escapejs %}',     data.present_today,     '<span class="md-badge ' + (data.attendance_rate >= 80 ? 'md-badge--green' : 'md-badge--amber') + '">' + data.attendance_rate + '% {% trans "Of Expected"|escapejs %}</span>', kpiBreakdown(data.present_by_work_type)) +
-                            kpiCard(`{% url 'request-view' %}?status=approved&today_leave=true&filter_applied=on`,     PERM.leave,       'md-kpi-card__icon--amber',  leaveSvg, '{% trans "On Leave"|escapejs %}',           data.on_leave,          (data.half_day_today > 0 ? '<span class="md-badge md-badge--amber">' + data.half_day_today + ' {% trans "Half Day"|escapejs %}</span>' : '<span class="md-badge md-badge--blue">{% trans "Approved Today"|escapejs %}</span>')) +
-                            kpiCard("{% url 'request-view' %}?status=requested&filter_applied=on", PERM.leave, 'md-kpi-card__icon--blue', actionSvg, '{% trans "Pending Actions"|escapejs %}', '<span id="md-pending-actions-value">' + data.pending_leaves + '</span>', '<span id="md-pending-actions-sub" class="md-badge md-badge--amber">{% trans "Loading approvals"|escapejs %}</span>');
+                            '<span id="md-pending-actions-value" hidden>' + data.pending_leaves + '</span>' +
+                            '<span id="md-pending-actions-sub" hidden></span>';
+
+                        const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                        setTxt('md-hero-employees', data.total_employees);
+                        setTxt('md-hero-rate', (data.attendance_rate || 0) + '%');
+                        setTxt('md-accent-present-value', data.present_today);
+                        setTxt('md-accent-absent-value', data.absent_today);
+                        setTxt('md-accent-leave-value', data.on_leave);
+                        setTxt('md-accent-late-value', data.late_today ?? 0);
+                        setTxt(
+                            'md-accent-present-sub',
+                            (data.attendance_rate || 0) + '% {% trans "of expected"|escapejs %}'
+                        );
+                        setTxt(
+                            'md-accent-absent-sub',
+                            (data.expected_today || 0) + ' {% trans "expected today"|escapejs %}'
+                        );
+                        setTxt(
+                            'md-accent-leave-sub',
+                            data.half_day_today > 0
+                                ? data.half_day_today + ' {% trans "half-day"|escapejs %}'
+                                : '{% trans "Approved today"|escapejs %}'
+                        );
+                        setTxt(
+                            'md-accent-late-sub',
+                            (data.early_out_today || 0) > 0
+                                ? (data.early_out_today + ' {% trans "early out"|escapejs %}')
+                                : '{% trans "Today"|escapejs %}'
+                        );
+
+                        const directChip = document.getElementById('md-hero-direct-chip');
+                        if (directChip && data.is_team_scoped) {
+                            directChip.hidden = false;
+                            setTxt('md-hero-direct', data.direct_reports ?? 0);
+                        }
+
+                        ['present', 'absent', 'leave', 'late'].forEach((key, i) => {
+                            const tones = ['green', 'blue', 'amber', 'red'];
+                            const values = [
+                                data.present_today,
+                                data.absent_today,
+                                data.on_leave,
+                                data.late_today,
+                            ];
+                            const el = document.getElementById('md-accent-' + key + '-spark');
+                            if (el) el.outerHTML = sparkBars(values[i] || 3, tones[i]);
+                        });
+
+                        const hireTrend = data.new_joiners > 0
+                            ? `<span class="md-trend md-trend--up">▲ ${data.new_joiners}</span>`
+                            : `<span class="md-trend md-trend--flat">—</span>`;
+
+                        const coverageEl = document.getElementById('md-hero-coverage');
+                        if (coverageEl) {
+                            const peakLabel = data.peak_leave_date
+                                ? data.peak_leave_date
+                                : '{% trans "No peak"|escapejs %}';
+                            coverageEl.innerHTML = `
+                                <div class="md-pending-grid">
+                                    <div class="md-pending-card md-pending-card--amber">
+                                        <div class="md-pending-card__count">${data.upcoming_leave_7d || 0}</div>
+                                        <div class="md-pending-card__label">{% trans "People away"|escapejs %}</div>
+                                    </div>
+                                    <div class="md-pending-card md-pending-card--blue">
+                                        <div class="md-pending-card__count">${data.peak_on_leave_7d || 0}</div>
+                                        <div class="md-pending-card__label">{% trans "Peak day"|escapejs %}</div>
+                                    </div>
+                                    <div class="md-pending-card md-pending-card--green">
+                                        <div class="md-pending-card__count">${data.peak_leave_pct || 0}%</div>
+                                        <div class="md-pending-card__label">{% trans "Peak impact"|escapejs %}</div>
+                                    </div>
+                                    <div class="md-pending-card" style="background:#eef2ff;">
+                                        <div class="md-pending-card__count" style="color:#4f46e5;font-size:13px;">${peakLabel}</div>
+                                        <div class="md-pending-card__label">{% trans "Peak date"|escapejs %}</div>
+                                    </div>
+                                </div>`;
+                        }
+
                         const insights = document.getElementById('md-employee-insights');
                         if (insights) {
+                            // Unique vs hero presence accents, Coverage 7d, and module packs.
                             insights.innerHTML = `
                                 <div class="md-insight-card">
-                                    <div class="md-insight-card__label">{% trans "New Hires"|escapejs %}</div>
-                                    <div class="md-insight-card__value">${data.new_joiners}</div>
-                                    <div class="md-insight-card__sub">{% trans "Joined in selected period"|escapejs %}</div>
+                                    <div class="md-insight-card__top">
+                                        <div>
+                                            <div class="md-insight-card__label">${data.is_team_scoped ? '{% trans "Team Size"|escapejs %}' : '{% trans "Headcount"|escapejs %}'}</div>
+                                            <div class="md-insight-card__value md-insight-card__value--amber">${data.total_employees || 0}</div>
+                                        </div>
+                                        ${sparkBars(data.total_employees || 3, 'amber')}
+                                    </div>
+                                    <div class="md-insight-card__sub">${data.is_team_scoped
+                                        ? ((data.direct_reports || 0) + ' {% trans "direct · nested included"|escapejs %}')
+                                        : '{% trans "Active employees"|escapejs %}'}</div>
                                 </div>
                                 <div class="md-insight-card">
-                                    <div class="md-insight-card__label">{% trans "Yet to Check In"|escapejs %}</div>
-                                    <div class="md-insight-card__value">${data.not_checked_in}</div>
-                                    <div class="md-insight-card__sub">{% trans "Expected today, excluding approved leave"|escapejs %}</div>
+                                    <div class="md-insight-card__top">
+                                        <div>
+                                            <div class="md-insight-card__label">{% trans "New Joiners"|escapejs %}</div>
+                                            <div class="md-insight-card__value md-insight-card__value--blue">${data.new_joiners || 0}</div>
+                                        </div>
+                                        ${sparkBars(data.new_joiners || 2, 'blue')}
+                                    </div>
+                                    <div class="md-insight-card__sub">${hireTrend} {% trans "this period"|escapejs %}</div>
                                 </div>
                                 <div class="md-insight-card">
-                                    <div class="md-insight-card__label">{% trans "Open Recruitment"|escapejs %}</div>
-                                    <div class="md-insight-card__value">${data.open_recruitments}</div>
-                                    <div class="md-insight-card__sub">{% trans "Active hiring pipelines"|escapejs %}</div>
+                                    <div class="md-insight-card__top">
+                                        <div>
+                                            <div class="md-insight-card__label">{% trans "Half Day"|escapejs %}</div>
+                                            <div class="md-insight-card__value md-insight-card__value--indigo">${data.half_day_today || 0}</div>
+                                        </div>
+                                        ${sparkBars(data.half_day_today || 2, 'indigo')}
+                                    </div>
+                                    <div class="md-insight-card__sub">{% trans "Partial leave today"|escapejs %}</div>
                                 </div>
                                 <div class="md-insight-card">
-                                    <div class="md-insight-card__label">{% trans "Attendance Rate"|escapejs %}</div>
-                                    <div class="md-insight-card__value">${data.attendance_rate}%</div>
-                                    <div class="md-insight-card__sub">{% trans "Present vs expected today"|escapejs %}</div>
+                                    <div class="md-insight-card__top">
+                                        <div>
+                                            <div class="md-insight-card__label">${data.is_team_scoped ? '{% trans "Today Rate"|escapejs %}' : '{% trans "Open Hiring"|escapejs %}'}</div>
+                                            <div class="md-insight-card__value md-insight-card__value--green">${data.is_team_scoped ? ((data.attendance_rate || 0) + '%') : (data.open_recruitments || 0)}</div>
+                                        </div>
+                                        ${data.is_team_scoped ? ringMeter(data.attendance_rate || 0, 'green') : sparkBars(data.open_recruitments || 3, 'green')}
+                                    </div>
+                                    <div class="md-insight-card__sub">${data.is_team_scoped
+                                        ? progressBar(data.attendance_rate || 0, 'green')
+                                        : '{% trans "Active pipelines"|escapejs %}'}</div>
                                 </div>`;
                         }
                     });
@@ -1228,20 +1556,24 @@
             }
             loadTodaysLeave();
 
-            {% if perms.attendance.view_attendance or request.user.is_superuser %}
+            {% if perms.attendance.view_attendance or request.user.is_superuser or home_role == "manager" %}
             // ─── ATTENDANCE TREND ───
             function loadAttendanceTrend() {
                 fetchP("{% url 'dashboard-attendance-trend' %}")
                 .then(r => r.json())
                 .then(data => {
-                    if (data.no_permission) { hideCard('attendance_trend'); return; }
+                    if (data.no_permission) {
+                        hideCard('attendance_trend');
+                        document.querySelector('[data-chart-id="attendance_trend_hero"]')?.classList.add('md-chart-card--hidden');
+                        return;
+                    }
                     const sub = document.getElementById('md-attendance-trend-subtitle');
                     if (sub && fromInput.value && toInput.value) {
                         sub.textContent = `{% trans "Weekly rate"|escapejs %} — ${fromInput.value} → ${toInput.value}`;
                     }
                     renderChart('attendance-trend', document.querySelector("#chart-attendance-trend"), {
                         series: [{ name: '{% trans "Attendance Rate"|escapejs %}', data: data.weeks.map(w => w.rate) }],
-                        chart: { type: 'area', height: 280, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
+                        chart: { type: 'area', height: 250, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', animations: ANIM },
                         colors: [COLORS[0]],
                         fill: { type: 'solid', opacity: 0.18 },
                         stroke: { curve: 'straight', width: 3 },
@@ -1362,7 +1694,7 @@
             }
             loadGenderSplit();
 
-            {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+            {% if perms.leave.view_leaverequest or request.user.is_superuser or home_role == "manager" %}
             // ─── LEAVE BREAKDOWN ───
             function loadLeaveBreakdown() {
                 fetchP("{% url 'dashboard-leave-breakdown' %}")
@@ -1401,16 +1733,18 @@
                 fetch("{% url 'dashboard-employee-status' %}")
                 .then(r => r.json())
                 .then(data => {
-                    if (!data.dataSet || !data.dataSet.length) { document.querySelector("#chart-employee-status").innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
+                    const statusTarget = document.querySelector("#chart-employee-status-hero") || document.querySelector("#chart-employee-status");
+                    if (!statusTarget) return;
+                    if (!data.dataSet || !data.dataSet.length) { statusTarget.innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
                     {# keyed on the API's stable series keys, not on the translated labels #}
                     const sc = Object.assign(
                         { active: '#86EFAC', inactive: '#FCA5A5' },
                         window.DSG_CHART_STATUS || {}
                     );
                     const statusKeys = data.keys || ['active', 'inactive'];
-                    renderChart('employee-status', document.querySelector("#chart-employee-status"), {
+                    renderChart('employee-status', statusTarget, {
                         series: data.dataSet[0].data,
-                        chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
+                        chart: { type: 'donut', height: 240, background: 'transparent', fontFamily: 'inherit', animations: ANIM,
                             events: { dataPointSelection: (e, ctx, config) => {
                                 if (!PERM.employee) return;
                                 const active = statusKeys[config.dataPointIndex] === 'active' ? 'true' : 'false';
@@ -1434,7 +1768,7 @@
             }
             loadEmployeeStatus();
 
-            {% if perms.attendance.view_attendance or request.user.is_superuser %}
+            {% if perms.attendance.view_attendance or request.user.is_superuser or home_role == "manager" %}
             // ─── ATTENDANCE OVERVIEW ───
             function loadAttendanceOverview() {
                 fetch("{% url 'dashboard-attendance-overview' %}")
@@ -1506,7 +1840,7 @@
             loadDepartmentOvertime();
             {% endif %}
 
-            {% if perms.leave.view_leaverequest or request.user.is_superuser %}
+            {% if perms.leave.view_leaverequest or request.user.is_superuser or home_role == "manager" %}
             // ─── LEAVE OVER PERIOD ───
             function loadLeaveOverPeriod() {
                 fetch("{% url 'dashboard-leave-trends' %}")
@@ -1627,8 +1961,8 @@
             loadHiringTimeline();
             {% endif %}
 
-            {% if perms.leave.view_leaverequest or request.user.is_superuser %}
-            // ─── LEAVE BY DEPARTMENT ───
+            {% if perms.leave.view_leaverequest or request.user.is_superuser or home_role == "manager" %}
+            // ─── LEAVE COVERAGE + DEPARTMENT LEAVE ───
             function loadLeaveCoverage() {
                 const el = document.querySelector("#chart-leave-coverage");
                 if (!el) return;
@@ -1639,21 +1973,91 @@
                         el.innerHTML = emptyHtml('{% trans "No leave coverage data"|escapejs %}');
                         return;
                     }
+                    const sub = document.getElementById('md-leave-coverage-subtitle');
+                    if (sub && data.active_employees != null) {
+                        sub.textContent = data.is_team_scoped
+                            ? '{% trans "This month — team on leave vs available"|escapejs %}'
+                            : '{% trans "This month — on leave vs available headcount"|escapejs %}';
+                    }
+                    // Sparse x labels for a full month so the axis stays readable.
+                    const labels = data.days.map((d, i) => {
+                        if (data.days.length <= 14) return d.label;
+                        if (d.is_today) return d.label;
+                        return i % 3 === 0 ? d.label : '';
+                    });
                     renderChart('leave-coverage', el, {
                         series: [
                             { name: '{% trans "On leave"|escapejs %}', data: data.days.map(d => d.on_leave) },
                             { name: '{% trans "Available"|escapejs %}', data: data.days.map(d => d.available) },
                         ],
-                        chart: { type: 'bar', height: 280, stacked: true, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-                        colors: [COLORS[4], COLORS[3]],
-                        plotOptions: { bar: { columnWidth: '55%', borderRadius: 4 } },
-                        xaxis: { ...XAXIS_STYLE, categories: data.days.map(d => d.label) },
-                        yaxis: { labels: { style: { colors: textColor, fontSize: '11px' } } },
-                        legend: { ...LEGEND_STYLE, position: 'top', horizontalAlign: 'left' },
-                        grid: GRID,
+                        chart: {
+                            type: 'area',
+                            height: 300,
+                            toolbar: { show: false },
+                            background: 'transparent',
+                            fontFamily: 'inherit',
+                            animations: ANIM,
+                            zoom: { enabled: false },
+                        },
+                        colors: [COLORS[0], '#94A3B8'],
+                        stroke: {
+                            curve: 'smooth',
+                            width: [3.5, 2],
+                        },
+                        fill: {
+                            type: ['gradient', 'solid'],
+                            gradient: {
+                                type: 'vertical',
+                                shadeIntensity: 1,
+                                opacityFrom: 0.42,
+                                opacityTo: 0.04,
+                                stops: [0, 85, 100],
+                            },
+                            opacity: [1, 0],
+                        },
+                        markers: {
+                            size: 0,
+                            hover: { size: 5 },
+                        },
+                        xaxis: {
+                            ...XAXIS_STYLE,
+                            categories: labels,
+                            tooltip: { enabled: false },
+                            crosshairs: { show: false },
+                        },
+                        yaxis: {
+                            ...YAXIS_STYLE,
+                            min: 0,
+                            forceNiceScale: true,
+                            labels: {
+                                ...YAXIS_STYLE.labels,
+                                formatter: v => Math.round(v),
+                            },
+                        },
+                        legend: {
+                            ...LEGEND_STYLE,
+                            position: 'top',
+                            horizontalAlign: 'left',
+                            markers: { width: 8, height: 8, radius: 2 },
+                        },
+                        grid: {
+                            borderColor: gridColor,
+                            strokeDashArray: 4,
+                            xaxis: { lines: { show: false } },
+                            yaxis: { lines: { show: true } },
+                            padding: { left: 8, right: 8, top: 0, bottom: 0 },
+                        },
                         dataLabels: { enabled: false },
                         tooltip: {
-                            theme: isDark ? 'dark' : 'light',
+                            ...TOOLTIP_STYLE,
+                            shared: true,
+                            intersect: false,
+                            x: {
+                                formatter: (_val, opts) => {
+                                    const day = data.days[opts.dataPointIndex];
+                                    return day ? day.label : '';
+                                },
+                            },
                             y: { formatter: v => v + ' {% trans "employees"|escapejs %}' },
                         },
                     });
@@ -1836,6 +2240,7 @@
                 </div>`;
             }
             function loadPendingApprovals() {
+                // Single render target: sticky sidebar "Needs Your Attention".
                 fetchP("{% url 'dashboard-pending-approvals' %}")
                 .then(r => r.json())
                 .then(data => {
@@ -1861,6 +2266,237 @@
                 });
             }
             loadPendingApprovals();
+
+            // ─── TEAM PULSE (roster only — presence lives in hero accents) ───
+            function loadTeamPulse() {
+                const rosterEl = document.getElementById('md-team-roster');
+                if (!rosterEl) return;
+                fetchP("{% url 'dashboard-team-pulse' %}")
+                .then(r => r.json())
+                .then(data => {
+                    const rosterSub = document.getElementById('md-team-roster-sub');
+                    if (rosterSub) {
+                        rosterSub.textContent = data.is_team_scoped
+                            ? '{% trans "Direct & nested subordinates"|escapejs %}'
+                            : '{% trans "Workforce snapshot"|escapejs %}';
+                    }
+                    if (rosterEl) {
+                        const members = data.members || [];
+                        if (!members.length) {
+                            rosterEl.innerHTML = '<div class="md-info-panel__empty">{% trans "No team members in scope"|escapejs %}</div>';
+                            return;
+                        }
+                        const statusMap = {
+                            present: { label: '{% trans "Present"|escapejs %}', cls: 'md-badge--green' },
+                            leave: { label: '{% trans "On leave"|escapejs %}', cls: 'md-badge--amber' },
+                            late: { label: '{% trans "Late"|escapejs %}', cls: 'md-badge--red' },
+                            offline: { label: '{% trans "Offline"|escapejs %}', cls: 'md-badge--blue' },
+                        };
+                        rosterEl.innerHTML = members.map(m => {
+                            const st = statusMap[m.status] || statusMap.offline;
+                            const href = EMP_PROFILE_TMPL.replace('/0/', '/' + m.id + '/');
+                            const avatar = m.avatar
+                                ? `<img src="${m.avatar}" alt="">`
+                                : (m.name || '?').charAt(0);
+                            return `
+                            <a class="md-team-member" href="${href}">
+                                <div class="md-team-member__avatar">${avatar}</div>
+                                <div class="md-team-member__info">
+                                    <div class="md-team-member__name">${m.name || ''}</div>
+                                    <div class="md-team-member__job">${m.job || ''}</div>
+                                </div>
+                                <span class="md-badge ${st.cls}">${st.label}</span>
+                            </a>`;
+                        }).join('');
+                    }
+                }).catch(() => {
+                    if (rosterEl) {
+                        rosterEl.innerHTML = '<div class="md-info-panel__empty">{% trans "Unable to load team data"|escapejs %}</div>';
+                    }
+                });
+            }
+            loadTeamPulse();
+
+            // ─── CROSS-MODULE KPI PACKS ───
+            const MODULE_KPI_META = {
+                attendance: {
+                    mtd_rate: { tone: 'green', span: 5, hero: true, icon: 'stats-chart-outline', hint: '{% trans "Month-to-date rate"|escapejs %}' },
+                    late_mtd: { tone: 'amber', span: 7, hero: true, icon: 'time-outline', hint: '{% trans "People late this month"|escapejs %}' },
+                    early_out: { tone: 'blue', span: 4, icon: 'walk-outline', hint: '{% trans "Left early today"|escapejs %}' },
+                    pending: { tone: 'amber', span: 4, icon: 'hourglass-outline', hint: '{% trans "Needs review"|escapejs %}' },
+                    ot_hours: { tone: 'indigo', span: 4, icon: 'flash-outline', hint: '{% trans "Approved OT this month"|escapejs %}' },
+                },
+                leave: {
+                    pending: { tone: 'indigo', span: 6, hero: true, icon: 'mail-unread-outline', hint: '{% trans "Awaiting approval"|escapejs %}' },
+                    approved_month: { tone: 'green', span: 6, hero: true, icon: 'checkmark-done-outline', hint: '{% trans "This month"|escapejs %}' },
+                    rejected_month: { tone: 'red', span: 12, icon: 'ban-outline', hint: '{% trans "This month"|escapejs %}' },
+                },
+                recruitment: {
+                    open: { tone: 'blue', span: 5, hero: true, icon: 'briefcase-outline', hint: '{% trans "Active openings"|escapejs %}' },
+                    candidates: { tone: 'indigo', span: 7, hero: true, icon: 'people-outline', hint: '{% trans "In pipeline"|escapejs %}' },
+                    interviews: { tone: 'amber', span: 8, icon: 'chatbubbles-outline', hint: '{% trans "Interview stage"|escapejs %}' },
+                    hired_month: { tone: 'green', span: 4, icon: 'ribbon-outline', hint: '{% trans "Joined this month"|escapejs %}' },
+                },
+                assets: {
+                    assigned: { tone: 'blue', span: 7, hero: true, icon: 'cube-outline', hint: '{% trans "With employees"|escapejs %}' },
+                    requests: { tone: 'amber', span: 5, icon: 'cart-outline', hint: '{% trans "Awaiting allocation"|escapejs %}' },
+                    returns: { tone: 'slate', span: 12, icon: 'return-down-back-outline', hint: '{% trans "Return in progress"|escapejs %}' },
+                },
+                performance: {
+                    active: { tone: 'blue', span: 4, hero: true, icon: 'flag-outline', hint: '{% trans "In progress"|escapejs %}' },
+                    at_risk: { tone: 'red', span: 3, hero: true, icon: 'warning-outline', hint: '{% trans "Needs attention"|escapejs %}' },
+                    behind: { tone: 'amber', span: 2, icon: 'trending-down-outline', hint: '{% trans "Behind plan"|escapejs %}' },
+                    feedback: { tone: 'indigo', span: 3, icon: 'chatbox-ellipses-outline', hint: '{% trans "360 / reviews"|escapejs %}' },
+                },
+                payroll: {
+                    payslips: { tone: 'indigo', span: 7, hero: true, icon: 'document-text-outline', hint: '{% trans "This month"|escapejs %}' },
+                    contracts: { tone: 'green', span: 5, hero: true, icon: 'document-outline', hint: '{% trans "Active"|escapejs %}' },
+                    reimbursements: { tone: 'amber', span: 4, icon: 'wallet-outline', hint: '{% trans "Pending claims"|escapejs %}' },
+                    loans: { tone: 'slate', span: 8, icon: 'cash-outline', hint: '{% trans "Not settled"|escapejs %}' },
+                },
+                workforce: {
+                    exits: { tone: 'amber', span: 3, icon: 'exit-outline', hint: '{% trans "In pipeline"|escapejs %}' },
+                    resignations: { tone: 'red', span: 3, icon: 'hand-left-outline', hint: '{% trans "Requested"|escapejs %}' },
+                    tickets: { tone: 'blue', span: 4, icon: 'ticket-outline', hint: '{% trans "Open helpdesk"|escapejs %}' },
+                    new_tickets: { tone: 'indigo', span: 2, icon: 'sparkles-outline', hint: '{% trans "New"|escapejs %}' },
+                },
+            };
+
+            function renderModuleKpis(el, moduleKey, metrics) {
+                if (!el) return;
+                if (!metrics || !metrics.length) {
+                    el.innerHTML = '<div class="md-info-panel__empty">{% trans "No metrics"|escapejs %}</div>';
+                    return;
+                }
+                const metaMap = MODULE_KPI_META[moduleKey] || {};
+                el.innerHTML = metrics.map(m => {
+                    const meta = metaMap[m.key] || { tone: 'slate', span: 3, icon: 'ellipse-outline', hint: '' };
+                    const hero = meta.hero ? ' md-module-kpi--hero' : '';
+                    const span = meta.span || 3;
+                    return `
+                    <button type="button" class="md-module-kpi md-module-kpi--${meta.tone} md-module-kpi--span-${span}${hero}"
+                        data-module="${moduleKey}" data-metric="${m.key}" data-label="${(m.label || '').replace(/"/g, '&quot;')}">
+                        <div class="md-module-kpi__top">
+                            <div class="md-module-kpi__value">${m.value ?? 0}</div>
+                            <span class="md-module-kpi__icon" aria-hidden="true"><ion-icon name="${meta.icon}"></ion-icon></span>
+                        </div>
+                        <div>
+                            <div class="md-module-kpi__label">${m.label || ''}</div>
+                            ${meta.hint ? `<div class="md-module-kpi__hint">${meta.hint}</div>` : ''}
+                        </div>
+                    </button>`;
+                }).join('');
+                el.querySelectorAll('.md-module-kpi').forEach(btn => {
+                    btn.addEventListener('click', () => openModuleDetail(btn.dataset.module, btn.dataset.metric, btn.dataset.label));
+                });
+            }
+
+            const moduleModal = document.getElementById('md-module-modal');
+            const moduleModalTitle = document.getElementById('md-module-modal-title');
+            const moduleModalSub = document.getElementById('md-module-modal-subtitle');
+            const moduleModalBody = document.getElementById('md-module-modal-body');
+            const moduleModalViewAll = document.getElementById('md-module-modal-viewall');
+
+            function closeModuleModal() {
+                if (!moduleModal) return;
+                moduleModal.classList.remove('oh-modal--show');
+                moduleModal.setAttribute('aria-hidden', 'true');
+            }
+            function openModuleModalShell(title, subtitle) {
+                if (!moduleModal) return;
+                moduleModalTitle.textContent = title || '{% trans "Details"|escapejs %}';
+                moduleModalSub.textContent = subtitle || '';
+                moduleModalBody.innerHTML = '<div class="md-info-panel__empty">{% trans "Loading..."|escapejs %}</div>';
+                moduleModalViewAll.hidden = true;
+                moduleModal.classList.add('oh-modal--show');
+                moduleModal.setAttribute('aria-hidden', 'false');
+            }
+            function renderModuleDetailRows(rows) {
+                if (!rows || !rows.length) {
+                    return '<div class="md-info-panel__empty">{% trans "No records in scope"|escapejs %}</div>';
+                }
+                return rows.map(r => {
+                    const avatar = r.avatar
+                        ? `<img src="${r.avatar}" alt="">`
+                        : (r.name || '?').charAt(0);
+                    const metaParts = [r.job, r.department, r.meta].filter(Boolean).join(' · ');
+                    const badge = r.badge
+                        ? `<span class="md-badge md-badge--${r.badge_tone === 'green' ? 'green' : r.badge_tone === 'red' ? 'red' : r.badge_tone === 'amber' ? 'amber' : r.badge_tone === 'purple' ? 'purple' : 'blue'}">${r.badge}</span>`
+                        : '';
+                    const tag = r.url ? 'a' : 'div';
+                    const href = r.url ? `href="${r.url}"` : '';
+                    return `<${tag} class="md-module-row" ${href}>
+                        <div class="md-module-row__avatar">${avatar}</div>
+                        <div class="md-module-row__info">
+                            <div class="md-module-row__name">${r.name || ''}</div>
+                            <div class="md-module-row__meta">${metaParts}</div>
+                        </div>
+                        ${badge}
+                    </${tag}>`;
+                }).join('');
+            }
+            function openModuleDetail(moduleKey, metricKey, label) {
+                openModuleModalShell(label || '{% trans "Details"|escapejs %}', '{% trans "Loading details…"|escapejs %}');
+                const url = "{% url 'dashboard-module-detail' %}?module=" + encodeURIComponent(moduleKey) + "&metric=" + encodeURIComponent(metricKey);
+                fetchP(url)
+                    .then(r => r.json())
+                    .then(data => {
+                        moduleModalTitle.textContent = data.title || label || '{% trans "Details"|escapejs %}';
+                        moduleModalSub.textContent = data.subtitle || '';
+                        moduleModalBody.innerHTML = renderModuleDetailRows(data.rows || []);
+                        if (data.view_all_url) {
+                            moduleModalViewAll.href = data.view_all_url;
+                            moduleModalViewAll.hidden = false;
+                        } else {
+                            moduleModalViewAll.hidden = true;
+                        }
+                    })
+                    .catch(() => {
+                        moduleModalSub.textContent = '';
+                        moduleModalBody.innerHTML = '<div class="md-info-panel__empty">{% trans "Unable to load details"|escapejs %}</div>';
+                    });
+            }
+            document.getElementById('md-module-modal-close')?.addEventListener('click', closeModuleModal);
+            document.getElementById('md-module-modal-done')?.addEventListener('click', closeModuleModal);
+            moduleModal?.addEventListener('click', (e) => {
+                if (e.target === moduleModal) closeModuleModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && moduleModal?.classList.contains('oh-modal--show')) closeModuleModal();
+            });
+
+            function loadModulePulse() {
+                const map = {
+                    attendance: { card: 'attendance_module', el: 'md-module-attendance' },
+                    leave: { card: 'leave_module', el: 'md-module-leave' },
+                    recruitment: { card: 'recruitment_module', el: 'md-module-recruitment' },
+                    assets: { card: 'asset_module', el: 'md-module-assets' },
+                    performance: { card: 'performance_module', el: 'md-module-performance' },
+                    payroll: { card: 'payroll_module', el: 'md-module-payroll' },
+                    workforce: { card: 'workforce_module', el: 'md-module-workforce' },
+                };
+                fetchP("{% url 'dashboard-module-pulse' %}")
+                .then(r => r.json())
+                .then(data => {
+                    const modules = data.modules || {};
+                    Object.keys(map).forEach(key => {
+                        const cfg = map[key];
+                        const mod = modules[key];
+                        const host = document.getElementById(cfg.el);
+                        if (!mod || !mod.available) {
+                            hideCard(cfg.card);
+                            return;
+                        }
+                        renderModuleKpis(host, key, mod.metrics || []);
+                    });
+                }).catch(() => {
+                    Object.values(map).forEach(cfg => {
+                        const host = document.getElementById(cfg.el);
+                        if (host) host.innerHTML = '<div class="md-info-panel__empty">{% trans "Unable to load"|escapejs %}</div>';
+                    });
+                });
+            }
+            loadModulePulse();
 
             {% if perms.recruitment.view_recruitment or request.user.is_superuser %}
             // ─── RECRUITMENT FUNNEL (HTML stage funnel — share of candidates) ───
@@ -2027,6 +2663,8 @@
                 loadUpcomingHolidays();
                 if (typeof loadBirthdaysAnniversaries === 'function') loadBirthdaysAnniversaries();
                 loadPendingApprovals();
+                if (typeof loadTeamPulse === 'function') loadTeamPulse();
+                if (typeof loadModulePulse === 'function') loadModulePulse();
                 if (typeof loadRecruitmentFunnel === 'function') loadRecruitmentFunnel();
                 if (typeof loadEmployeeTurnover === 'function') loadEmployeeTurnover();
                 if (typeof loadPayrollSummary === 'function') loadPayrollSummary();

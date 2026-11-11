@@ -72,19 +72,29 @@
             gap: 14px;
         }
         .ed-kpi-card {
-            display: block;
-            padding: 18px;
-            border: 1px solid rgba(128, 128, 128, 0.12);
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr);
+            grid-template-areas:
+                "icon value"
+                "icon label"
+                "sub sub";
+            align-items: center;
+            column-gap: 14px;
+            row-gap: 2px;
+            min-height: 92px;
+            padding: 16px 18px;
+            border: 1px solid #E2E8F0;
             border-radius: 12px;
             background: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
             color: inherit;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .ed-kpi-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: #CBD5E1;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
             color: inherit;
             text-decoration: none;
         }
@@ -93,13 +103,13 @@
             background: #242424;
         }
         .ed-kpi-card__icon {
+            grid-area: icon;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 38px;
-            height: 38px;
-            margin-bottom: 10px;
-            border-radius: 10px;
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
         }
         .ed-kpi-card__icon--amber {
             background: #fef3c7;
@@ -137,22 +147,28 @@
             background: #312e81;
         }
         .ed-kpi-card__label {
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 11px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            opacity: 0.5;
+            grid-area: label;
+            margin: 0;
+            color: #475569;
+            font-weight: 500;
+            font-size: 13px;
         }
         .ed-kpi-card__value {
-            margin-bottom: 4px;
+            grid-area: value;
+            margin: 0;
+            color: #0F172A;
             font-weight: 800;
-            font-size: 28px;
-            line-height: 1;
+            font-size: 26px;
+            line-height: 1.1;
+        }
+        .dark .ed-kpi-card__value {
+            color: inherit;
         }
         .ed-kpi-card__sub {
+            grid-area: sub;
+            margin-top: 8px;
             font-size: 12px;
-            opacity: 0.6;
+            opacity: 0.7;
         }
 
         /* ── Badges ── */

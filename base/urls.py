@@ -138,6 +138,21 @@ urlpatterns = [
         name="dashboard-pending-approvals",
     ),
     path(
+        "dashboard/api/team-pulse/",
+        dashboard_module.dashboard_team_pulse,
+        name="dashboard-team-pulse",
+    ),
+    path(
+        "dashboard/api/module-pulse/",
+        dashboard_module.dashboard_module_pulse,
+        name="dashboard-module-pulse",
+    ),
+    path(
+        "dashboard/api/module-detail/",
+        dashboard_module.dashboard_module_detail,
+        name="dashboard-module-detail",
+    ),
+    path(
         "dashboard/api/turnover/",
         dashboard_module.dashboard_turnover,
         name="dashboard-turnover",

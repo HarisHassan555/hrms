@@ -9,182 +9,57 @@
     margin-bottom: 1.25rem;
   }
   .ms-stat-card {
-    /* flex-grow disabled — with flex-wrap, a card left alone on a wrapped
-       row (e.g. the conditional Conflicts card) would otherwise stretch to
-       fill the entire row width instead of staying the same size as its
-       siblings. */
     flex: 0 1 160px;
-    background: #fff;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+    background: var(--vristo-panel, #fff);
+    border-radius: var(--vristo-radius-lg, 10px);
+    border: 1px solid var(--vristo-border, #e0e6ed);
+    border-top: 3px solid var(--ms-accent, var(--vristo-primary, #4F46E5));
     padding: 14px 18px;
     text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    box-shadow: var(--vristo-shadow-sm, 0 2px 4px rgba(126, 142, 177, 0.12));
   }
-  body.dark .ms-stat-card { background: #1a1a1a; border-color: #444444; }
-  .ms-working-days-val { color: #495057; }
-  body.dark .ms-working-days-val { color: #dfdfdf; }
-  body.dark .ms-stat-card__label { color: #bbbbbb; }
   .ms-stat-card__label {
     font-size: .72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .5px;
-    color: #6c757d;
+    color: var(--vristo-text-muted, #888ea8);
     margin-bottom: 6px;
   }
-  .ms-stat-card__value { font-size: 1.6rem; font-weight: 700; margin: 0; }
+  .ms-stat-card__value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--ms-accent, var(--vristo-heading, #0e1726));
+  }
 
-  /* â"€â"€ fixed-table overrides scoped to our table â"€â"€ */
-  .ms-table-wrap {
+  /* Shared list table shell (vr-panel / vr-table) — same component as
+     horilla_list_table.html. Keep only page-specific helpers here. */
+  #msAttendanceTable.vr-table-wrap {
     position: relative;
   }
-  .ms-table-wrap .table-wrapper {
-    max-height: 60vh;
-    overflow: auto;
-    background: #fff;
-    border: 1px solid hsl(213, 22%, 88%);
-    border-radius: 10px;
-    width: 100%;
+  #msAttendanceTable .vr-table-scroll {
+    max-height: calc(100vh - 280px);
   }
-  /* Column sizing mirrors the real Employee list table exactly
-     (horilla_theme/templates/generic/horilla_list_table.html): natural
-     auto layout with a per-column MIN-width floor (not a fixed width),
-     so short numeric columns don't get force-stretched to fill 100%
-     and long headers don't need to wrap. */
-  .ms-table-wrap .fixed-table {
-    table-layout: auto;
-    width: 100%;
+  #msAttendanceTable table.vr-table thead th:last-child {
+    padding-right: 56px !important;
   }
-  /* Sticky header */
-  .ms-table-wrap .fixed-table thead tr {
-    position: sticky;
-    top: 0;
-    z-index: 5;
+  #msAttendanceTable table.vr-table tbody tr {
+    cursor: pointer;
   }
-  .ms-table-wrap .fixed-table th {
-    min-width: 85px;
+  .ms-period-meta {
+    font-size: .82rem;
+    color: var(--vristo-text-muted, #888ea8);
+    margin: 0;
     white-space: nowrap;
-    font-size: .875rem;
-    padding: 6px;
-    height: auto !important;
-    background-color: #fff !important;
-    border-bottom: 2px solid hsl(213, 22%, 88%) !important;
   }
-  /* Room for the column-toggle button overlaid at the header row's
-     top-right corner (see .ms-table-wrap's absolutely-positioned toggle
-     button below), so it doesn't sit on top of the last column's label. */
-  .ms-table-wrap .fixed-table thead th:last-child {
-    padding-right: 56px;
-  }
-  body.dark .ms-table-wrap .fixed-table thead tr th {
-    background-color: #1a1a1a !important;
-  }
-  .ms-table-wrap .fixed-table td {
-    min-width: 85px;
-    white-space: nowrap;
-    font-size: .875rem;
-    padding: 4px;
-    height: 30px !important;
-    background-color: #fff;
-    /* Same muted text color the real Employee list uses on every cell
-       (horilla_list_table.html's text-[#666], including its own name
-       cell) — was previously unset here, inheriting plain black. */
-    color: #666;
-    border-bottom: 1px solid hsl(213, 22%, 93%);
-  }
-  /* Constrain employee name so it doesn't blow out the column */
-  .ms-table-wrap .fixed-table td:nth-child(2) .oh-profile__name {
-    font-size: .875rem;
-    max-width: 160px;
+  .ms-period-meta strong { color: var(--vristo-text, #3b3f5c); }
+  #msAttendanceTable .oh-profile__name {
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: inline-block;
-  }
-  /* Row hover */
-  .ms-table-wrap .fixed-table tbody tr:hover td {
-    background-color: hsl(0, 0%, 96%);
-    cursor: pointer;
-  }
-  /* Checkbox column (1st) — frozen while the rest of the table scrolls.
-     30px matches the Employee table's own checkbox column width exactly.
-     Padding must stay at 4px each side (not 8px) because box-sizing is
-     border-box site-wide (tailwind.css preflight) -- width:30px already
-     INCLUDES padding, so 8px+8px padding + the 16px checkbox itself (24px
-     needed at 4px) would overflow a 30px box and bleed into the next
-     sticky column while scrolling. */
-  .ms-table-wrap .fixed-table th:first-child,
-  .ms-table-wrap .fixed-table td:first-child {
-    position: sticky !important;
-    left: 0 !important;
-    z-index: 2;
-    width: 30px !important;
-    min-width: 30px !important;
-    padding: 0 4px !important;
-    text-align: center !important;
-    background-color: #fff !important;
-  }
-  /* Employee column (2nd) — frozen right after the checkbox column.
-     `left` must match the checkbox column's actual width (30px) above,
-     or the two overlap and clip the first character of each name. */
-  .ms-table-wrap .fixed-table th:nth-child(2),
-  .ms-table-wrap .fixed-table td:nth-child(2) {
-    position: sticky !important;
-    left: 30px !important;
-    z-index: 2;
-    width: 210px !important;
-    min-width: 210px !important;
-    background-color: #fff !important;
-    border-right: none !important;
-    box-shadow: 2px 0 4px rgba(0,0,0,.06);
-  }
-  .ms-table-wrap .fixed-table thead th:first-child,
-  .ms-table-wrap .fixed-table thead th:nth-child(2) {
-    z-index: 6;
-  }
-  /* Badge ID column (3rd) — de-sticky, otherwise uses the general min-width */
-  .ms-table-wrap .fixed-table th:nth-child(3),
-  .ms-table-wrap .fixed-table td:nth-child(3) {
-    position: static !important;
-    left: auto !important;
-    background-color: #fff !important;
-    border-right: none !important;
-  }
-  /* Dark mode */
-  body.dark .ms-table-wrap .table-wrapper { background: #1a1a1a; border-color: #444444; }
-  body.dark .ms-table-wrap .fixed-table td { background-color: #1a1a1a !important; color: #dfdfdf; border-bottom-color: #444444; }
-  body.dark .ms-table-wrap .fixed-table td:first-child,
-  body.dark .ms-table-wrap .fixed-table td:nth-child(2),
-  body.dark .ms-table-wrap .fixed-table td:nth-child(3) { background-color: #1a1a1a !important; }
-  body.dark .ms-table-wrap .fixed-table thead th { background-color: #1a1a1a !important; color: #dfdfdf; border-bottom-color: #444444; }
-  body.dark .ms-table-wrap .fixed-table tbody tr:hover td { background-color: #2e2e2e !important; }
-
-  /* Row-checked highlight — .highlight-selected is the same class
-     highlightRow() (static/index/index.js) uses on every Horilla list
-     table. Its own rule (index.html) tints it with the company's theme
-     color via color-mix(), but every <td> here has its own opaque
-     background-color for the sticky columns, which paints over it — so
-     the same theme-driven tint needs to be applied per-cell instead.
-     var(--primary-600, ...) is the CSS custom property index.html exposes
-     on :root from the active company theme, so this stays in sync with
-     it instead of hardcoding a color. */
-  .ms-table-wrap .fixed-table tbody tr.highlight-selected td {
-    background-color: color-mix(in srgb, var(--primary-600, #4F46E5) 12%, transparent) !important;
-  }
-  /* The two STICKY columns (checkbox + Employee) must stay fully opaque —
-     a semi-transparent background on a `position: sticky` cell lets the
-     non-sticky columns scrolled underneath it show through, which reads as
-     the sticky column "overlapping" the rest of the row while scrolling.
-     Mixing into the row's own opaque background (white / #1a1a1a) instead
-     of transparent gives the same visible tint, pre-composited and opaque. */
-  .ms-table-wrap .fixed-table tbody tr.highlight-selected td:first-child,
-  .ms-table-wrap .fixed-table tbody tr.highlight-selected td:nth-child(2) {
-    background-color: color-mix(in srgb, var(--primary-600, #4F46E5) 12%, white) !important;
-  }
-  body.dark .ms-table-wrap .fixed-table tbody tr.highlight-selected td:first-child,
-  body.dark .ms-table-wrap .fixed-table tbody tr.highlight-selected td:nth-child(2) {
-    background-color: color-mix(in srgb, var(--primary-600, #4F46E5) 12%, #1a1a1a) !important;
   }
 
   /* Clickable metric cells */
@@ -198,10 +73,10 @@
   /* Floating popover — JS sets position:fixed and left/top at runtime */
   #ms-pop {
     z-index: 99999;
-    background: #fff;
-    border: 1px solid hsl(213, 22%, 88%);
-    border-radius: 10px;
-    box-shadow: 0 8px 28px rgba(0,0,0,.14);
+    background: var(--vristo-panel, #fff);
+    border: 1px solid var(--vristo-border, #e0e6ed);
+    border-radius: var(--vristo-radius-lg, 10px);
+    box-shadow: var(--vristo-shadow, 0 0 40px 0 rgba(94, 92, 154, 0.06));
     min-width: 240px;
     max-width: 380px;
     max-height: 460px;
@@ -209,7 +84,6 @@
     display: none;
     flex-direction: column;
   }
-  body.dark #ms-pop { background: #242424; border-color: #444444; }
   .ms-pop-header {
     display: flex;
     align-items: center;
@@ -219,30 +93,26 @@
     text-transform: uppercase;
     letter-spacing: .4px;
     padding: 10px 14px 8px;
-    border-bottom: 1px solid hsl(213, 22%, 93%);
+    border-bottom: 1px solid var(--vristo-border-light, #f1f2f3);
     flex-shrink: 0;
-    background: #fff;
-    border-radius: 10px 10px 0 0;
+    background: var(--vristo-panel, #fff);
+    color: var(--vristo-heading, #0e1726);
+    border-radius: var(--vristo-radius-lg, 10px) var(--vristo-radius-lg, 10px) 0 0;
   }
-  body.dark .ms-pop-header { background: #242424; border-bottom-color: #444444; color: #dfdfdf; }
-  /* Summary strips (conflict metric) — pinned above the scroll area */
   .ms-pop-strips { flex-shrink: 0; }
-  /* Only the body rows scroll */
   .ms-pop-body { padding: 6px 0 8px; overflow-y: auto; flex: 1; }
   .ms-pop-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 5px 14px;
-    border-bottom: 1px solid hsl(213, 22%, 96%);
+    border-bottom: 1px solid var(--vristo-border-light, #f1f2f3);
     font-size: .8rem;
   }
-  body.dark .ms-pop-row { border-bottom-color: #444444; }
   .ms-pop-row:last-child { border-bottom: none; }
-  .ms-pop-date { color: #343a40; font-weight: 500; }
-  body.dark .ms-pop-date { color: #dfdfdf; }
-  .ms-pop-badge { font-size: .74rem; color: #6c757d; white-space: nowrap; margin-left: 10px; }
-  .ms-pop-empty { padding: 10px 14px; color: #6c757d; font-size: .8rem; margin: 0; }
+  .ms-pop-date { color: var(--vristo-text, #3b3f5c); font-weight: 500; }
+  .ms-pop-badge { font-size: .74rem; color: var(--vristo-text-muted, #888ea8); white-space: nowrap; margin-left: 10px; }
+  .ms-pop-empty { padding: 10px 14px; color: var(--vristo-text-muted, #888ea8); font-size: .8rem; margin: 0; }
   .ms-pop-reg-badge {
     display: inline-flex;
     align-items: center;
@@ -250,55 +120,54 @@
     margin-left: 6px;
     font-size: .62rem;
     font-weight: 700;
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #6ee7b7;
-    border-radius: 10px;
+    background: color-mix(in srgb, var(--vristo-success, #00ab55) 16%, white);
+    color: var(--vristo-success, #00ab55);
+    border: 1px solid color-mix(in srgb, var(--vristo-success, #00ab55) 35%, white);
+    border-radius: 999px;
     padding: 1px 6px;
     vertical-align: middle;
     white-space: nowrap;
   }
-  body.dark .ms-pop-reg-badge { background: #064e3b; color: #6ee7b7; border-color: #065f46; }
 </style>
 
-<!-- Stat cards -->
+<!-- Stat cards — Vristo panel + semantic palette -->
 <div class="ms-stat-row">
-  <div class="ms-stat-card" style="border-top: 3px solid #6c757d;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-text-muted, #888ea8);">
     <div class="ms-stat-card__label">{% trans "Employees" %}</div>
-    <p class="ms-stat-card__value" style="color:#6c757d;">{{ summary_totals.total_employees }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.total_employees }}</p>
   </div>
-  <div class="ms-stat-card" style="border-top: 3px solid #28a745;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-success, #00ab55);">
     <div class="ms-stat-card__label">{% trans "Total Present" %}</div>
-    <p class="ms-stat-card__value" style="color:#28a745;">{{ summary_totals.total_present|floatformat:"-1" }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.total_present|floatformat:"-1" }}</p>
   </div>
-  <div class="ms-stat-card" style="border-top: 3px solid #dc3545;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-danger, #e7515a);">
     <div class="ms-stat-card__label">{% trans "Total Absent / Missing Out" %}</div>
-    <p class="ms-stat-card__value" style="color:#dc3545;">{{ summary_totals.total_absent|floatformat:"-1" }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.total_absent|floatformat:"-1" }}</p>
   </div>
-  <div class="ms-stat-card" style="border-top: 3px solid #0d6efd;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-info, #2196f3);">
     <div class="ms-stat-card__label">{% trans "Paid Leave" %}</div>
-    <p class="ms-stat-card__value" style="color:#0d6efd;">{{ summary_totals.total_paid_leave }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.total_paid_leave }}</p>
   </div>
-  <div class="ms-stat-card" style="border-top: 3px solid #fd7e14;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-warning, #e2a03f);">
     <div class="ms-stat-card__label">{% trans "Unpaid Leave" %}</div>
-    <p class="ms-stat-card__value" style="color:#fd7e14;">{{ summary_totals.total_unpaid_leave }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.total_unpaid_leave }}</p>
   </div>
-  <div class="ms-stat-card" style="border-top: 3px solid #495057;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-heading, #0e1726);">
     <div class="ms-stat-card__label">{% trans "Working Days" %}</div>
-    <p class="ms-stat-card__value ms-working-days-val">{{ total_working }}</p>
+    <p class="ms-stat-card__value">{{ total_working }}</p>
   </div>
-  <div class="ms-stat-card" style="border-top: 3px solid #6610f2;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-primary, #4F46E5);">
     <div class="ms-stat-card__label">{% trans "Week Off" %}</div>
-    <p class="ms-stat-card__value" style="color:#6610f2;">{{ summary_totals.week_off }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.week_off }}</p>
   </div>
-  <div class="ms-stat-card" style="border-top: 3px solid #20c997;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: #14B8A6;">
     <div class="ms-stat-card__label">{% trans "Holidays" %}</div>
-    <p class="ms-stat-card__value" style="color:#20c997;">{{ summary_totals.holiday }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.holiday }}</p>
   </div>
   {% if summary_totals.total_conflicts %}
-  <div class="ms-stat-card" style="border-top: 3px solid #e85d04;">
+  <div class="ms-stat-card vr-panel" style="--ms-accent: var(--vristo-warning, #e2a03f);">
     <div class="ms-stat-card__label">{% trans "Conflicts" %}</div>
-    <p class="ms-stat-card__value" style="color:#e85d04;">{{ summary_totals.total_conflicts }}</p>
+    <p class="ms-stat-card__value">{{ summary_totals.total_conflicts }}</p>
   </div>
   {% endif %}
 </div>
@@ -314,10 +183,11 @@
 <!-- Bulk selection toolbar (above the table) — identical markup/behavior to
      the Employee list's Select/Unselect/Update buttons in
      generic/quick_actions.html, just pointed at our own table's view id. -->
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-2" style="gap:.5rem;">
-  <div class="flex flex-nowrap gap-1 items-center" style="display:flex;">
+<div class="vr-toolbar mb-2">
+  <div class="flex flex-nowrap gap-1 items-center flex-shrink-0">
     <button
-        class="d-none quick-bulk-action px-4 py-2 bg-transparent border border-primary-600 text-primary-600 rounded-md text-xs hover:bg-primary-600 hover:text-white transition duration-300"
+        type="button"
+        class="d-none quick-bulk-action vr-toolbar-btn vr-toolbar-btn--outline"
         id="unselect_msAttendance"
         onclick="clearSelection('selectedInstances');
 selectSelected('#msAttendanceTable','selectedInstances');
@@ -330,9 +200,10 @@ $('#msAttendanceTable .bulk-list-table-row').prop('checked',false);">
       (<span id="count_msAttendance">0</span>)
     </button>
     <button
+        type="button"
         id="select_msAttendance"
         data-total-count="{{ total_employee_count|default:0 }}"
-        class="quick-bulk-action px-4 py-2 bg-transparent border border-primary-600 text-primary-600 rounded-md text-xs hover:bg-primary-600 hover:text-white transition duration-300"
+        class="quick-bulk-action vr-toolbar-btn vr-toolbar-btn--outline"
         onclick="addToSelectedId({{ select_all_ids|default:'[]'|safe }},'selectedInstances');
 selectSelected('#msAttendanceTable','selectedInstances');
 reloadSelectedCount($('#count_msAttendance'),'selectedInstances');
@@ -341,18 +212,19 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
       (<span>{{ total_employee_count|default:0 }}</span>)
     </button>
     <button
+        type="button"
         id="bulk_udate_msAttendance"
-        class="d-none quick-bulk-action px-4 py-2 bg-transparent border border-success text-success rounded-md text-xs hover:bg-success hover:text-white transition duration-300"
+        class="d-none quick-bulk-action vr-toolbar-btn vr-toolbar-btn--outline-success"
         onclick="msOpenUpdateModal()">
       <span class="label">{% trans 'Update' %}</span>
       (<span class="count_msAttendance">0</span>)
     </button>
   </div>
 
-  <div class="flex flex-nowrap items-center gap-3" style="display:flex;flex-wrap:wrap;">
-    <!-- Pagination — identical markup/classes to generic/quick_actions.html -->
+  <div class="flex flex-nowrap items-center gap-3 ml-auto flex-shrink-0">
+    <!-- Pagination — same classes as generic/quick_actions.html -->
     {% if rows.has_previous or rows.has_next %}
-      <div class="inline-flex items-center gap-0.5 bg-white border border-[#e6e6e6] rounded-md p-1 flex-shrink-0">
+      <div class="hlv-pagination vr-pagination inline-flex items-center h-8 gap-0.5 bg-white border border-primary-500 rounded-md px-1 flex-shrink-0">
         <button
             class="w-6 h-6 flex items-center justify-center rounded text-[10px] transition duration-300 {% if rows.has_previous %}text-[#666] hover:bg-[#f5f5f5]{% else %}text-[#ccc] cursor-not-allowed{% endif %}"
             {% if rows.has_previous %}
@@ -413,7 +285,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
       </div>
     {% endif %}
 
-    <p style="font-size:.82rem;color:#6c757d;margin:0;white-space:nowrap;">
+    <p class="ms-period-meta">
       <ion-icon name="calendar-outline"></ion-icon>
       {% trans "Period" %}: <strong>{{ from_date }}</strong> &mdash; <strong>{{ to_date }}</strong>
       &nbsp;|&nbsp; {% trans "Working days" %}: <strong>{{ total_working }}</strong>
@@ -422,7 +294,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
 </div>
 
 <!-- Bulk update modal — opened by the Update button above -->
-<div class="oh-modal" id="msUpdateModal">
+<div class="oh-modal vr-modal" id="msUpdateModal">
   <div class="oh-modal__dialog" style="max-width:640px;">
     <div class="oh-modal__dialog-header" style="display:flex;justify-content:space-between;align-items:center;">
       <h5 style="margin:0;">{% trans "Update Attendance" %}</h5>
@@ -496,13 +368,13 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
   </div>
 </div>
 
-<!-- Table — Horilla fixed-table pattern (horilla_list_table.html) -->
-<div class="ms-table-wrap" id="msAttendanceTable">
+<!-- Table — same vr-panel / vr-table shell as horilla_list_table.html -->
+<div class="vr-panel vr-panel--padded bg-white p-2 rounded-md shadow-card relative vr-table-wrap" id="msAttendanceTable">
   <!-- Column visibility toggle — positioned over the header row's right
        edge, same spot the real Employee list's toggle occupies inside its
        sticky Actions column header. Our table has no Actions column, so
        this overlays the header via absolute positioning against
-       .ms-table-wrap (position:relative) rather than living inside an
+       #msAttendanceTable.vr-table-wrap (position:relative) rather than living inside an
        actual <th> — same visual result without adding an empty column to
        every row. Reuses the site-wide .oh-column-config CSS
        (global.css / v1_styles.css) that backs generic/as_list.html's
@@ -622,12 +494,12 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
       </div>
     </div>
   </div>
-  <div class="oh-table_sticky--wrapper">
-    <div class="table-wrapper">
-      <table class="fixed-table">
-        <thead>
-          <tr>
-            <th style="text-align:center;">
+  <div class="max-h-[calc(100vh_-_280px)] overflow-y-auto overflow-x-auto heightContainer vr-table-scroll">
+      <table class="vr-table fixed-table w-full border-separate" data-bulk-select-option="true">
+        <thead class="sticky top-0 bg-[white] z-[1]">
+          <tr class="border-b border-[#ececec]">
+            <th class="text-sm font-medium text-left p-1.5 w-[30px]">
+              <div class="flex items-center justify-center">
               <input
                   type="checkbox"
                   class="bulk-list-table-row custom-checkbox w-4 h-4 bg-[#E9EDF7] rounded-sm text-primary-600 cursor-pointer"
@@ -640,6 +512,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                       });
                   "
               >
+              </div>
             </th>
             {% comment %}
               Sort controls mirror horilla_theme/generic/horilla_list_table.html's own
@@ -649,7 +522,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
               HorillaListView's session-cached sortby() machinery, since `rows` here is a
               plain list of dicts, not a queryset a .order_by() could apply to.
             {% endcomment %}
-            <th data-col="employee">
+            <th class="text-sm font-medium min-w-[85px] text-left" data-col="employee">
               <div class="flex gap-1.5 items-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=employee&dir={% if sort_key == 'employee' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -661,7 +534,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Employee" %}</span>
               </div>
             </th>
-            <th data-col="badge_id">
+            <th class="text-sm font-medium min-w-[85px] text-left" data-col="badge_id">
               <div class="flex gap-1.5 items-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=badge_id&dir={% if sort_key == 'badge_id' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -673,7 +546,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Badge ID" %}</span>
               </div>
             </th>
-            <th data-col="department">
+            <th class="text-sm font-medium min-w-[85px] text-left" data-col="department">
               <div class="flex gap-1.5 items-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=department&dir={% if sort_key == 'department' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -685,7 +558,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Department" %}</span>
               </div>
             </th>
-            <th data-col="present" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="present">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=present&dir={% if sort_key == 'present' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -697,7 +570,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Present" %}</span>
               </div>
             </th>
-            <th data-col="absent" style="text-align:center;" title="{% trans 'Absent / Missing Out' %}">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="absent" title="{% trans 'Absent / Missing Out' %}">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=absent&dir={% if sort_key == 'absent' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -709,7 +582,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Absent" %}</span>
               </div>
             </th>
-            <th data-col="paid_leave" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="paid_leave">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=paid_leave&dir={% if sort_key == 'paid_leave' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -721,7 +594,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Paid Leave" %}</span>
               </div>
             </th>
-            <th data-col="unpaid_leave" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="unpaid_leave">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=unpaid_leave&dir={% if sort_key == 'unpaid_leave' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -733,8 +606,8 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Unpaid Leave" %}</span>
               </div>
             </th>
-            <th data-col="working_days" style="text-align:center;">{% trans "Working Days" %}</th>
-            <th data-col="week_off" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="working_days">{% trans "Working Days" %}</th>
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="week_off">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=week_off&dir={% if sort_key == 'week_off' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -746,7 +619,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Week Off" %}</span>
               </div>
             </th>
-            <th data-col="holiday" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="holiday">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=holiday&dir={% if sort_key == 'holiday' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -758,7 +631,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Holiday" %}</span>
               </div>
             </th>
-            <th data-col="conflicts" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="conflicts">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=conflicts&dir={% if sort_key == 'conflicts' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -776,7 +649,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 {% endif %}
               </div>
             </th>
-            <th data-col="worked" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="worked">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=worked&dir={% if sort_key == 'worked' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -788,7 +661,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Worked" %}</span>
               </div>
             </th>
-            <th data-col="regular" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="regular">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=regular&dir={% if sort_key == 'regular' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -800,7 +673,7 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span>{% trans "Regular" %}</span>
               </div>
             </th>
-            <th data-col="overtime" style="text-align:center;">
+            <th class="text-sm font-medium min-w-[85px] text-center" data-col="overtime">
               <div class="flex gap-1.5 items-center justify-center cursor-pointer"
                    hx-get="{% url 'attendance-monthly-summary-table' %}?{{ pd }}&sort=overtime&dir={% if sort_key == 'overtime' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
                    hx-target="#summary-table-container" hx-swap="innerHTML">
@@ -827,7 +700,8 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
               data-conflict="{{ row.conflict_days }}"
               data-unresolved="{{ row.unresolved_conflicts }}"
               data-regularized="{{ row.resolved_conflicts }}">
-            <td onclick="event.stopPropagation()" style="text-align:center;">
+            <td class="text-sm text-left px-1 py-1 text-[#666] rounded-lg h-[30px]" onclick="event.stopPropagation()">
+              <div class="flex items-center justify-center">
               <input
                   type="checkbox"
                   class="list-table-row custom-checkbox w-4 h-4 bg-[#E9EDF7] rounded-sm text-primary-600 cursor-pointer"
@@ -846,8 +720,9 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                       });
                   "
               >
+              </div>
             </td>
-            <td>
+            <td class="vr-table__cell text-sm text-left px-1 py-1 text-[#666] min-h-[48px] align-middle">
               <div class="oh-profile oh-profile--md w-full justify-normal">
                 <div class="oh-profile__avatar mr-1" style="width:22px;height:22px;">
                   <img src="{{ row.employee.get_avatar }}" class="oh-profile__image" alt="">
@@ -855,23 +730,23 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
                 <span class="oh-profile__name oh-text--dark ms-2">{{ row.employee.get_full_name }}</span>
               </div>
             </td>
-            <td style="font-size:.78rem;">{{ row.employee.badge_id|default:"&mdash;" }}</td>
-            <td>{{ row.employee.employee_work_info.department_id.department|default:"&mdash;" }}</td>
-            <td class="ms-metric-cell" style="text-align:center;font-weight:600;"
+            <td class="vr-table__cell text-sm text-left px-1 py-1 text-[#666] min-h-[48px] align-middle">{{ row.employee.badge_id|default:"&mdash;" }}</td>
+            <td class="vr-table__cell text-sm text-left px-1 py-1 text-[#666] min-h-[48px] align-middle">{{ row.employee.employee_work_info.department_id.department|default:"&mdash;" }}</td>
+            <td class="vr-table__cell ms-metric-cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold"
                 data-url="{% url 'attendance-monthly-summary-detail' %}?employee_id={{ row.employee.pk }}&from_date={{ from_date }}&to_date={{ to_date }}&metric=present">{{ row.present|floatformat:"-1" }}</td>
-            <td class="ms-metric-cell" style="text-align:center;font-weight:600;"
+            <td class="vr-table__cell ms-metric-cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold"
                 data-url="{% url 'attendance-monthly-summary-detail' %}?employee_id={{ row.employee.pk }}&from_date={{ from_date }}&to_date={{ to_date }}&metric=absent">{{ row.absent|floatformat:"-1" }}</td>
-            <td class="ms-metric-cell" style="text-align:center;font-weight:600;"
+            <td class="vr-table__cell ms-metric-cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold"
                 data-url="{% url 'attendance-monthly-summary-detail' %}?employee_id={{ row.employee.pk }}&from_date={{ from_date }}&to_date={{ to_date }}&metric=paid_leave">{{ row.paid_leave }}</td>
-            <td class="ms-metric-cell" style="text-align:center;font-weight:600;"
+            <td class="vr-table__cell ms-metric-cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold"
                 data-url="{% url 'attendance-monthly-summary-detail' %}?employee_id={{ row.employee.pk }}&from_date={{ from_date }}&to_date={{ to_date }}&metric=unpaid_leave">{{ row.unpaid_leave }}</td>
-            <td style="text-align:center;">{{ row.total_working }}</td>
-            <td class="ms-metric-cell" style="text-align:center;font-weight:600;"
+            <td class="vr-table__cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle">{{ row.total_working }}</td>
+            <td class="vr-table__cell ms-metric-cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold"
                 data-url="{% url 'attendance-monthly-summary-detail' %}?employee_id={{ row.employee.pk }}&from_date={{ from_date }}&to_date={{ to_date }}&metric=week_off">{{ row.week_off }}</td>
-            <td class="ms-metric-cell" style="text-align:center;font-weight:600;"
+            <td class="vr-table__cell ms-metric-cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold"
                 data-url="{% url 'attendance-monthly-summary-detail' %}?employee_id={{ row.employee.pk }}&from_date={{ from_date }}&to_date={{ to_date }}&metric=holiday">{{ row.holiday }}</td>
             {% if row.conflict_days %}
-            <td class="ms-metric-cell" style="text-align:center;font-weight:600;"
+            <td class="vr-table__cell ms-metric-cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold"
                 data-url="{% url 'attendance-monthly-summary-detail' %}?employee_id={{ row.employee.pk }}&from_date={{ from_date }}&to_date={{ to_date }}&metric=conflict">
               {% if row.resolved_conflicts == row.conflict_days %}
                 {# All resolved: green number + âœ" #}
@@ -892,11 +767,11 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
               {% endif %}
             </td>
             {% else %}
-            <td style="text-align:center;color:#ced4da;font-size:.78rem;">&mdash;</td>
+            <td class="vr-table__cell text-sm text-center px-1 py-1 text-[#CBD5E1] min-h-[48px] align-middle">&mdash;</td>
             {% endif %}
-            <td style="text-align:center;font-weight:600;font-size:.82rem;">{{ row.worked_label }}</td>
-            <td style="text-align:center;font-weight:600;font-size:.82rem;">{{ row.regular_label }}</td>
-            <td style="text-align:center;font-size:.82rem;height:auto !important;padding:6px 16px !important;"
+            <td class="vr-table__cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold">{{ row.worked_label }}</td>
+            <td class="vr-table__cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle font-semibold">{{ row.regular_label }}</td>
+            <td class="vr-table__cell text-sm text-center px-1 py-1 text-[#666] min-h-[48px] align-middle"
                 title="{% trans 'Regular' %}: {{ row.ot_regular_label }} &#183; {% trans 'Week Off' %}: {{ row.ot_week_off_label }} &#183; {% trans 'Holiday' %}: {{ row.ot_holiday_label }}">
               <div style="font-weight:600;">{{ row.overtime_label }}</div>
               <div style="font-size:.66rem;color:#9ca3af;font-weight:500;white-space:nowrap;">
@@ -909,7 +784,6 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
           {% endfor %}
         </tbody>
       </table>
-    </div>
   </div>
 </div>
 
@@ -1466,8 +1340,8 @@ reloadSelectedCount($('.count_msAttendance'),'selectedInstances');">
 </script>
 
 {% else %}
-<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:300px;">
+<div class="vr-panel vr-panel--padded flex flex-col justify-center items-center" style="min-height:300px;">
   <img style="width:150px;height:150px;" src="{% static 'images/ui/no-results.png' %}" alt="">
-  <h5 style="margin-top:1rem;">{% trans "No attendance data found for the selected period." %}</h5>
+  <h5 style="margin-top:1rem;color:var(--vristo-heading,#0e1726);">{% trans "No attendance data found for the selected period." %}</h5>
 </div>
 {% endif %}

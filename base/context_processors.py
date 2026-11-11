@@ -517,3 +517,25 @@ def horilla_version(request):
     exact set of advisories that apply.
     """
     return {"horilla_version": __version__}
+
+
+def home_dashboard_navigation(request):
+    """
+    Sidebar / nav: employees land on ESS; managers and HR use analytics home.
+    """
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return {
+            "can_access_analytics_dashboard": False,
+            "home_dashboard_url_name": "ess-dashboard",
+        }
+    from base.dashboard_roles import can_access_analytics_dashboard
+
+    if can_access_analytics_dashboard(request):
+        return {
+            "can_access_analytics_dashboard": True,
+            "home_dashboard_url_name": "dashboard",
+        }
+    return {
+        "can_access_analytics_dashboard": False,
+        "home_dashboard_url_name": "ess-dashboard",
+    }

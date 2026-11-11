@@ -2406,16 +2406,21 @@ class LoanAccount(HorillaModel):
         """
         loan_amount = self.loan_amount
         total_installments = self.installments
+        if not total_installments or total_installments <= 0:
+            raise ValueError("Total installments must be a positive integer")
         installment_amount = loan_amount / total_installments
         installment_start_date = self.installment_start_date
-
-        installment_schedule = {}
 
         installment_date = installment_start_date
         installment_schedule = {}
         for _unused in range(total_installments):
             installment_schedule[str(installment_date)] = installment_amount
-            installment_date = get_next_month_same_date(installment_date)
+            try:
+                installment_date = get_next_month_same_date(installment_date)
+            except ValueError as exc:
+                raise ValueError(
+                    "Installment schedule exceeds the maximum supported date range"
+                ) from exc
 
         return installment_schedule
 

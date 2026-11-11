@@ -780,6 +780,14 @@ def _section_redirect(url_name):
 
 
 def _leave_redirect(request):
+    from base.dashboard_roles import resolve_home_role
+
+    if resolve_home_role(request) == "employee":
+        return redirect("user-request-view")
+    if request.user.is_superuser or request.user.has_perm(
+        "leave.delete_leaverequest"
+    ):
+        return redirect("leave-dashboard")
     return redirect(reverse("leave-employee-dashboard") + "?dashboard=true")
 
 

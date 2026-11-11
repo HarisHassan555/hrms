@@ -99,6 +99,12 @@ SUBMENUS = [
 
 
 def dashboard_accessibility(request, submenu, user_perms, *args, **kwargs):
+    from base.dashboard_roles import resolve_home_role
+
+    # ESS employees use "My Leave Requests"; no separate leave dashboard entry.
+    if resolve_home_role(request) == "employee":
+        return False
+
     have_perm = request.user.is_superuser or request.user.has_perm(
         "leave.delete_leaverequest"
     )

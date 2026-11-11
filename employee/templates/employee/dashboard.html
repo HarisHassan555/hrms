@@ -59,7 +59,7 @@
             text-decoration: none;
         }
 
-        /* KPI Grid */
+        /* KPI Grid — compact horizontal tiles */
         .em-kpi-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -67,34 +67,27 @@
             gap: 14px;
         }
         .em-kpi-card {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             position: relative;
-            padding: 20px;
+            min-height: 92px;
+            padding: 16px 18px;
             overflow: hidden;
-            border: 1px solid rgba(128, 128, 128, 0.09);
-            border-radius: 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
             background: #ffffff;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
             color: inherit;
             text-decoration: none;
-            transition: all 0.25s ease;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .em-kpi-card::after {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 80px;
-            height: 80px;
-            transform: translate(20px, 20px);
-            border-radius: 50%;
-            background: currentColor;
-            content: '';
-            opacity: 0.06;
-            pointer-events: none;
+            content: none;
         }
         .em-kpi-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+            border-color: #CBD5E1;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
             color: inherit;
             text-decoration: none;
         }
@@ -103,14 +96,25 @@
             background: #242424;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
+        .em-kpi-card__row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .em-kpi-card__meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
         .em-kpi-card__icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 38px;
-            height: 38px;
-            margin-bottom: 10px;
-            border-radius: 10px;
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
             font-size: 18px;
         }
         .em-kpi-card__icon--indigo {
@@ -149,22 +153,28 @@
             background: #1e3a5f;
         }
         .em-kpi-card__label {
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 11px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            opacity: 0.5;
+            color: #475569;
+            font-weight: 500;
+            font-size: 13px;
         }
         .em-kpi-card__value {
-            margin-bottom: 6px;
+            color: #0F172A;
             font-weight: 800;
-            font-size: 30px;
-            line-height: 1;
+            font-size: 26px;
+            line-height: 1.1;
+        }
+        .dark .em-kpi-card__value {
+            color: inherit;
         }
         .em-kpi-card__sub {
+            padding-left: 62px;
             font-size: 12px;
-            opacity: 0.6;
+            opacity: 0.7;
+        }
+        @media (max-width: 640px) {
+            .em-kpi-card__sub {
+                padding-left: 0;
+            }
         }
         .em-badge {
             display: inline-flex;
@@ -516,112 +526,63 @@
         <!-- KPI Cards -->
         <div class="em-kpi-grid" id="em-kpi-grid">
             <a href="{% url 'employee-view-new' %}" class="em-kpi-card">
-                <div class="em-kpi-card__icon em-kpi-card__icon--indigo">
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
+                <div class="em-kpi-card__row">
+                    <div class="em-kpi-card__icon em-kpi-card__icon--indigo">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                    </div>
+                    <div class="em-kpi-card__meta">
+                        <div class="em-kpi-card__value" id="kpi-total">—</div>
+                        <div class="em-kpi-card__label">{% trans "Total Employees" %}</div>
+                    </div>
                 </div>
-                <div class="em-kpi-card__label">{% trans "Total Employees" %}</div>
-                <div class="em-kpi-card__value" id="kpi-total">—</div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--blue">{% trans "All records" %}</span></div>
             </a>
             <a href="{% url 'employee-view-new' %}?is_active=True" class="em-kpi-card">
-                <div class="em-kpi-card__icon em-kpi-card__icon--green">
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="8.5" cy="7" r="4" />
-                        <polyline points="17 11 19 13 23 9" />
-                    </svg>
+                <div class="em-kpi-card__row">
+                    <div class="em-kpi-card__icon em-kpi-card__icon--green">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><polyline points="17 11 19 13 23 9" /></svg>
+                    </div>
+                    <div class="em-kpi-card__meta">
+                        <div class="em-kpi-card__value" id="kpi-active">—</div>
+                        <div class="em-kpi-card__label">{% trans "Active" %}</div>
+                    </div>
                 </div>
-                <div class="em-kpi-card__label">{% trans "Active" %}</div>
-                <div class="em-kpi-card__value" id="kpi-active">—</div>
                 <div class="em-kpi-card__sub" id="kpi-active-pct"><span class="em-badge em-badge--green">—% {% trans "of total" %}</span></div>
             </a>
             <a href="{% url 'employee-view-new' %}?is_active=False" class="em-kpi-card">
-                <div class="em-kpi-card__icon em-kpi-card__icon--red">
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="8.5" cy="7" r="4" />
-                        <line x1="18" y1="8" x2="23" y2="13" />
-                        <line x1="23" y1="8" x2="18" y2="13" />
-                    </svg>
+                <div class="em-kpi-card__row">
+                    <div class="em-kpi-card__icon em-kpi-card__icon--red">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="18" y1="8" x2="23" y2="13" /><line x1="23" y1="8" x2="18" y2="13" /></svg>
+                    </div>
+                    <div class="em-kpi-card__meta">
+                        <div class="em-kpi-card__value" id="kpi-inactive">—</div>
+                        <div class="em-kpi-card__label">{% trans "Inactive" %}</div>
+                    </div>
                 </div>
-                <div class="em-kpi-card__label">{% trans "Inactive" %}</div>
-                <div class="em-kpi-card__value" id="kpi-inactive">—</div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--red">{% trans "Archived employees" %}</span></div>
             </a>
             <a href="{% url 'employee-view-new' %}" class="em-kpi-card">
-                <div class="em-kpi-card__icon em-kpi-card__icon--amber">
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="8.5" cy="7" r="4" />
-                        <line x1="20" y1="8" x2="20" y2="14" />
-                        <line x1="23" y1="11" x2="17" y2="11" />
-                    </svg>
+                <div class="em-kpi-card__row">
+                    <div class="em-kpi-card__icon em-kpi-card__icon--amber">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
+                    </div>
+                    <div class="em-kpi-card__meta">
+                        <div class="em-kpi-card__value" id="kpi-new">—</div>
+                        <div class="em-kpi-card__label">{% trans "New This Month" %}</div>
+                    </div>
                 </div>
-                <div class="em-kpi-card__label">{% trans "New This Month" %}</div>
-                <div class="em-kpi-card__value" id="kpi-new">—</div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--green">{% trans "Joined this month" %}</span></div>
             </a>
             <a href="{% url 'request-view' %}?status=approved&today_leave=true" class="em-kpi-card">
-                <div class="em-kpi-card__icon em-kpi-card__icon--blue">
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
+                <div class="em-kpi-card__row">
+                    <div class="em-kpi-card__icon em-kpi-card__icon--blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                    </div>
+                    <div class="em-kpi-card__meta">
+                        <div class="em-kpi-card__value" id="kpi-leave">—</div>
+                        <div class="em-kpi-card__label">{% trans "On Leave Today" %}</div>
+                    </div>
                 </div>
-                <div class="em-kpi-card__label">{% trans "On Leave Today" %}</div>
-                <div class="em-kpi-card__value" id="kpi-leave">—</div>
                 <div class="em-kpi-card__sub"><span class="em-badge em-badge--purple">{% trans "Approved leaves" %}</span></div>
             </a>
         </div>

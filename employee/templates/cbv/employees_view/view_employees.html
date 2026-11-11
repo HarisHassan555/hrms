@@ -11,348 +11,19 @@
 
 
 <style>
-.online--dot{
-  background-color:yellowgreen;
-}
-.offline--dot{
-  background-color:rgba(128, 128, 128, 0.482);
-}
-
-.hired-True{
-  border-left: 3.4px solid yellowgreen !important;
-  border-radius: 4px 0 0 4px;
-
-}
-
-
-  .profile-picture {
-    transition: transform 0.3s;
-    z-index:9999
-    ;
-  }
-
-  .profile-picture:hover {
-      transform: scale(2.4);
-  }
-
-  .custom-swal-container .swal2-styled {
-    display:block;
-    width:70%;
-  }
-
+  /* Page shell — inherit Vristo page background; do not restyle the shared nav. */
   .employee-saas-page {
-    --employee-page-bg: #ffffff;
-    --employee-surface: #ffffff;
-    --employee-border: #e2e8f0;
-    --employee-border-soft: #f1f5f9;
-    --employee-text: #0f172a;
-    --employee-text-muted: #64748b;
-    --employee-text-soft: #94a3b8;
-    --employee-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-    background: var(--employee-page-bg);
+    background: transparent;
     min-height: calc(100vh - 80px);
-    padding: 24px;
+    padding: 0;
   }
 
   .employee-saas-page #employeeListNavBar {
-    margin-bottom: 16px;
-  }
-
-  .employee-saas-page #employeeListNavBar > div > .flex {
-    align-items: center;
-    background: var(--employee-surface);
-    border: 1px solid var(--employee-border);
-    border-radius: 12px;
-    box-shadow: var(--employee-shadow);
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px !important;
-    padding: 12px;
-  }
-
-  .employee-saas-page #employeeListNavBar h3 {
-    display: none;
-  }
-
-  .employee-saas-page #employeeListNavBar > div > .flex > .flex {
-    align-items: center;
-    flex: 1 1 auto;
-    gap: 8px;
-    min-width: 0;
-  }
-
-  .employee-saas-page .navFilterForm {
-    align-items: center;
-    gap: 12px;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    flex: 1 1 auto;
-    padding: 0;
-  }
-
-  .employee-saas-page .navFilterForm > .relative:first-of-type {
-    flex: 0 1 240px;
-    min-width: 220px;
-  }
-
-  .employee-saas-page .navFilterForm input[name="search"],
-  .employee-saas-page .navFilterForm select,
-  .employee-saas-page .oh-input,
-  .employee-saas-page .oh-select {
-    min-height: 40px;
-    border-color: #cbd5e1;
-    border-radius: 8px;
-    color: var(--employee-text);
-    font-size: 14px;
-  }
-
-  .employee-saas-page .navFilterForm input[name="search"] {
-    border-color: #cbd5e1 !important;
-    height: 40px;
-    min-width: 220px;
-  }
-
-  .employee-saas-page .navFilterForm input[name="search"]:focus,
-  .employee-saas-page .navFilterForm select:focus,
-  .employee-saas-page .oh-input:focus,
-  .employee-saas-page .oh-select:focus {
-    border-color: var(--theme-primary) !important;
-    box-shadow: 0 0 0 3px var(--theme-focus-ring);
-    outline: none;
-  }
-
-  .employee-saas-page #modernFilterTrigger,
-  .employee-saas-page .oh-btn,
-  .employee-saas-page .oh-dropdown__link {
-    min-height: 40px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .employee-saas-page #modernFilterTrigger,
-  .employee-saas-page #employeeListNavBar .dropdown-wrapper > button,
-  .employee-saas-page .nav-view-btn {
-    align-items: center;
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: var(--employee-text) !important;
-    display: inline-flex;
-    height: 40px !important;
-    justify-content: center;
-    margin: 0;
-    padding: 0 14px !important;
-    white-space: nowrap;
-  }
-
-  .employee-saas-page #modernFilterTrigger:hover,
-  .employee-saas-page #employeeListNavBar .dropdown-wrapper > button:hover,
-  .employee-saas-page .nav-view-btn:hover {
-    background: #f8fafc !important;
-    border-color: var(--theme-primary-border) !important;
-    color: var(--theme-primary) !important;
-  }
-
-  .employee-saas-page .nav-view-btn {
-    border-color: var(--theme-primary-border) !important;
-    color: var(--theme-primary) !important;
-    padding: 0 !important;
-    width: 52px;
-  }
-
-  .employee-saas-page .nav-view-btn.oh-view-btn--active {
-    background: var(--theme-primary-soft) !important;
-    border-color: var(--theme-primary) !important;
-  }
-
-  .employee-saas-page #employeeListNavBar .dropdown-wrapper > button img,
-  .employee-saas-page #modernFilterTrigger img {
-    height: 15px;
-    width: 15px;
-  }
-
-  .employee-toolbar-filter {
-    appearance: none;
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    color: var(--employee-text);
-    font-size: 14px;
-    height: 40px;
-    min-width: 160px;
-    padding: 0 32px 0 12px;
-  }
-
-  .employee-toolbar-filter:focus {
-    border-color: var(--theme-primary);
-    box-shadow: 0 0 0 3px var(--theme-focus-ring);
-    outline: none;
-  }
-
-  .employee-saas-page .nav-view-btn,
-  .employee-saas-page .oh-view-type {
-    border-radius: 8px;
-  }
-
-  .employee-saas-page .oh-view-btn--active,
-  .employee-saas-page .oh-view-type--active,
-  .employee-saas-page .active {
-    background: var(--theme-primary-soft);
-    color: var(--theme-primary);
-  }
-
-  .employee-saas-page #filterTagContainerSectionNav,
-  .employee-saas-page .filter-tag-container {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-end;
-    margin: 0 0 14px !important;
-    padding: 0 4px;
-  }
-
-  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__tag,
-  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__save {
-    align-items: center;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 999px;
-    color: var(--employee-text);
-    display: inline-flex;
-    font-size: 13px;
-    font-weight: 600;
-    gap: 6px;
-    min-height: 32px;
-    padding: 5px 10px;
-  }
-
-  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__tag--custom:first-child {
-    background: var(--theme-primary);
-    border-color: var(--theme-primary);
-    color: #ffffff;
-  }
-
-  .employee-saas-page #filterTagContainerSectionNav .filter-field {
-    background: var(--theme-primary-soft);
-    border-color: var(--theme-primary-border);
-    color: var(--employee-text);
-  }
-
-  .employee-saas-page #filterTagContainerSectionNav .oh-titlebar__tag-close {
-    align-items: center;
-    background: var(--theme-primary) !important;
-    border: 0;
-    border-radius: 999px;
-    color: #ffffff !important;
-    display: inline-flex;
-    height: 18px;
-    justify-content: center;
-    margin-left: 4px;
-    padding: 0;
-    width: 18px;
-  }
-
-  .employee-saas-page #filterTagContainerSectionNav .clear-all {
-    background: var(--theme-primary) !important;
-    border-color: var(--theme-primary) !important;
-    color: #ffffff !important;
-    height: 32px;
-    justify-content: center;
-    padding: 0;
-    width: 42px;
+    margin-bottom: 0;
   }
 
   .employee-saas-page #listContainer {
     padding: 0;
-  }
-
-  .employee-saas-page .hlv-container > .bg-white,
-  .employee-saas-page .fixed-table {
-    background: var(--employee-surface) !important;
-    border: 1px solid var(--employee-border);
-    border-radius: 12px;
-    box-shadow: var(--employee-shadow);
-  }
-
-  .employee-saas-page .hlv-container > .bg-white {
-    padding: 0 !important;
-    overflow: visible;
-  }
-
-  .employee-saas-page .fixed-table {
-    overflow: visible;
-  }
-
-  .employee-saas-page table {
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  .employee-saas-page thead tr {
-    height: 44px;
-    border-bottom: 1px solid var(--employee-border);
-  }
-
-  .employee-saas-page thead th,
-  .employee-saas-page thead td {
-    background: #f8fafc !important;
-    border-bottom: 1px solid var(--employee-border) !important;
-    color: var(--employee-text-muted) !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0;
-    padding: 0 16px !important;
-    text-transform: none;
-    white-space: nowrap;
-  }
-
-  .employee-saas-page tbody tr {
-    min-height: 56px;
-    transition: background-color 160ms ease;
-  }
-
-  .employee-saas-page tbody tr:hover {
-    background: #f8fafc;
-  }
-
-  .employee-saas-page tbody tr.highlight-selected {
-    background: var(--theme-primary-soft) !important;
-  }
-
-  .employee-saas-page tbody td {
-    border-bottom: 1px solid var(--employee-border-soft) !important;
-    color: var(--employee-text) !important;
-    font-size: 14px !important;
-    height: 58px !important;
-    padding: 10px 16px !important;
-    vertical-align: middle;
-  }
-
-  .employee-saas-page tbody tr:last-child td {
-    border-bottom: 0 !important;
-  }
-
-  .employee-saas-page tbody td a {
-    color: var(--theme-primary);
-  }
-
-  .employee-saas-page .oh-profile {
-    align-items: center;
-    gap: 12px;
-  }
-
-  .employee-saas-page .oh-profile img,
-  .employee-saas-page .oh-profile__avatar,
-  .employee-saas-page .profile-picture {
-    border: 1px solid var(--employee-border);
-    border-radius: 999px;
-    height: 36px !important;
-    min-width: 36px !important;
-    object-fit: cover;
-    width: 36px !important;
   }
 
   .employee-identity-cell {
@@ -363,14 +34,14 @@
   }
 
   .employee-identity-cell__name {
-    color: var(--employee-text);
+    color: var(--vristo-heading, #0e1726);
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;
   }
 
   .employee-identity-cell__meta {
-    color: var(--employee-text-muted);
+    color: var(--vristo-text-muted, #888ea8);
     font-size: 12px;
     font-weight: 400;
     line-height: 16px;
@@ -411,10 +82,10 @@
 
   .emp-row-actions__trigger {
     align-items: center;
-    background: #ffffff;
-    border: 1px solid var(--employee-border);
-    border-radius: 8px;
-    color: var(--employee-text-muted);
+    background: var(--vristo-panel, #ffffff);
+    border: 1px solid var(--vristo-border, #e0e6ed);
+    border-radius: var(--vristo-radius, 6px);
+    color: var(--vristo-text-muted, #888ea8);
     cursor: pointer;
     display: inline-flex;
     height: 36px;
@@ -425,17 +96,17 @@
 
   .emp-row-actions__trigger:hover,
   .emp-row-actions__trigger:focus {
-    background: var(--theme-primary-soft);
-    border-color: var(--theme-primary-border);
-    color: var(--theme-primary);
+    background: var(--vristo-primary-light, #eef2ff);
+    border-color: var(--vristo-primary, #4F46E5);
+    color: var(--vristo-primary, #4F46E5);
     outline: none;
   }
 
   .emp-row-actions__menu {
-    background: #ffffff;
-    border: 1px solid var(--employee-border);
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+    background: var(--vristo-panel, #ffffff);
+    border: 1px solid var(--vristo-border, #e0e6ed);
+    border-radius: var(--vristo-radius-lg, 10px);
+    box-shadow: var(--vristo-shadow, 0 0 40px 0 rgba(94, 92, 154, 0.06));
     display: none;
     min-width: 190px;
     padding: 6px;
@@ -460,7 +131,7 @@
     background: transparent;
     border: 0;
     border-radius: 6px;
-    color: var(--employee-text);
+    color: var(--vristo-text, #3b3f5c);
     cursor: pointer;
     display: flex;
     font-size: 14px;
@@ -474,19 +145,19 @@
 
   .emp-row-actions__item:hover,
   .emp-row-actions__item:focus {
-    background: #f8fafc;
-    color: var(--theme-primary);
+    background: #f6f8fa;
+    color: var(--vristo-primary, #4F46E5);
     outline: none;
   }
 
   .emp-row-actions__item--danger {
-    color: #b91c1c;
+    color: var(--vristo-danger, #e7515a);
   }
 
   .emp-row-actions__item--danger:hover,
   .emp-row-actions__item--danger:focus {
-    background: #fee2e2;
-    color: #991b1b;
+    background: color-mix(in srgb, var(--vristo-danger, #e7515a) 12%, white);
+    color: var(--vristo-danger, #e7515a);
   }
 
   .emp-row-actions__item ion-icon {
@@ -494,79 +165,34 @@
     font-size: 16px;
   }
 
-  .employee-saas-page .hlv-pagination a,
-  .employee-saas-page .hlv-pagination button {
-    border-radius: 8px;
+  .online--dot{
+    background-color:yellowgreen;
+  }
+  .offline--dot{
+    background-color:rgba(128, 128, 128, 0.482);
   }
 
-  .employee-saas-page .hlv-pagination .active,
-  .employee-saas-page .hlv-pagination [aria-current="page"] {
-    background: var(--theme-primary) !important;
-    border-color: var(--theme-primary) !important;
-    color: #ffffff !important;
+  .hired-True{
+    border-left: 3.4px solid yellowgreen !important;
+    border-radius: 4px 0 0 4px;
   }
 
-  .employee-saas-page .oh-modal__dialog,
-  .employee-saas-page .oh-dropdown__menu {
-    border-radius: 12px;
+  .profile-picture {
+    transition: transform 0.3s;
+    z-index:9999;
   }
 
-  @media (max-width: 1180px) {
-    .employee-saas-page thead th:nth-child(6),
-    .employee-saas-page tbody td:nth-child(6),
-    .employee-saas-page thead th:nth-child(7),
-    .employee-saas-page tbody td:nth-child(7),
-    .employee-saas-page thead th:nth-child(8),
-    .employee-saas-page tbody td:nth-child(8) {
-      display: none;
-    }
+  .profile-picture:hover {
+      transform: scale(2.4);
   }
 
-  @media (max-width: 768px) {
-    .employee-saas-page {
-      padding: 16px;
-    }
-
-    .employee-saas-page .navFilterForm {
-      align-items: stretch;
-      flex-direction: column;
-    }
-
-    .employee-saas-page #employeeListNavBar > div > .flex,
-    .employee-saas-page #employeeListNavBar > div > .flex > .flex {
-      align-items: stretch;
-      flex-direction: column;
-    }
-
-    .employee-saas-page .navFilterForm > * {
-      width: 100%;
-    }
-
-    .employee-saas-page .navFilterForm > .relative:first-of-type,
-    .employee-saas-page .navFilterForm input[name="search"] {
-      min-width: 0;
-      width: 100%;
-    }
-
-    .employee-toolbar-filter {
-      width: 100%;
-    }
-
-    .employee-saas-page .fixed-table {
-      overflow-x: auto;
-    }
-
-    .employee-saas-page table {
-      min-width: 760px;
-    }
+  .custom-swal-container .swal2-styled {
+    display:block;
+    width:70%;
   }
 </style>
 
 <div class="employee-saas-page">
-  <div class="mb-3">
-    <h1 class="text-2xl font-bold text-slate-900 mb-0">{% trans "Employees" %}</h1>
-    <p class="text-sm text-slate-500 mb-0 mt-1">{% trans "Manage your workforce and employment records." %}</p>
-  </div>
   <div id="employeeListNavBar">
   <div hx-get="{% url "employees-nav" %}?{{initial_nav_query|default:request.GET.urlencode}}" hx-trigger="load">
   </div>

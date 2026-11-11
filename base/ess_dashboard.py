@@ -429,8 +429,48 @@ def ess_work_hours_month(request):
         return JsonResponse({"error": "no employee"}, status=403)
 
     from_date, to_date = _parse_period(request)
+    today = date.today()
 
     hours_map = {}
+    check_in_map = {}
+    today_check_in = None
+    today_check_out = None
+
+    def _format_clock(value):
+        if not value:
+            return None
+        try:
+            from base.methods import format_export_value
+
+            formatted = format_export_value(value, employee)
+            if hasattr(formatted, "strftime"):
+                return formatted.strftime("%I:%M %p").lstrip("0")
+            text = str(formatted).strip()
+            # Fallback when company time format did not match a known key.
+            if len(text) >= 5 and text[2] == ":":
+                try:
+                    from datetime import datetime as _dt
+
+                    return (
+                        _dt.strptime(text.split(".")[0], "%H:%M:%S")
+                        .strftime("%I:%M %p")
+                        .lstrip("0")
+                    )
+                except ValueError:
+                    try:
+                        from datetime import datetime as _dt
+
+                        return (
+                            _dt.strptime(text[:5], "%H:%M")
+                            .strftime("%I:%M %p")
+                            .lstrip("0")
+                        )
+                    except ValueError:
+                        return text
+            return text
+        except Exception:
+            return str(value)
+
     try:
         from attendance.models import Attendance
 
@@ -438,9 +478,21 @@ def ess_work_hours_month(request):
             employee_id=employee,
             attendance_date__gte=from_date,
             attendance_date__lte=to_date,
-        ).values("attendance_date", "at_work_second"):
+        ).values(
+            "attendance_date",
+            "at_work_second",
+            "attendance_clock_in",
+            "attendance_clock_out",
+        ):
+            att_date = att["attendance_date"]
             seconds = att["at_work_second"] or 0
-            hours_map[att["attendance_date"].isoformat()] = round(seconds / 3600, 2)
+            hours_map[att_date.isoformat()] = round(seconds / 3600, 2)
+            clock_in = _format_clock(att["attendance_clock_in"])
+            if clock_in:
+                check_in_map[att_date.isoformat()] = clock_in
+            if att_date == today:
+                today_check_in = clock_in
+                today_check_out = _format_clock(att["attendance_clock_out"])
     except Exception:
         pass
 
@@ -448,14 +500,16 @@ def ess_work_hours_month(request):
     total_hours = 0.0
     cur = from_date
     while cur <= to_date:
-        h = hours_map.get(cur.isoformat(), 0.0)
+        iso = cur.isoformat()
+        h = hours_map.get(iso, 0.0)
         total_hours += h
         days.append(
             {
                 "day": cur.day,
                 "date": cur.strftime("%b %d"),
-                "iso_date": cur.isoformat(),
+                "iso_date": iso,
                 "hours": h,
+                "check_in": check_in_map.get(iso),
             }
         )
         cur += timedelta(days=1)
@@ -465,6 +519,8 @@ def ess_work_hours_month(request):
             "days": days,
             "total_hours": round(total_hours, 2),
             "month_label": from_date.strftime("%B %Y"),
+            "today_check_in": today_check_in,
+            "today_check_out": today_check_out,
         }
     )
 

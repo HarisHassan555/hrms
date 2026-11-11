@@ -405,7 +405,20 @@ class LoanFormView(HorillaFormView):
                 message = _("New %(title)s Created Successfully") % {
                     "title": self.new_display_title
                 }
-            form.save()
+            try:
+                form.save()
+            except ValueError as exc:
+                # Defense for schedule overflow / bad installment counts that
+                # slip past clean() (e.g. auto-calc from tiny installment amount).
+                form.add_error(
+                    "installments",
+                    _(
+                        "Unable to build the installment schedule. "
+                        "Check total installments and installment amount."
+                    ),
+                )
+                messages.error(self.request, str(exc))
+                return self.form_invalid(form)
 
             messages.success(self.request, message)
             return self.HttpResponse(

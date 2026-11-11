@@ -260,6 +260,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # Horilla-specific middlewares
     "base.middleware.CompanyMiddleware",
+    "base.middleware.AnalyticsDashboardAccessMiddleware",
     "base.middleware.ForcePasswordChangeMiddleware",
     "base.middleware.TwoFactorAuthMiddleware",
     "accessibility.middlewares.AccessibilityMiddleware",
@@ -413,6 +414,7 @@ TEMPLATES = [
                 "base.context_processors.enable_profile_edit",
                 "base.context_processors.export_access_enabled",
                 "base.context_processors.navbar_languages",
+                "base.context_processors.home_dashboard_navigation",
                 "horilla_tour.context_processors.pending_tours_flag",
                 "horilla_crumbs.context_processors.breadcrumbs",
             ],

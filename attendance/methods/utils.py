@@ -240,6 +240,35 @@ def employee_exists(request):
     return (employee, employee_work_info)
 
 
+def resolve_shift_day(day_name):
+    """
+    Resolve a weekday lookup row for clock-in / attendance saves.
+
+    ``EmployeeShiftDay`` is a calendar weekday (monday…sunday), not tenant
+    content. ``HorillaCompanyManager`` can hide those rows when they were
+    incorrectly M2M-linked to another company, which surfaced as
+    "The requested item could not be found." on check-in. Always resolve via
+    ``entire()`` so company context cannot block punches.
+    """
+    from base.models import EmployeeShiftDay
+
+    if not isinstance(day_name, str):
+        return day_name
+
+    day_name = day_name.lower()
+    day = (
+        EmployeeShiftDay.objects.entire()
+        .filter(day=day_name)
+        .order_by("id")
+        .first()
+    )
+    if day is not None:
+        return day
+
+    day = EmployeeShiftDay.objects.entire().create(day=day_name)
+    return day
+
+
 def shift_schedule_today(day, shift):
     """
     This function is used to find shift schedules for the day,

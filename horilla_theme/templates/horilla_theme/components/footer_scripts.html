@@ -4,6 +4,7 @@
 <script src="{% url 'javascript-catalog' %}"></script>
 
 <script src="{% static 'htmx/htmx.min.js' %}"></script>
+<script src="{% static 'base/global_request_loader.js' %}?v=1"></script>
 <script>
     document.body.addEventListener('htmx:configRequest', (event) => {
       var csrfFromCookie = typeof getCookie === 'function' ? getCookie('csrftoken') : '';

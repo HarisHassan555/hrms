@@ -34,6 +34,16 @@ class DefaultHrmsGroupsTests(TestCase):
                 content_type__app_label="employee", codename="view_ownprofile"
             ).exists()
         )
+        self.assertFalse(
+            group.permissions.filter(
+                content_type__app_label="employee", codename="view_employee"
+            ).exists()
+        )
+        self.assertFalse(
+            group.permissions.filter(
+                content_type__app_label="base", codename="view_company"
+            ).exists()
+        )
 
     def test_super_user_group_replaces_legacy_boss(self):
         Group.objects.create(name="Boss")

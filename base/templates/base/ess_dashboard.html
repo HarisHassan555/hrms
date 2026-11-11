@@ -688,6 +688,10 @@
                             </div>
                             <div class="ess-metric-list" id="essWorkdayMetrics">
                                 <div class="ess-metric-row">
+                                    <span class="ess-metric-row__label">{% trans "Check In" %}</span>
+                                    <span class="ess-metric-row__value">--</span>
+                                </div>
+                                <div class="ess-metric-row">
                                     <span class="ess-metric-row__label">{% trans "Target Hours" %}</span>
                                     <span class="ess-metric-row__value">8h</span>
                                 </div>
@@ -1018,14 +1022,28 @@
                         setText('essMonthLabel', d.month_label || '');
                         var day = (d.days || []).filter(function (x) { return x.iso_date === todayIso(); })[0];
                         var hours = day ? Number(day.hours || 0) : 0;
+                        var checkIn = d.today_check_in || (day && day.check_in) || null;
                         var target = 8;
                         var pct = Math.max(0, Math.min(100, (hours / target) * 100));
                         setText('essTodayHours', formatNumber(hours) + 'h');
-                        setText('essTodayHoursMeta', pct >= 100 ? '{% trans "Target reached today"|escapejs %}' : '{% trans "Recorded hours for today"|escapejs %}');
+                        setText(
+                            'essTodayHoursMeta',
+                            checkIn
+                                ? ('{% trans "Checked in at"|escapejs %} ' + checkIn)
+                                : (pct >= 100
+                                    ? '{% trans "Target reached today"|escapejs %}'
+                                    : '{% trans "Recorded hours for today"|escapejs %}')
+                        );
                         setWidth('essTodayProgress', pct + '%');
                         setText('essWorkHoursTodayValue', formatNumber(hours) + 'h');
-                        setHtml('essWorkHoursTodaySub', '<span class="ess-badge ess-badge--indigo">' + Math.round(pct) + '% {% trans "of target"|escapejs %}</span>');
+                        setHtml(
+                            'essWorkHoursTodaySub',
+                            checkIn
+                                ? ('<span class="ess-badge ess-badge--indigo">{% trans "In"|escapejs %} ' + checkIn + '</span>')
+                                : ('<span class="ess-badge ess-badge--indigo">' + Math.round(pct) + '% {% trans "of target"|escapejs %}</span>')
+                        );
                         setHtml('essWorkdayMetrics',
+                            metricRow('{% trans "Check In"|escapejs %}', checkIn || '—') +
                             metricRow('{% trans "Target Hours"|escapejs %}', target + 'h') +
                             metricRow('{% trans "Month Total"|escapejs %}', formatNumber(d.total_hours || 0) + 'h'));
                     })

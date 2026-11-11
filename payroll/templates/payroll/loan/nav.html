@@ -87,26 +87,42 @@
 <script>
     $(document).ready(function () {
         $("#objectCreateModalTarget").on("htmx:afterSwap", function () {
-            $("[name='installment_amount']").on("change", function () {
-                var loanAmount = $("[name='loan_amount']").val();
-                var installmentAmount = $(this).val();
+            var MAX_INSTALLMENTS = 360;
 
-                var installments = loanAmount / installmentAmount;
-                $("[name='installments']").val(installments);
-                if (Math.round(installments) !== installments) {
-                    installments = Math.round(installments);
-                    $("[name='installments']").val(installments);
-                    $("[name='installments']").trigger("change");
+            $("[name='installment_amount']").on("change", function () {
+                var loanAmount = parseFloat($("[name='loan_amount']").val());
+                var installmentAmount = parseFloat($(this).val());
+
+                if (!loanAmount || !installmentAmount || installmentAmount <= 0) {
+                    return;
                 }
+
+                var installments = Math.round(loanAmount / installmentAmount);
+                if (installments < 1) {
+                    installments = 1;
+                }
+                if (installments > MAX_INSTALLMENTS) {
+                    installments = MAX_INSTALLMENTS;
+                    $(this).val((loanAmount / installments).toFixed(2));
+                }
+                $("[name='installments']").val(installments);
             });
 
             $("[name='installments']").on("change keyup", function () {
-                var loanAmount = $("[name='loan_amount']").val();
-                var installments = $(this).val();
+                var loanAmount = parseFloat($("[name='loan_amount']").val());
+                var installments = parseInt($(this).val(), 10);
 
-                var installmentAmount = loanAmount / installments;
+                if (!loanAmount || !installments || installments <= 0) {
+                    return;
+                }
+                if (installments > MAX_INSTALLMENTS) {
+                    installments = MAX_INSTALLMENTS;
+                    $(this).val(installments);
+                }
 
-                $("[name='installment_amount']").val(installmentAmount);
+                $("[name='installment_amount']").val(
+                    (loanAmount / installments).toFixed(2)
+                );
             });
         });
     });
