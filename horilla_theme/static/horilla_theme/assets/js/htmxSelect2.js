@@ -4025,6 +4025,15 @@ $(document).on("click", "[data-toggle='oh-modal-toggle']", function () {
     if (modalId) {
         $(modalId).addClass("oh-modal--show");
     }
+    // Header menus open on hover and on focus. Blur after choosing an item
+    // so the menu does not stay on top of the modal it just opened.
+    var wrapper = this.closest(".dropdown-wrapper");
+    if (wrapper) {
+        var active = document.activeElement;
+        if (active && wrapper.contains(active)) {
+            active.blur();
+        }
+    }
 });
 
 

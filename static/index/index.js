@@ -1432,11 +1432,23 @@ $(document).on("keydown", function (event) {
     );
 
     if (event.keyCode === 27) {
-        // Key code 27 for Esc in keypad
-        $(".oh-modal--show").removeClass("oh-modal--show");
-        $(".oh-activity-sidebar--show").removeClass(
-            "oh-activity-sidebar--show"
+        // Close only the topmost dialog so a modal opened from another
+        // modal does not dismiss the one underneath.
+        var openModals = Array.prototype.slice.call(
+            document.querySelectorAll(".oh-modal--show")
         );
+        if (openModals.length) {
+            openModals.sort(function (a, b) {
+                var za = parseInt(window.getComputedStyle(a).zIndex, 10) || 0;
+                var zb = parseInt(window.getComputedStyle(b).zIndex, 10) || 0;
+                return za - zb;
+            });
+            openModals[openModals.length - 1].classList.remove("oh-modal--show");
+        } else {
+            $(".oh-activity-sidebar--show").removeClass(
+                "oh-activity-sidebar--show"
+            );
+        }
     }
 
     if (event.keyCode === 46) {
