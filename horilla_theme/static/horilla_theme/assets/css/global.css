@@ -17,7 +17,8 @@
   z-index: 999;
 } */
 
-.dropdown-wrapper:hover .dropdown-content {
+.dropdown-wrapper:hover .dropdown-content,
+.dropdown-wrapper:focus-within .dropdown-content {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
