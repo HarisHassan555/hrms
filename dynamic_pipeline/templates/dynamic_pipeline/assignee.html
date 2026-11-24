@@ -1,0 +1,22 @@
+{% load i18n %}
+<div class="dp-assignee">
+    <input type="hidden" name="assignee_step" value="{{ index }}">
+    <select name="assignee_kind" aria-label="{% trans 'Approver type' %}">
+        <option value="reporting_manager" {% if not assignee or assignee.kind == "reporting_manager" %}selected{% endif %}>{% trans "Requester's manager" %}</option>
+        <option value="employee" {% if assignee and assignee.kind == "employee" %}selected{% endif %}>{% trans "Employee" %}</option>
+        <option value="role" {% if assignee and assignee.kind == "role" %}selected{% endif %}>{% trans "Role" %}</option>
+    </select>
+    <select name="assignee_employee" aria-label="{% trans 'Employee' %}">
+        <option value="">{% trans "Employee" %}</option>
+        {% for employee in employees %}
+            <option value="{{ employee.pk }}" {% if assignee and assignee.employee_id == employee.pk %}selected{% endif %}>{{ employee }}</option>
+        {% endfor %}
+    </select>
+    <select name="assignee_role" aria-label="{% trans 'Role' %}">
+        <option value="">{% trans "Role" %}</option>
+        {% for role in roles %}
+            <option value="{{ role.pk }}" {% if assignee and assignee.role_id == role.pk %}selected{% endif %}>{{ role.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="button" class="dp-btn dp-btn-secondary" data-remove-assignee style="height: 42px;">{% trans "Remove" %}</button>
+</div>

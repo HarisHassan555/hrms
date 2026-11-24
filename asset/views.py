@@ -57,6 +57,12 @@ from asset.models import (
     AssetServiceRequestNote,
     ReturnImages,
 )
+from dynamic_pipeline.gating import record_for_domain
+from dynamic_pipeline.services import (
+    approval_would_finish,
+    pending_run,
+    user_can_act,
+)
 from base.methods import (
     closest_numbers,
     eval_validate,
@@ -759,6 +765,26 @@ def asset_request_approve(request, req_id):
         messages.error(request, _("Asset request does not exist."))
         return HttpResponse(error_response)
 
+    pipeline_run = pending_run("asset_request", asset_request)
+    if pipeline_run is not None:
+        if not user_can_act(pipeline_run, request.user):
+            messages.error(request, _("You cannot act on the current approval step."))
+            return HorillaRedirect(request)
+        if not approval_would_finish(pipeline_run, request.user):
+            if request.method == "POST":
+                held = record_for_domain(
+                    request, "asset_request", asset_request, "approved"
+                )
+                if held is not None:
+                    return held
+            messages.info(
+                request,
+                _(
+                    "Approve this step from My approvals. The asset is allocated on the final step."
+                ),
+            )
+            return redirect("pipeline-approvals")
+
     assets = Asset.available_assets().filter(
         asset_category_id=asset_request.asset_category_id
     )
@@ -769,6 +795,12 @@ def asset_request_approve(request, req_id):
 
         form = AssetAllocationForm(post_data, request.FILES)
         if form.is_valid():
+            if pipeline_run is not None:
+                finished = record_for_domain(
+                    request, "asset_request", asset_request, "approved"
+                )
+                if finished is not None:
+                    return finished
             try:
                 asset = form.cleaned_data["asset_id"]
                 allocation = form.save(commit=False)
@@ -866,6 +898,10 @@ def asset_request_reject(request, req_id):
     except AssetRequest.DoesNotExist:
         messages.error(request, _("Asset request not found."))
         return HorillaRedirect(request)
+
+    held = record_for_domain(request, "asset_request", asset_request, "rejected")
+    if held is not None:
+        return held
 
     asset_request.asset_request_status = "Rejected"
     asset_request.save()

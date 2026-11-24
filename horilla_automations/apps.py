@@ -29,6 +29,7 @@ class HorillaAutomationConfig(AppConfig):
             for cmd in [
                 "makemigrations",
                 "migrate",
+                "test",
                 "compilemessages",
                 "flush",
                 "shell",

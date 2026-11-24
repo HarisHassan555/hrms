@@ -1,0 +1,30 @@
+{% load i18n %}
+<div class="dp-step">
+    <div class="dp-step-head">
+        <strong>{% trans "Step" %} <span class="dp-step-number">{{ index|add:1 }}</span></strong>
+        <button type="button" class="dp-btn dp-btn-secondary" data-remove-step style="height: 32px;">{% trans "Remove step" %}</button>
+    </div>
+    <div class="dp-grid">
+        <div class="dp-field">
+            <label>{% trans "Step name" %}</label>
+            <input name="step_name" maxlength="120" value="{% if step %}{{ step.name }}{% endif %}" placeholder="{% trans 'For example, Manager review' %}">
+        </div>
+        <div class="dp-field">
+            <label>{% trans "Who must approve" %}</label>
+            <select name="step_mode">
+                <option value="or" {% if not step or step.mode == "or" %}selected{% endif %}>{% trans "Any one (OR)" %}</option>
+                <option value="and" {% if step and step.mode == "and" %}selected{% endif %}>{% trans "Everyone (AND)" %}</option>
+            </select>
+        </div>
+    </div>
+    <div class="dp-assignees">
+        {% if step %}
+            {% for assignee in step.assignees.all %}
+                {% include "dynamic_pipeline/assignee.html" with index=index assignee=assignee %}
+            {% endfor %}
+        {% else %}
+            {% include "dynamic_pipeline/assignee.html" with index=index assignee=None %}
+        {% endif %}
+    </div>
+    <button type="button" class="dp-btn dp-btn-secondary" data-add-assignee style="height: 32px; margin-top: 8px;">{% trans "Add approver" %}</button>
+</div>

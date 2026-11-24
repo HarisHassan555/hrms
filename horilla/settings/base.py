@@ -148,6 +148,7 @@ INSTALLED_APPS = [
     "horilla_ldap",
     "horilla_dbtemplate",
     "horilla_tour",
+    "dynamic_pipeline",
     "lms.apps.LmsConfig",
     # Must be last: applies DB_TABLE_PREFIX after all models are imported.
     "horilla.apps.HorillaConfig",
@@ -527,6 +528,7 @@ SIDEBARS = [
     "asset",
     "helpdesk",
     "report",
+    "dynamic_pipeline",
 ]
 
 # Audit logging is opt-in: the horilla_audit app registers models explicitly
