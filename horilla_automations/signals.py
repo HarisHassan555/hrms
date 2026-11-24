@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from django import template
 from django.core.mail import EmailMessage
 from django.db import models, transaction
+from django.db.utils import DatabaseError
 from django.db.models.query import QuerySet
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
@@ -64,8 +65,14 @@ def start_automation():
         """
         signal method to handle automation post save
         """
-        start_connection()
-        track_previous_instance()
+        try:
+            start_connection()
+            track_previous_instance()
+        except DatabaseError:
+            # Raised while migrations are still creating tables. Swallowing
+            # it is not enough inside an open transaction, so callers that
+            # run migrate or test also skip connecting this signal.
+            return
 
     def clear_connection():
         """
@@ -134,7 +141,12 @@ def start_automation():
         Method to start signal connection accordingly to the automation
         """
         clear_connection()
-        automations = MailAutomation.objects.filter(is_active=True)
+        try:
+            automations = list(MailAutomation.objects.filter(is_active=True))
+        except DatabaseError:
+            # A mail-template save during migrate/test setup can fire this
+            # before the automations table exists.
+            return
         for automation in automations:
 
             condition_querystring = automation.condition_querystring.replace(
