@@ -1,0 +1,122 @@
+{% extends "dynamic_pipeline/shell.html" %}
+{% load i18n %}
+
+{% block pipeline_body %}
+<div class="dp-header">
+    <div>
+        <h1>{% trans "Pipeline" %}: {{ process.name }}</h1>
+        <p>{{ process.description }}</p>
+    </div>
+    <a class="dp-btn dp-btn-secondary" href="{% url 'pipeline-list' %}{% if company %}?company={{ company.pk }}{% endif %}">{% trans "Back" %}</a>
+</div>
+
+<form method="post" id="pipeline-form">
+    {% csrf_token %}
+    <div class="dp-card">
+        <div class="dp-grid">
+            <div class="dp-field">
+                <label for="company">{% trans "Company" %} *</label>
+                {% if company %}
+                    <input type="hidden" name="company" value="{{ company.pk }}">
+                    <input id="company" value="{{ company }}" disabled>
+                {% else %}
+                    <select id="company" name="company" required>
+                        <option value="">{% trans "Select a company" %}</option>
+                        {% for item in companies %}
+                            <option value="{{ item.pk }}">{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
+            <div class="dp-field">
+                <label for="name">{% trans "Pipeline name" %}</label>
+                <input id="name" name="name" maxlength="120" value="{% if pipeline %}{{ pipeline.name }}{% else %}{{ process.name }}{% endif %}">
+            </div>
+        </div>
+        <p class="dp-muted">{% trans "AND means every approver on that step must approve. OR means any one of them can send it to the next step. A role lets anyone who holds that role approve. Requester's manager follows the reporting line: A's request goes to B, and B's request goes to C." %}</p>
+    </div>
+
+    <div id="steps">
+        {% if steps %}
+            {% for step in steps %}
+                {% include "dynamic_pipeline/step.html" with index=forloop.counter0 step=step %}
+            {% endfor %}
+        {% else %}
+            {% include "dynamic_pipeline/step.html" with index=0 step=None %}
+        {% endif %}
+    </div>
+
+    <div class="dp-actions" style="margin-bottom: 16px;">
+        <button type="button" class="dp-btn dp-btn-secondary" id="add-step">{% trans "Add step" %}</button>
+        <button type="submit" class="dp-btn">{% trans "Save pipeline" %}</button>
+    </div>
+</form>
+
+{% if pipeline and company %}
+<form method="post" action="{% url 'pipeline-clear' process.code %}?company={{ company.pk }}" onsubmit="return confirm('{% trans "Remove this pipeline? New requests will use the original approval flow." %}');">
+    {% csrf_token %}
+    <input type="hidden" name="company" value="{{ company.pk }}">
+    <button type="submit" class="dp-btn dp-btn-danger">{% trans "Remove pipeline" %}</button>
+</form>
+{% endif %}
+
+<template id="step-template">
+    {% include "dynamic_pipeline/step.html" with index="__INDEX__" step=None %}
+</template>
+
+<script>
+(function () {
+    var maxSteps = {{ max_steps }};
+    var container = document.getElementById("steps");
+    var addButton = document.getElementById("add-step");
+    function reindex() {
+        var steps = container.querySelectorAll(".dp-step");
+        steps.forEach(function (step, index) {
+            step.querySelector(".dp-step-number").textContent = index + 1;
+            step.querySelectorAll("[name='assignee_step']").forEach(function (input) {
+                input.value = String(index);
+            });
+        });
+        addButton.disabled = steps.length >= maxSteps;
+    }
+    addButton.addEventListener("click", function () {
+        if (container.querySelectorAll(".dp-step").length >= maxSteps) {
+            return;
+        }
+        var html = document.getElementById("step-template").innerHTML.replaceAll("__INDEX__", String(container.querySelectorAll(".dp-step").length));
+        container.insertAdjacentHTML("beforeend", html);
+        reindex();
+    });
+    container.addEventListener("click", function (event) {
+        var removeStep = event.target.closest("[data-remove-step]");
+        if (removeStep) {
+            var steps = container.querySelectorAll(".dp-step");
+            if (steps.length === 1) {
+                return;
+            }
+            removeStep.closest(".dp-step").remove();
+            reindex();
+            return;
+        }
+        var removeAssignee = event.target.closest("[data-remove-assignee]");
+        if (removeAssignee) {
+            var row = removeAssignee.closest(".dp-assignee");
+            var list = row.parentElement;
+            if (list.querySelectorAll(".dp-assignee").length === 1) {
+                return;
+            }
+            row.remove();
+        }
+        var addAssignee = event.target.closest("[data-add-assignee]");
+        if (addAssignee) {
+            var step = addAssignee.closest(".dp-step");
+            var assignees = step.querySelector(".dp-assignees");
+            var clone = assignees.querySelector(".dp-assignee").cloneNode(true);
+            clone.querySelectorAll("select").forEach(function (select) { select.selectedIndex = 0; });
+            assignees.appendChild(clone);
+        }
+    });
+    reindex();
+})();
+</script>
+{% endblock %}

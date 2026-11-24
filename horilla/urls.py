@@ -160,6 +160,7 @@ urlpatterns = [
     path("", include("horilla_audit.urls")),
     path("", include("horilla_tour.urls")),
     path("employee/", include("employee.urls")),
+    path("pipeline/", include("dynamic_pipeline.urls")),
     path("learning/", include("lms.urls")),
     path("widgets/", include("horilla_widgets.urls")),
     re_path(

@@ -29,6 +29,7 @@ from django.views.decorators.http import require_http_methods
 from xhtml2pdf import pisa
 
 from base.filters import PenaltyFilter
+from dynamic_pipeline.gating import record_for_domain
 from base.forms import PenaltyAccountForm
 from base.methods import (
     check_manager,
@@ -1075,6 +1076,11 @@ def leave_request_approve(request, id, emp_id=None):
                 employee_id = emp_id
                 return redirect(f"/employee/employee-view/{employee_id}/")
             return HorillaRedirect(request)
+    pipeline_response = record_for_domain(
+        request, "leave_request", leave_request, "approved"
+    )
+    if pipeline_response is not None:
+        return pipeline_response
     leave_type_id = leave_request.leave_type_id
     try:
         available_leave = AvailableLeave.objects.get(
@@ -1314,6 +1320,15 @@ def leave_request_cancel(request, id, emp_id=None):
     if request.method == "POST":
         form = RejectForm(request.POST)
         if form.is_valid():
+            pipeline_response = record_for_domain(
+                request,
+                "leave_request",
+                leave_request,
+                "rejected",
+                request.POST.get("reason", ""),
+            )
+            if pipeline_response is not None:
+                return pipeline_response
             employee_id = leave_request.employee_id
             leave_type_id = leave_request.leave_type_id
             available_leave = AvailableLeave.objects.get(

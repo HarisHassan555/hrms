@@ -1,0 +1,62 @@
+{% extends "dynamic_pipeline/shell.html" %}
+{% load i18n %}
+
+{% block pipeline_body %}
+<div class="dp-header">
+    <div>
+        <h1>{% trans "My approvals" %}</h1>
+        <p>{% trans "Requests waiting on you. A role step can be approved by anyone who holds that role. A manager step is the requester's reporting manager." %}</p>
+    </div>
+</div>
+
+{% if cards %}
+    {% for card in cards %}
+        <article class="dp-card">
+            <div class="dp-row" style="border-bottom: 0; padding-top: 0;">
+                <div>
+                    <h2>{{ card.run.process.name }}</h2>
+                    <p class="dp-muted">
+                        {% blocktrans with name=card.run.requester company=card.run.company %}{{ name }} · {{ company }}{% endblocktrans %}
+                    </p>
+                    <p class="dp-muted">{% blocktrans with step=card.run.current_sequence %}Current step {{ step }}{% endblocktrans %}</p>
+                    <div style="margin-top: 8px;">
+                        {% for slot in card.slots %}
+                            <span class="dp-badge {% if slot.status == 'pending' %}dp-badge-wait{% else %}dp-badge-ok{% endif %}">
+                                {{ slot.label }} · {{ slot.get_status_display }}
+                                {% if slot.mode == "and" %}· {% trans "AND" %}{% else %}· {% trans "OR" %}{% endif %}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <form method="post" action="{% url 'pipeline-decide' card.run.pk %}">
+                {% csrf_token %}
+                <div class="dp-field">
+                    <label for="comment-{{ card.run.pk }}">{% trans "Comment" %}</label>
+                    <input id="comment-{{ card.run.pk }}" name="comment" maxlength="255">
+                </div>
+                <div class="dp-actions">
+                    <button type="submit" name="decision" value="approved" class="dp-btn">
+                        {% if card.run.process.code == "asset_request" and card.would_finish %}
+                            {% trans "Continue to allocate" %}
+                        {% else %}
+                            {% trans "Approve" %}
+                        {% endif %}
+                    </button>
+                    <button type="submit" name="decision" value="rejected" class="dp-btn dp-btn-danger">{% trans "Reject" %}</button>
+                    {% if card.target_url %}
+                        <a class="dp-btn dp-btn-secondary" href="{{ card.target_url }}">{% trans "Open request" %}</a>
+                    {% endif %}
+                </div>
+            </form>
+        </article>
+    {% endfor %}
+{% else %}
+    <div class="dp-card">
+        <div class="dp-empty">
+            <h2>{% trans "No approvals waiting" %}</h2>
+            <p>{% trans "When a request reaches your step, it shows up here." %}</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

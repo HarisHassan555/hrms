@@ -1,0 +1,154 @@
+{% extends "index.html" %}
+{% load i18n %}
+
+{% block styles %}
+<style>
+    .dp-page {
+        background: #F8FAFC;
+        margin: -24px;
+        padding: 24px 32px 48px;
+        min-height: calc(100vh - 64px);
+        color: #0F172A;
+        font-size: 14px;
+    }
+    .dp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .dp-header h1 {
+        font-size: 24px;
+        line-height: 32px;
+        font-weight: 700;
+        margin: 0;
+    }
+    .dp-header p {
+        margin: 6px 0 0;
+        color: #475569;
+        max-width: 640px;
+    }
+    .dp-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    .dp-card h2 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 4px;
+    }
+    .dp-muted { color: #64748B; font-size: 13px; }
+    .dp-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+    .dp-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .dp-row:first-child { padding-top: 0; }
+    .dp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .dp-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        padding: 0 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        text-decoration: none;
+        cursor: pointer;
+        background: #4F46E5;
+        color: #FFFFFF;
+    }
+    .dp-btn:hover { background: #4338CA; color: #FFFFFF; text-decoration: none; }
+    .dp-btn-secondary {
+        background: #FFFFFF;
+        color: #334155;
+        border-color: #CBD5E1;
+    }
+    .dp-btn-secondary:hover { background: #F8FAFC; color: #334155; }
+    .dp-btn-danger {
+        background: #FFFFFF;
+        color: #B91C1C;
+        border-color: #FECACA;
+    }
+    .dp-btn-danger:hover { background: #FEF2F2; color: #B91C1C; }
+    .dp-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #F1F5F9;
+        color: #64748B;
+        border: 1px solid #E2E8F0;
+    }
+    .dp-badge-ok { background: #DCFCE7; color: #15803D; border-color: #BBF7D0; }
+    .dp-badge-wait { background: #FEF3C7; color: #B45309; border-color: #FDE68A; }
+    .dp-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .dp-field label { font-size: 13px; font-weight: 600; color: #334155; }
+    .dp-field input, .dp-field select, .dp-input, .dp-select {
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid #CBD5E1;
+        border-radius: 8px;
+        background: #FFFFFF;
+        font-size: 14px;
+        color: #0F172A;
+        width: 100%;
+    }
+    .dp-field input:focus, .dp-field select:focus, .dp-input:focus, .dp-select:focus {
+        border-color: #6366F1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        outline: none;
+    }
+    .dp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .dp-step {
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        background: #FFFFFF;
+    }
+    .dp-step-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .dp-assignee {
+        display: grid;
+        grid-template-columns: 180px 1fr 1fr auto;
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: center;
+    }
+    .dp-empty {
+        text-align: center;
+        padding: 32px 16px;
+        color: #475569;
+    }
+    .dp-empty h2 { font-size: 18px; font-weight: 600; color: #0F172A; }
+    @media (max-width: 800px) {
+        .dp-page { padding: 16px; }
+        .dp-header, .dp-row, .dp-grid, .dp-assignee { display: block; }
+        .dp-assignee select, .dp-assignee input { margin-bottom: 8px; }
+        .dp-btn { width: 100%; margin-bottom: 8px; }
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="dp-page">
+    {% block pipeline_body %}{% endblock %}
+</div>
+{% endblock content %}

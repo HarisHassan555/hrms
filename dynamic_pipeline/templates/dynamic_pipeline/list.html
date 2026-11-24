@@ -1,0 +1,53 @@
+{% extends "dynamic_pipeline/shell.html" %}
+{% load i18n %}
+
+{% block pipeline_body %}
+<div class="dp-header">
+    <div>
+        <h1>{% trans "Approval pipelines" %}</h1>
+        <p>{% trans "Choose how each request is approved. A pipeline can have up to 10 steps. Until you save one, that request keeps its original manager or HR approval." %}</p>
+    </div>
+</div>
+
+<div class="dp-card">
+    <form method="get" class="dp-field" style="margin-bottom: 0;">
+        <label for="company">{% trans "Company" %}</label>
+        <select id="company" name="company" class="dp-select" onchange="this.form.submit()">
+            <option value="">{% trans "All companies" %}</option>
+            {% for item in companies %}
+                <option value="{{ item.pk }}" {% if company and company.pk == item.pk %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<div class="dp-card">
+    {% for row in rows %}
+        <div class="dp-row">
+            <div>
+                <h2>{{ row.process.name }}</h2>
+                <p class="dp-muted">{{ row.process.description }}</p>
+                <div style="margin-top: 8px;">
+                    {% if row.pipelines %}
+                        {% for pipeline in row.pipelines %}
+                            <span class="dp-badge dp-badge-ok">
+                                {{ pipeline.company }} · {{ pipeline.steps.count }} {% trans "steps" %}
+                            </span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="dp-badge">{% trans "Original approval" %}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="dp-actions">
+                <a class="dp-btn" href="{% url 'pipeline-edit' row.process.code %}{% if company %}?company={{ company.pk }}{% endif %}">{% trans "Edit pipeline" %}</a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="dp-empty">
+            <h2>{% trans "No processes yet" %}</h2>
+            <p>{% trans "Request types appear here after the catalog is loaded." %}</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
